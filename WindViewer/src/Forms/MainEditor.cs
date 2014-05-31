@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -8,6 +9,7 @@ using FolderSelect;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using WindViewer.Editor;
+using WindViewer.FileFormats;
 
 namespace WindViewer.Forms
 {
@@ -290,14 +292,20 @@ namespace WindViewer.Forms
                 throw new Exception(
                     "Tried to load second WorldspaceProject. Unloading of the first one isn't implemented yet!");
             }
+            toolStripStatusLabel1.Text = "Loading Worlspace Project...";
+            saveAllToolStripMenuItem.Enabled = true;
 
             _loadedWorldspaceProject = new WorldspaceProject();
             _loadedWorldspaceProject.LoadFromDirectory(workDir);
-            saveAllToolStripMenuItem.Enabled = true;
+            
 
             //_mruMenu.AddFile(_loadedWorldspaceProject.ProjectFilePath);
 
+            toolStripStatusLabel1.Text = "Updating Entity Treeview...";
+            Stopwatch timer = Stopwatch.StartNew();
             UpdateEntityTreeview();
+            Console.WriteLine("Updating ETV took: " + timer.Elapsed);
+            toolStripStatusLabel1.Text = "Completed.";
         }
 
         /// <summary>
@@ -341,51 +349,34 @@ namespace WindViewer.Forms
         private void UpdateEntityTreeview()
         {
             EntityTreeview.SuspendLayout();
+            EntityTreeview.BeginUpdate();
             EntityTreeview.Nodes.Clear();
 
-            /*foreach (WorldspaceProject project in _loadedWorldspaceProjects)
+            if (_loadedWorldspaceProject == null)
             {
-                foreach (ZArchive archive in project.GetAllArchives())
+                EntityTreeview.ResumeLayout();
+                return;
+            }
+
+            foreach (ZArchive archive in _loadedWorldspaceProject.GetAllArchives())
+            {
+                foreach (var  kvPair in archive.GetFileByType<WindWakerEntityData>().GetAllChunks())
                 {
-                    foreach (KeyValuePair<Type, List<IChunkType>> pair in archive.GetFileByType<ZeldaData>().GetData())
+                    //This is the top-level grouping, ie: "Doors". We don't know the name yet though.
+                    TreeNode topLevelNode = EntityTreeview.Nodes.Add("ChunkHeader");
+                    int i = 0;
+
+                    foreach (var chunk in kvPair.Value)
                     {
-                        //This is the top-level grouping, ie: "Doors". We just don't know the name yet.
-                        TreeNode topLevelNode = EntityTreeview.Nodes.Add("ChunkHeader");
-                        int i = 0;
-                        foreach (IChunkType chunk in pair.Value)
-                        {
-                            ChunkName chunkAttrib =
-                                (ChunkName)chunk.GetType().GetCustomAttributes(typeof(ChunkName), false)[0];
+                        topLevelNode.Text = "[" + chunk.ChunkName.ToUpper() + "] " + chunk.ChunkDescription;
 
-                            //Name the topLevelNode for easy display.
-                            topLevelNode.Text = "[" + chunkAttrib.OriginalName.ToUpper() + "] " + chunkAttrib.HumanName;
-
-                            string displayName = string.Empty;
-                            //Now generate the name for our current node. If it doesn't have a DisplayName attribute then we'll just
-                            //use an index, otherwise we'll use the display name + index.
-                            foreach (var field in chunk.GetType().GetFields())
-                            {
-                                DisplayName dispNameAttribute =
-                                    (DisplayName)Attribute.GetCustomAttribute(field, typeof(DisplayName));
-                                if (dispNameAttribute != null)
-                                {
-                                    displayName = (string)field.GetValue(chunk);
-
-                                }
-                            }
-
-                            if (displayName == string.Empty)
-                            {
-                                displayName = chunkAttrib.HumanName;
-                            }
-
-                            topLevelNode.Nodes.Add("[" + i + "] " + displayName);
-                            i++;
-                        }
+                        topLevelNode.Nodes.Add("[" + i + "] ");
+                        i++;
                     }
                 }
-            }*/
+            }
 
+            EntityTreeview.EndUpdate();
             EntityTreeview.ResumeLayout();
         }
     }

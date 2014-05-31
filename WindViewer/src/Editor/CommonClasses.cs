@@ -49,7 +49,7 @@ namespace WindViewer.Editor
 
         public HalfRotationSingle(byte[] data, int srcOffset)
         {
-            Value = Helpers.Read16(data, srcOffset);
+            Value = (ushort)FSHelpers.Read16(data, srcOffset);
         }
 
         public float ToDegrees()

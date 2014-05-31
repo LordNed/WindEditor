@@ -245,11 +245,11 @@ namespace WindViewer.Editor
                                 //Apparently Nintendo likes to mis-categorize files sometimes and put the wrong
                                 //file format inside the wrong folder! We'll name-check dzr and dzs before loading
                                 //them as they have fixed names (Room.*)
-                                /*if (filePath.EndsWith(".dzr") || filePath.EndsWith(".dzs"))
-                                    file = new ZeldaData();
+                                if (filePath.EndsWith(".dzr") || filePath.EndsWith(".dzs"))
+                                    file = new WindWakerEntityData();
                                 else
-                                    file = new GenericData();
-                                break;*/
+                                    file = new GenericArchiveData();
+                                break;
 
                             default:
                                 Console.WriteLine("Unknown folder " + folder +

@@ -28,32 +28,32 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.TreeNode treeNode106 = new System.Windows.Forms.TreeNode("[SCOOB] Scaleable Objects");
-            System.Windows.Forms.TreeNode treeNode107 = new System.Windows.Forms.TreeNode("[0] LinkRM");
-            System.Windows.Forms.TreeNode treeNode108 = new System.Windows.Forms.TreeNode("[SCLS] Exits", new System.Windows.Forms.TreeNode[] {
-            treeNode107});
-            System.Windows.Forms.TreeNode treeNode109 = new System.Windows.Forms.TreeNode("[0] KNOB00D");
-            System.Windows.Forms.TreeNode treeNode110 = new System.Windows.Forms.TreeNode("[TGDR] Door", new System.Windows.Forms.TreeNode[] {
-            treeNode109});
-            System.Windows.Forms.TreeNode treeNode111 = new System.Windows.Forms.TreeNode("model.bdl");
-            System.Windows.Forms.TreeNode treeNode112 = new System.Windows.Forms.TreeNode("model1.bdl");
-            System.Windows.Forms.TreeNode treeNode113 = new System.Windows.Forms.TreeNode("model3.bdl");
-            System.Windows.Forms.TreeNode treeNode114 = new System.Windows.Forms.TreeNode("bdl", new System.Windows.Forms.TreeNode[] {
-            treeNode111,
-            treeNode112,
-            treeNode113});
-            System.Windows.Forms.TreeNode treeNode115 = new System.Windows.Forms.TreeNode("model1.btk");
-            System.Windows.Forms.TreeNode treeNode116 = new System.Windows.Forms.TreeNode("btk", new System.Windows.Forms.TreeNode[] {
-            treeNode115});
-            System.Windows.Forms.TreeNode treeNode117 = new System.Windows.Forms.TreeNode("room.dzb");
-            System.Windows.Forms.TreeNode treeNode118 = new System.Windows.Forms.TreeNode("dzb", new System.Windows.Forms.TreeNode[] {
-            treeNode117});
-            System.Windows.Forms.TreeNode treeNode119 = new System.Windows.Forms.TreeNode("Room44", new System.Windows.Forms.TreeNode[] {
-            treeNode114,
-            treeNode116,
-            treeNode118});
-            System.Windows.Forms.TreeNode treeNode120 = new System.Windows.Forms.TreeNode("Outset", new System.Windows.Forms.TreeNode[] {
-            treeNode119});
+            System.Windows.Forms.TreeNode treeNode166 = new System.Windows.Forms.TreeNode("[SCOOB] Scaleable Objects");
+            System.Windows.Forms.TreeNode treeNode167 = new System.Windows.Forms.TreeNode("[0] LinkRM");
+            System.Windows.Forms.TreeNode treeNode168 = new System.Windows.Forms.TreeNode("[SCLS] Exits", new System.Windows.Forms.TreeNode[] {
+            treeNode167});
+            System.Windows.Forms.TreeNode treeNode169 = new System.Windows.Forms.TreeNode("[0] KNOB00D");
+            System.Windows.Forms.TreeNode treeNode170 = new System.Windows.Forms.TreeNode("[TGDR] Door", new System.Windows.Forms.TreeNode[] {
+            treeNode169});
+            System.Windows.Forms.TreeNode treeNode171 = new System.Windows.Forms.TreeNode("model.bdl");
+            System.Windows.Forms.TreeNode treeNode172 = new System.Windows.Forms.TreeNode("model1.bdl");
+            System.Windows.Forms.TreeNode treeNode173 = new System.Windows.Forms.TreeNode("model3.bdl");
+            System.Windows.Forms.TreeNode treeNode174 = new System.Windows.Forms.TreeNode("bdl", new System.Windows.Forms.TreeNode[] {
+            treeNode171,
+            treeNode172,
+            treeNode173});
+            System.Windows.Forms.TreeNode treeNode175 = new System.Windows.Forms.TreeNode("model1.btk");
+            System.Windows.Forms.TreeNode treeNode176 = new System.Windows.Forms.TreeNode("btk", new System.Windows.Forms.TreeNode[] {
+            treeNode175});
+            System.Windows.Forms.TreeNode treeNode177 = new System.Windows.Forms.TreeNode("room.dzb");
+            System.Windows.Forms.TreeNode treeNode178 = new System.Windows.Forms.TreeNode("dzb", new System.Windows.Forms.TreeNode[] {
+            treeNode177});
+            System.Windows.Forms.TreeNode treeNode179 = new System.Windows.Forms.TreeNode("Room44", new System.Windows.Forms.TreeNode[] {
+            treeNode174,
+            treeNode176,
+            treeNode178});
+            System.Windows.Forms.TreeNode treeNode180 = new System.Windows.Forms.TreeNode("Outset", new System.Windows.Forms.TreeNode[] {
+            treeNode179});
             this.glControl = new OpenTK.GLControl();
             this.MainSplitter = new System.Windows.Forms.SplitContainer();
             this.leftColumGameSplit = new System.Windows.Forms.SplitContainer();
@@ -81,6 +81,7 @@
             this.saveAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             ((System.ComponentModel.ISupportInitialize)(this.MainSplitter)).BeginInit();
             this.MainSplitter.Panel1.SuspendLayout();
             this.MainSplitter.Panel2.SuspendLayout();
@@ -101,6 +102,7 @@
             this.PropertiesLayerSplit.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.panel1.SuspendLayout();
+            this.statusStrip1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.mainArea.SuspendLayout();
             this.SuspendLayout();
@@ -197,20 +199,20 @@
             this.EntityTreeview.Dock = System.Windows.Forms.DockStyle.Fill;
             this.EntityTreeview.Location = new System.Drawing.Point(3, 16);
             this.EntityTreeview.Name = "EntityTreeview";
-            treeNode106.Name = "Node0";
-            treeNode106.Text = "[SCOOB] Scaleable Objects";
-            treeNode107.Name = "Node4";
-            treeNode107.Text = "[0] LinkRM";
-            treeNode108.Name = "Node1";
-            treeNode108.Text = "[SCLS] Exits";
-            treeNode109.Name = "Node3";
-            treeNode109.Text = "[0] KNOB00D";
-            treeNode110.Name = "Node2";
-            treeNode110.Text = "[TGDR] Door";
+            treeNode166.Name = "Node0";
+            treeNode166.Text = "[SCOOB] Scaleable Objects";
+            treeNode167.Name = "Node4";
+            treeNode167.Text = "[0] LinkRM";
+            treeNode168.Name = "Node1";
+            treeNode168.Text = "[SCLS] Exits";
+            treeNode169.Name = "Node3";
+            treeNode169.Text = "[0] KNOB00D";
+            treeNode170.Name = "Node2";
+            treeNode170.Text = "[TGDR] Door";
             this.EntityTreeview.Nodes.AddRange(new System.Windows.Forms.TreeNode[] {
-            treeNode106,
-            treeNode108,
-            treeNode110});
+            treeNode166,
+            treeNode168,
+            treeNode170});
             this.EntityTreeview.Size = new System.Drawing.Size(207, 287);
             this.EntityTreeview.TabIndex = 0;
             // 
@@ -230,28 +232,28 @@
             this.treeView2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.treeView2.Location = new System.Drawing.Point(3, 16);
             this.treeView2.Name = "treeView2";
-            treeNode111.Name = "Node3";
-            treeNode111.Text = "model.bdl";
-            treeNode112.Name = "Node4";
-            treeNode112.Text = "model1.bdl";
-            treeNode113.Name = "Node5";
-            treeNode113.Text = "model3.bdl";
-            treeNode114.Name = "Node2";
-            treeNode114.Text = "bdl";
-            treeNode115.Name = "Node7";
-            treeNode115.Text = "model1.btk";
-            treeNode116.Name = "Node6";
-            treeNode116.Text = "btk";
-            treeNode117.Name = "Node9";
-            treeNode117.Text = "room.dzb";
-            treeNode118.Name = "Node8";
-            treeNode118.Text = "dzb";
-            treeNode119.Name = "Node1";
-            treeNode119.Text = "Room44";
-            treeNode120.Name = "Node0";
-            treeNode120.Text = "Outset";
+            treeNode171.Name = "Node3";
+            treeNode171.Text = "model.bdl";
+            treeNode172.Name = "Node4";
+            treeNode172.Text = "model1.bdl";
+            treeNode173.Name = "Node5";
+            treeNode173.Text = "model3.bdl";
+            treeNode174.Name = "Node2";
+            treeNode174.Text = "bdl";
+            treeNode175.Name = "Node7";
+            treeNode175.Text = "model1.btk";
+            treeNode176.Name = "Node6";
+            treeNode176.Text = "btk";
+            treeNode177.Name = "Node9";
+            treeNode177.Text = "room.dzb";
+            treeNode178.Name = "Node8";
+            treeNode178.Text = "dzb";
+            treeNode179.Name = "Node1";
+            treeNode179.Text = "Room44";
+            treeNode180.Name = "Node0";
+            treeNode180.Text = "Outset";
             this.treeView2.Nodes.AddRange(new System.Windows.Forms.TreeNode[] {
-            treeNode120});
+            treeNode180});
             this.treeView2.Size = new System.Drawing.Size(207, 303);
             this.treeView2.TabIndex = 0;
             // 
@@ -358,6 +360,8 @@
             // 
             // statusStrip1
             // 
+            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripStatusLabel1});
             this.statusStrip1.Location = new System.Drawing.Point(0, 658);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(1409, 22);
@@ -450,6 +454,12 @@
             this.exitToolStripMenuItem.Text = "&Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
+            // toolStripStatusLabel1
+            // 
+            this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
+            this.toolStripStatusLabel1.Size = new System.Drawing.Size(281, 17);
+            this.toolStripStatusLabel1.Text = "Load a project via File->Open  from Worldspace Dir!";
+            // 
             // MainEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -483,6 +493,8 @@
             this.groupBox1.ResumeLayout(false);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
+            this.statusStrip1.ResumeLayout(false);
+            this.statusStrip1.PerformLayout();
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.mainArea.ResumeLayout(false);
@@ -520,5 +532,6 @@
         private System.Windows.Forms.ToolStripMenuItem saveAllToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
     }
 }

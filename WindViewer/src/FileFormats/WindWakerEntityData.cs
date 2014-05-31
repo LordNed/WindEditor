@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Security.Permissions;
 using System.Windows.Forms.VisualStyles;
@@ -14,6 +15,139 @@ namespace WindViewer.FileFormats
     /// </summary>
     public class WindWakerEntityData : BaseArchiveFile
     {
+        private Dictionary<Type, List<BaseChunk>> _chunkList;
+ 
+        public override void Load(byte[] data)
+        {
+            int offset = 0;
+            FileHeader header = new FileHeader();
+            header.Load(data, ref offset);
+
+            _chunkList = new Dictionary<Type, List<BaseChunk>>();
+
+            for (int i = 0; i < header.ChunkCount; i++)
+            {
+                ChunkHeader chunkHeader = new ChunkHeader();
+                chunkHeader.Load(data, ref offset);
+
+                for (int k = 0; k < chunkHeader.ElementCount; k++)
+                {
+                    BaseChunk chunk; 
+
+                    switch (chunkHeader.Tag.Substring(0, 3).ToUpper())
+                    {
+                        case "ENV": chunk = new EnvrChunk(); break; 
+                        case "COL": chunk = new ColoChunk(); break;
+                        case "PAL": chunk = new PaleChunk(); break;
+                        case "VIR": chunk = new VirtChunk(); break;
+                        case "SCL": chunk = new SclsChunk(); break;
+                        case "PLY": chunk = new PlyrChunk(); break;
+                        case "RPA": chunk = new RPATChunk(); break;
+                        case "PAT": chunk = new PathChunk(); break;
+                        case "RPP": chunk = new RppnChunk(); break;
+                        case "PPN": chunk = new PpntChunk(); break;
+                        case "SON": chunk = new SondChunk(); break;
+                        case "FIL": chunk = new FiliChunk(); break;
+                        case "MEC": chunk = new MecoChunk(); break;
+                        case "MEM": chunk = new MemaChunk(); break;
+                        case "TRE": chunk = new TresChunk(); break;
+                        case "SHI": chunk = new ShipChunk(); break;
+                        case "MUL": chunk = new MultChunk(); break;
+                        case "LGH": chunk = new LghtChunk(); break;
+                        case "LGT": chunk = new LgtvChunk(); break;
+                        case "RAR": chunk = new RaroChunk(); break;
+                        case "ARO": chunk = new ArobChunk(); break;
+                        case "EVN": chunk = new EvntChunk(); break;
+                        case "TGO": chunk = new TgobChunk(); break;
+                        case "ACT": 
+                            chunk = new ActrChunk();
+                            if (!chunkHeader.Tag.ToUpper().EndsWith("R"))
+                            {
+                                int layerNumber = ConvertZeroToFToLayer(chunkHeader.Tag.ToUpper().Substring(3, 1));
+                                chunk.ChunkLayer = layerNumber;
+                            }
+                            break;
+                        case "SCO": 
+                            chunk = new EnvrChunk();
+                            if (!chunkHeader.Tag.EndsWith("b"))
+                            {
+                                int layerNumber = ConvertZeroToFToLayer(chunkHeader.Tag.ToUpper().Substring(3, 1));
+                                chunk.ChunkLayer = layerNumber;
+                            }
+                            break;
+                        case "STA": chunk = new StagChunk(); break;
+                        case "RCA": chunk = new RcamChunk(); break;
+                        case "CAM": chunk = new CamrChunk(); break;
+                        case "FLO": chunk = new FlorChunk(); break;
+                        case "TWO": chunk = new TwoDChunk(); break;
+                        case "2DM": chunk = new TwoDMAChunk(); break;
+                        case "DMA": chunk = new DMAPChunk(); break;
+                        case "LBN": chunk = new LbnkChunk(); break;
+                        case "TGD": chunk = new TgdrChunk(); break;
+                        case "RTB": chunk = new RTBLChunk(); break;
+                        
+                        default:
+                            Console.WriteLine("Unsupported Chunk Tag: " + chunkHeader.Tag + " Chunk will not be saved!");
+                            chunk = null;
+                            break;
+                    }
+
+                    if(chunk == null)
+                        continue;
+
+                    chunk.LoadData(data, ref chunkHeader.ChunkOffset);
+                    AddChunk(chunk);
+                }
+            }
+        }
+
+        public void AddChunk(BaseChunk chunk)
+        {
+            if (!_chunkList.ContainsKey(chunk.GetType()))
+            {
+                _chunkList.Add(chunk.GetType(), new List<BaseChunk>());
+            }
+
+            _chunkList[chunk.GetType()].Add(chunk);
+        }
+
+        public Dictionary<Type, List<BaseChunk>> GetAllChunks()
+        {
+            return _chunkList;
+        }
+
+        private int ConvertZeroToFToLayer(string lastChar)
+        {
+            switch (lastChar)
+            {
+                case "0": return 0;
+                case "1": return 1;
+                case "2": return 2;
+                case "3": return 3;
+                case "4": return 4;
+                case "5": return 5;
+                case "6": return 6;
+                case "7": return 7;
+                case "8": return 8;
+                case "9": return 9;
+                case "A": return 10;
+                case "B": return 11;
+                case "C": return 12;
+                case "D": return 13;
+                case "E": return 14;
+                case "F": return 15;
+
+                default:
+                    Console.WriteLine("WARNING: Failed to convert ACT*/SCO* chunk to layer! Last Char: " + lastChar);
+                    return -1;
+            }
+        }
+
+        public override void Save(BinaryWriter stream)
+        {
+            
+        }
+
         #region File Formats
         class FileHeader
         {
@@ -111,16 +245,6 @@ namespace WindViewer.FileFormats
             }
         }
         #endregion
-
-        public override void Load(byte[] data)
-        {
-
-        }
-
-        public override void Save(BinaryWriter stream)
-        {
-
-        }
 
         #region Chunk Types
         /// <summary>
