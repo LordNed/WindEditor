@@ -13,7 +13,7 @@ namespace WindViewer.Forms
 {
     public partial class MainEditor : Form
     {
-        //List of loaded Worldspace Projects... not sure why we're supporting more than one at a time but w/e!
+        //Currently loaded Worldspace Project. Null if no project loaded.
         private WorldspaceProject _loadedWorldspaceProject; 
 
 

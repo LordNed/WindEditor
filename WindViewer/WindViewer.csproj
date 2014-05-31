@@ -54,11 +54,13 @@
   <ItemGroup>
     <Compile Include="src\Editor\Camera.cs" />
     <Compile Include="src\Editor\Cube.cs" />
+    <Compile Include="src\Editor\FSHelpers.cs" />
     <Compile Include="src\Editor\MathExtensions.cs" />
     <Compile Include="src\Editor\RenderableObject.cs" />
     <Compile Include="src\Editor\Transform.cs" />
     <Compile Include="src\Editor\WorldspaceProject.cs" />
     <Compile Include="src\FileFormats\GenericArchiveData.cs" />
+    <Compile Include="src\FileFormats\WindWakerEntityData.cs" />
     <Compile Include="src\Forms\InvalidRoomNumberPopup.cs">
       <SubType>Form</SubType>
     </Compile>
