@@ -370,7 +370,21 @@ namespace WindViewer.Forms
                     {
                         topLevelNode.Text = "[" + chunk.ChunkName.ToUpper() + "] " + chunk.ChunkDescription;
 
-                        topLevelNode.Nodes.Add("[" + i + "] ");
+                        string displayName = string.Empty;
+                        //Now generate the name for our current node. If it doesn't have a DisplayName attribute then we'll just
+                        //use an index, otherwise we'll use the display name + index.
+                        foreach (var field in chunk.GetType().GetFields())
+                        {
+                            DisplayName dispNameAttribute =
+                                (DisplayName)Attribute.GetCustomAttribute(field, typeof(DisplayName));
+                            if (dispNameAttribute != null)
+                            {
+                                displayName = (string)field.GetValue(chunk);
+
+                            }
+                        }
+
+                        topLevelNode.Nodes.Add("[" + i + "] " + displayName);
                         i++;
                     }
                 }

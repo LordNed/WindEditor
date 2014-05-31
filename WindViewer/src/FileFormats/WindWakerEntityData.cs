@@ -485,6 +485,7 @@ namespace WindViewer.FileFormats
         /// </summary>
         public class SclsChunk : BaseChunk
         {
+            [DisplayName]
             public string DestinationName;
             public byte SpawnNumber;
             public byte DestinationRoomNumber;
@@ -524,6 +525,7 @@ namespace WindViewer.FileFormats
         /// </summary>
         public class PlyrChunk : BaseChunkSpatial
         {
+            [DisplayName]
             public string Name; //"Link"
             public byte EventIndex; //Spcifies an event from the DZS file to play upon spawn. FF = no event.
             public byte Unknown1; //Padding?
@@ -642,6 +644,7 @@ namespace WindViewer.FileFormats
 
         public class SondChunk : BaseChunkSpatial
         {
+            [DisplayName]
             public string Name; //Seems to always be "sndpath"
             //public Vector3 SourcePos; //Position the sound plays from
             public byte Unknown1; //Typically 00, one example had 08.
@@ -757,6 +760,7 @@ namespace WindViewer.FileFormats
 
         public class RcamChunk : BaseChunk
         {
+            [DisplayName]
             public string CameraType;
             public int Padding;
 
@@ -827,6 +831,7 @@ namespace WindViewer.FileFormats
 
         public class TresChunk : BaseChunkSpatial
         {
+            [DisplayName]
             public string Name; //Usually Takara, 8 bytes + null terminator.
             public ushort ChestType; //Big Key, Common Wooden, etc.
             //public Vector3 Position;
@@ -1040,7 +1045,7 @@ namespace WindViewer.FileFormats
         public class EvntChunk : BaseChunk
         {
             public byte Unknown;
-            public string EventName;
+            [DisplayName] public string EventName;
             public byte Unknown2;
             public byte Unknown3;
             public byte Unknown4;
@@ -1087,7 +1092,7 @@ namespace WindViewer.FileFormats
 
         public class ActrChunk : BaseChunkSpatial
         {
-            public string Name;
+            [DisplayName] public string Name;
             public byte Unknown1;
             public byte RpatIndex;
             public byte Unknown2;
@@ -1367,7 +1372,7 @@ namespace WindViewer.FileFormats
 
         public class ScobChunk : BaseChunk
         {
-            public string ObjectName; //Always 8 bytes
+            [DisplayName] public string ObjectName; //Always 8 bytes
             public byte Param0;
             public byte Param1;
             public byte Param2;
@@ -1429,7 +1434,7 @@ namespace WindViewer.FileFormats
 
         public class TgdrChunk : BaseChunkSpatial
         {
-            public string Name;
+            [DisplayName] public string Name;
 
             public ushort Unknown0; //Usually 0F FF?
             public ushort DoorType; //Unknown how it works.
