@@ -32,6 +32,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>.\OpenTK.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenTK.GLControl, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>.\OpenTK.GLControl.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -44,14 +52,32 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Form1.cs">
+    <Compile Include="src\Editor\Camera.cs" />
+    <Compile Include="src\Editor\Cube.cs" />
+    <Compile Include="src\Editor\MathExtensions.cs" />
+    <Compile Include="src\Editor\RenderableObject.cs" />
+    <Compile Include="src\Editor\Transform.cs" />
+    <Compile Include="src\Forms\TestLayout.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form1.Designer.cs">
-      <DependentUpon>Form1.cs</DependentUpon>
+    <Compile Include="src\Forms\TestLayout.designer.cs">
+      <DependentUpon>TestLayout.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="src\Forms\TestUserControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="src\Forms\TestUserControl.Designer.cs">
+      <DependentUpon>TestUserControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Util\FolderSelectDialog.cs" />
+    <Compile Include="src\Util\MruStripMenu.cs" />
+    <Compile Include="src\Util\ObjectExtensions.cs" />
+    <Compile Include="src\Util\Reflector.cs" />
+    <EmbeddedResource Include="src\Forms\TestLayout.resx">
+      <DependentUpon>TestLayout.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -61,6 +87,9 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="src\Forms\TestUserControl.resx">
+      <DependentUpon>TestUserControl.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -70,6 +99,12 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <None Include="src\Shaders\fs.glsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="src\Shaders\vs.glsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
