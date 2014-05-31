@@ -11,10 +11,10 @@ using WindViewer.Editor;
 
 namespace WindViewer.Forms
 {
-    public partial class TestLayout : Form
+    public partial class MainEditor : Form
     {
         //List of loaded Worldspace Projects... not sure why we're supporting more than one at a time but w/e!
-        //private List<WorldspaceProject> _loadedWorldspaceProjects; 
+        private WorldspaceProject _loadedWorldspaceProject; 
 
 
         //OpenTK stuff.
@@ -40,15 +40,14 @@ namespace WindViewer.Forms
         private List<RenderableObject> _renderableObjects = new List<RenderableObject>();
         private Camera _camera;
 
-        public TestLayout()
+        public MainEditor()
         {
             InitializeComponent();
         }
 
         private void TestLayout_Load(object sender, EventArgs e)
         {
-            //_loadedWorldspaceProjects = new List<WorldspaceProject>();
-
+            _loadedWorldspaceProject = null;
             _camera = new Camera();
             
             _pgmId = GL.CreateProgram();
@@ -286,17 +285,17 @@ namespace WindViewer.Forms
             //and save and stuff.
 
             //Scan loaded projects to make sure we haven't already loaded it.
-            /*foreach (WorldspaceProject project in _loadedWorldspaceProjects)
+            if (_loadedWorldspaceProject != null)
             {
-                if (project.ProjectFilePath == workDir)
-                    return;
+                throw new Exception(
+                    "Tried to load second WorldspaceProject. Unloading of the first one isn't implemented yet!");
             }
 
-            WorldspaceProject worldProj = new WorldspaceProject();
-            worldProj.LoadFromDirectory(workDir);
-            _loadedWorldspaceProjects.Add(worldProj);*/
+            _loadedWorldspaceProject = new WorldspaceProject();
+            _loadedWorldspaceProject.LoadFromDirectory(workDir);
+            saveAllToolStripMenuItem.Enabled = true;
 
-            //_mruMenu.AddFile(worldProj.ProjectFilePath);
+            //_mruMenu.AddFile(_loadedWorldspaceProject.ProjectFilePath);
 
             UpdateEntityTreeview();
         }
@@ -324,6 +323,17 @@ namespace WindViewer.Forms
                     Console.WriteLine("Error: Select a folder that ends in .wrkDir!");
                 }
             }
+        }
+
+        private void saveAllToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if(_loadedWorldspaceProject != null)
+                _loadedWorldspaceProject.SaveAllArchives();
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
         }
         #endregion
 

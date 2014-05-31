@@ -57,11 +57,19 @@
     <Compile Include="src\Editor\MathExtensions.cs" />
     <Compile Include="src\Editor\RenderableObject.cs" />
     <Compile Include="src\Editor\Transform.cs" />
-    <Compile Include="src\Forms\TestLayout.cs">
+    <Compile Include="src\Editor\WorldspaceProject.cs" />
+    <Compile Include="src\FileFormats\GenericArchiveData.cs" />
+    <Compile Include="src\Forms\InvalidRoomNumberPopup.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Forms\TestLayout.designer.cs">
-      <DependentUpon>TestLayout.cs</DependentUpon>
+    <Compile Include="src\Forms\InvalidRoomNumberPopup.Designer.cs">
+      <DependentUpon>InvalidRoomNumberPopup.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Forms\MainEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Forms\MainEditor.designer.cs">
+      <DependentUpon>MainEditor.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -75,8 +83,11 @@
     <Compile Include="src\Util\MruStripMenu.cs" />
     <Compile Include="src\Util\ObjectExtensions.cs" />
     <Compile Include="src\Util\Reflector.cs" />
-    <EmbeddedResource Include="src\Forms\TestLayout.resx">
-      <DependentUpon>TestLayout.cs</DependentUpon>
+    <EmbeddedResource Include="src\Forms\InvalidRoomNumberPopup.resx">
+      <DependentUpon>InvalidRoomNumberPopup.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Forms\MainEditor.resx">
+      <DependentUpon>MainEditor.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -109,6 +120,7 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

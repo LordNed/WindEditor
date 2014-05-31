@@ -14,7 +14,7 @@ namespace WindViewer
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new TestLayout());
+            Application.Run(new MainEditor());
         }
     }
 }
