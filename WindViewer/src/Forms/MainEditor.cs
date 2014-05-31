@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using FolderSelect;
+using JWC;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using WindViewer.Editor;
@@ -49,9 +50,32 @@ namespace WindViewer.Forms
         //Events
         public static event Action<WindWakerEntityData> SelectedEntityFileChanged;
 
+        //Misc
+        private MruStripMenu _mruMenu;
+        private string _mruRegKey = "SOFTWARE\\Wind Viewer";
+
         public MainEditor()
         {
+            //Initialize the WinForm
             InitializeComponent();
+
+            _mruMenu = new MruStripMenu(mruList, OnMruClickedHandler, _mruRegKey + "\\MRU", 6);
+        }
+
+        private void OnMruClickedHandler(int number, string filename)
+        {
+            _mruMenu.SetFirstFile(number);
+
+            if (Directory.Exists(filename))
+            {
+                OpenFileFromWorkingDir(filename);
+            }
+            else
+            {
+                MessageBox.Show("Selected file not found, removing from list.", "Missing File", MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                _mruMenu.RemoveFile(filename);
+            }
         }
 
         private void TestLayout_Load(object sender, EventArgs e)
@@ -101,7 +125,7 @@ namespace WindViewer.Forms
             cube2.Transform.Position = new Vector3(0, 0, -5);
             cube2.Transform.Scale = new Vector3(0.5f, 0.5f, 0.5f);
             
-            //_renderableObjects.Add(cube1);
+            _renderableObjects.Add(cube1);
             _renderableObjects.Add(cube2);
 
 
@@ -167,7 +191,7 @@ namespace WindViewer.Forms
                     break;
             }
 
-           // Console.WriteLine("cam pos: " + _camera.transform.Position);
+           Console.WriteLine("cam pos: " + _camera.transform.Position);
         }
 
         void glControl_KeyUp(object sender, KeyEventArgs e)
@@ -242,7 +266,7 @@ namespace WindViewer.Forms
                 Matrix4 projMatrix = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4f, glControl.Width / (float)glControl.Height, 0.01f, 1000f);
                 o.ViewProjectionMatrix = _camera.GetViewMatrix() * projMatrix;
                 //Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4f, glControl.Width / (float)glControl.Height, 1.0f, 64f);
-                o.ModelViewProjectionMatrix = o.ModelMatrix*o.ViewProjectionMatrix;
+                o.ModelViewProjectionMatrix = /*o.ModelMatrix**/o.ViewProjectionMatrix;
             }
             GL.UseProgram(_pgmId);
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
@@ -310,7 +334,7 @@ namespace WindViewer.Forms
             
             UpdateProjectFolderTreeview();
 
-            //_mruMenu.AddFile(_loadedWorldspaceProject.ProjectFilePath);
+            _mruMenu.AddFile(_loadedWorldspaceProject.ProjectFilePath);
         }
 
         /// <summary>
@@ -514,6 +538,14 @@ namespace WindViewer.Forms
         {
             _selectedEntityLayer = EditorHelpers.ConvertStringToLayerId((string)((ListBox) sender).SelectedItem);
             UpdateEntityTreeview();
+        }
+
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            //Save our MRU File List
+            _mruMenu.SaveToRegistry(_mruRegKey + "\\MRU");
+
+            //ToDo: Ask if the user wants to save.
         }
     }
 }

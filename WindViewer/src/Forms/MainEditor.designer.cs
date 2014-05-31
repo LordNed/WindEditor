@@ -28,32 +28,32 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.TreeNode treeNode31 = new System.Windows.Forms.TreeNode("[SCOOB] Scaleable Objects");
-            System.Windows.Forms.TreeNode treeNode32 = new System.Windows.Forms.TreeNode("[0] LinkRM");
-            System.Windows.Forms.TreeNode treeNode33 = new System.Windows.Forms.TreeNode("[SCLS] Exits", new System.Windows.Forms.TreeNode[] {
-            treeNode32});
-            System.Windows.Forms.TreeNode treeNode34 = new System.Windows.Forms.TreeNode("[0] KNOB00D");
-            System.Windows.Forms.TreeNode treeNode35 = new System.Windows.Forms.TreeNode("[TGDR] Door", new System.Windows.Forms.TreeNode[] {
-            treeNode34});
-            System.Windows.Forms.TreeNode treeNode36 = new System.Windows.Forms.TreeNode("model.bdl");
-            System.Windows.Forms.TreeNode treeNode37 = new System.Windows.Forms.TreeNode("model1.bdl");
-            System.Windows.Forms.TreeNode treeNode38 = new System.Windows.Forms.TreeNode("model3.bdl");
-            System.Windows.Forms.TreeNode treeNode39 = new System.Windows.Forms.TreeNode("bdl", new System.Windows.Forms.TreeNode[] {
-            treeNode36,
-            treeNode37,
-            treeNode38});
-            System.Windows.Forms.TreeNode treeNode40 = new System.Windows.Forms.TreeNode("model1.btk");
-            System.Windows.Forms.TreeNode treeNode41 = new System.Windows.Forms.TreeNode("btk", new System.Windows.Forms.TreeNode[] {
-            treeNode40});
-            System.Windows.Forms.TreeNode treeNode42 = new System.Windows.Forms.TreeNode("room.dzb");
-            System.Windows.Forms.TreeNode treeNode43 = new System.Windows.Forms.TreeNode("dzb", new System.Windows.Forms.TreeNode[] {
-            treeNode42});
-            System.Windows.Forms.TreeNode treeNode44 = new System.Windows.Forms.TreeNode("Room44", new System.Windows.Forms.TreeNode[] {
-            treeNode39,
-            treeNode41,
-            treeNode43});
-            System.Windows.Forms.TreeNode treeNode45 = new System.Windows.Forms.TreeNode("Outset", new System.Windows.Forms.TreeNode[] {
-            treeNode44});
+            System.Windows.Forms.TreeNode treeNode1 = new System.Windows.Forms.TreeNode("[SCOOB] Scaleable Objects");
+            System.Windows.Forms.TreeNode treeNode2 = new System.Windows.Forms.TreeNode("[0] LinkRM");
+            System.Windows.Forms.TreeNode treeNode3 = new System.Windows.Forms.TreeNode("[SCLS] Exits", new System.Windows.Forms.TreeNode[] {
+            treeNode2});
+            System.Windows.Forms.TreeNode treeNode4 = new System.Windows.Forms.TreeNode("[0] KNOB00D");
+            System.Windows.Forms.TreeNode treeNode5 = new System.Windows.Forms.TreeNode("[TGDR] Door", new System.Windows.Forms.TreeNode[] {
+            treeNode4});
+            System.Windows.Forms.TreeNode treeNode6 = new System.Windows.Forms.TreeNode("model.bdl");
+            System.Windows.Forms.TreeNode treeNode7 = new System.Windows.Forms.TreeNode("model1.bdl");
+            System.Windows.Forms.TreeNode treeNode8 = new System.Windows.Forms.TreeNode("model3.bdl");
+            System.Windows.Forms.TreeNode treeNode9 = new System.Windows.Forms.TreeNode("bdl", new System.Windows.Forms.TreeNode[] {
+            treeNode6,
+            treeNode7,
+            treeNode8});
+            System.Windows.Forms.TreeNode treeNode10 = new System.Windows.Forms.TreeNode("model1.btk");
+            System.Windows.Forms.TreeNode treeNode11 = new System.Windows.Forms.TreeNode("btk", new System.Windows.Forms.TreeNode[] {
+            treeNode10});
+            System.Windows.Forms.TreeNode treeNode12 = new System.Windows.Forms.TreeNode("room.dzb");
+            System.Windows.Forms.TreeNode treeNode13 = new System.Windows.Forms.TreeNode("dzb", new System.Windows.Forms.TreeNode[] {
+            treeNode12});
+            System.Windows.Forms.TreeNode treeNode14 = new System.Windows.Forms.TreeNode("Room44", new System.Windows.Forms.TreeNode[] {
+            treeNode9,
+            treeNode11,
+            treeNode13});
+            System.Windows.Forms.TreeNode treeNode15 = new System.Windows.Forms.TreeNode("Outset", new System.Windows.Forms.TreeNode[] {
+            treeNode14});
             this.glControl = new OpenTK.GLControl();
             this.MainSplitter = new System.Windows.Forms.SplitContainer();
             this.leftColumGameSplit = new System.Windows.Forms.SplitContainer();
@@ -70,18 +70,21 @@
             this.button4 = new System.Windows.Forms.Button();
             this.button3 = new System.Windows.Forms.Button();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+            this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.newToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.newFromArchiveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.openWorldspaceDirToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.mainArea = new System.Windows.Forms.Panel();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.saveAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
+            this.mainArea = new System.Windows.Forms.Panel();
+            this.mruList = new JWC.MruStripMenu.MruMenuItem();
+            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.MainSplitter)).BeginInit();
             this.MainSplitter.Panel1.SuspendLayout();
             this.MainSplitter.Panel2.SuspendLayout();
@@ -199,20 +202,20 @@
             this.EntityTreeview.Dock = System.Windows.Forms.DockStyle.Fill;
             this.EntityTreeview.Location = new System.Drawing.Point(3, 16);
             this.EntityTreeview.Name = "EntityTreeview";
-            treeNode31.Name = "Node0";
-            treeNode31.Text = "[SCOOB] Scaleable Objects";
-            treeNode32.Name = "Node4";
-            treeNode32.Text = "[0] LinkRM";
-            treeNode33.Name = "Node1";
-            treeNode33.Text = "[SCLS] Exits";
-            treeNode34.Name = "Node3";
-            treeNode34.Text = "[0] KNOB00D";
-            treeNode35.Name = "Node2";
-            treeNode35.Text = "[TGDR] Door";
+            treeNode1.Name = "Node0";
+            treeNode1.Text = "[SCOOB] Scaleable Objects";
+            treeNode2.Name = "Node4";
+            treeNode2.Text = "[0] LinkRM";
+            treeNode3.Name = "Node1";
+            treeNode3.Text = "[SCLS] Exits";
+            treeNode4.Name = "Node3";
+            treeNode4.Text = "[0] KNOB00D";
+            treeNode5.Name = "Node2";
+            treeNode5.Text = "[TGDR] Door";
             this.EntityTreeview.Nodes.AddRange(new System.Windows.Forms.TreeNode[] {
-            treeNode31,
-            treeNode33,
-            treeNode35});
+            treeNode1,
+            treeNode3,
+            treeNode5});
             this.EntityTreeview.Size = new System.Drawing.Size(207, 287);
             this.EntityTreeview.TabIndex = 0;
             // 
@@ -232,28 +235,28 @@
             this.ProjectTreeview.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ProjectTreeview.Location = new System.Drawing.Point(3, 16);
             this.ProjectTreeview.Name = "ProjectTreeview";
-            treeNode36.Name = "Node3";
-            treeNode36.Text = "model.bdl";
-            treeNode37.Name = "Node4";
-            treeNode37.Text = "model1.bdl";
-            treeNode38.Name = "Node5";
-            treeNode38.Text = "model3.bdl";
-            treeNode39.Name = "Node2";
-            treeNode39.Text = "bdl";
-            treeNode40.Name = "Node7";
-            treeNode40.Text = "model1.btk";
-            treeNode41.Name = "Node6";
-            treeNode41.Text = "btk";
-            treeNode42.Name = "Node9";
-            treeNode42.Text = "room.dzb";
-            treeNode43.Name = "Node8";
-            treeNode43.Text = "dzb";
-            treeNode44.Name = "Node1";
-            treeNode44.Text = "Room44";
-            treeNode45.Name = "Node0";
-            treeNode45.Text = "Outset";
+            treeNode6.Name = "Node3";
+            treeNode6.Text = "model.bdl";
+            treeNode7.Name = "Node4";
+            treeNode7.Text = "model1.bdl";
+            treeNode8.Name = "Node5";
+            treeNode8.Text = "model3.bdl";
+            treeNode9.Name = "Node2";
+            treeNode9.Text = "bdl";
+            treeNode10.Name = "Node7";
+            treeNode10.Text = "model1.btk";
+            treeNode11.Name = "Node6";
+            treeNode11.Text = "btk";
+            treeNode12.Name = "Node9";
+            treeNode12.Text = "room.dzb";
+            treeNode13.Name = "Node8";
+            treeNode13.Text = "dzb";
+            treeNode14.Name = "Node1";
+            treeNode14.Text = "Room44";
+            treeNode15.Name = "Node0";
+            treeNode15.Text = "Outset";
             this.ProjectTreeview.Nodes.AddRange(new System.Windows.Forms.TreeNode[] {
-            treeNode45});
+            treeNode15});
             this.ProjectTreeview.Size = new System.Drawing.Size(207, 303);
             this.ProjectTreeview.TabIndex = 0;
             this.ProjectTreeview.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.ProjectTreeview_AfterSelect);
@@ -370,6 +373,12 @@
             this.statusStrip1.TabIndex = 2;
             this.statusStrip1.Text = "statusStrip1";
             // 
+            // toolStripStatusLabel1
+            // 
+            this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
+            this.toolStripStatusLabel1.Size = new System.Drawing.Size(281, 17);
+            this.toolStripStatusLabel1.Text = "Load a project via File->Open  from Worldspace Dir!";
+            // 
             // menuStrip1
             // 
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -387,9 +396,12 @@
             this.newFromArchiveToolStripMenuItem,
             this.toolStripSeparator1,
             this.openWorldspaceDirToolStripMenuItem,
+            this.mruList,
             this.toolStripSeparator2,
             this.saveAllToolStripMenuItem,
+            this.toolStripMenuItem1,
             this.toolStripSeparator3,
+            this.toolStripMenuItem2,
             this.exitToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
@@ -399,27 +411,52 @@
             // 
             this.newToolStripMenuItem.Enabled = false;
             this.newToolStripMenuItem.Name = "newToolStripMenuItem";
-            this.newToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
+            this.newToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
             this.newToolStripMenuItem.Text = "&New...";
             // 
             // newFromArchiveToolStripMenuItem
             // 
             this.newFromArchiveToolStripMenuItem.Enabled = false;
             this.newFromArchiveToolStripMenuItem.Name = "newFromArchiveToolStripMenuItem";
-            this.newFromArchiveToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
+            this.newFromArchiveToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
             this.newFromArchiveToolStripMenuItem.Text = "&New from &Archive...";
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(183, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(191, 6);
             // 
             // openWorldspaceDirToolStripMenuItem
             // 
             this.openWorldspaceDirToolStripMenuItem.Name = "openWorldspaceDirToolStripMenuItem";
-            this.openWorldspaceDirToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
+            this.openWorldspaceDirToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
             this.openWorldspaceDirToolStripMenuItem.Text = "&Open Worldspace Dir";
             this.openWorldspaceDirToolStripMenuItem.Click += new System.EventHandler(this.openWorldspaceDirToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(191, 6);
+            // 
+            // saveAllToolStripMenuItem
+            // 
+            this.saveAllToolStripMenuItem.Enabled = false;
+            this.saveAllToolStripMenuItem.Name = "saveAllToolStripMenuItem";
+            this.saveAllToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
+            this.saveAllToolStripMenuItem.Text = "&Save All";
+            this.saveAllToolStripMenuItem.Click += new System.EventHandler(this.saveAllToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator3
+            // 
+            this.toolStripSeparator3.Name = "toolStripSeparator3";
+            this.toolStripSeparator3.Size = new System.Drawing.Size(191, 6);
+            // 
+            // exitToolStripMenuItem
+            // 
+            this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
+            this.exitToolStripMenuItem.Text = "E&xit";
+            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
             // mainArea
             // 
@@ -431,36 +468,26 @@
             this.mainArea.Size = new System.Drawing.Size(1409, 656);
             this.mainArea.TabIndex = 0;
             // 
-            // toolStripSeparator2
+            // mruList
             // 
-            this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(183, 6);
+            this.mruList.Filename = "";
+            this.mruList.Name = "mruList";
+            this.mruList.Size = new System.Drawing.Size(194, 22);
+            this.mruList.Tag = "";
+            this.mruList.Text = "&Recent Dirs...";
             // 
-            // saveAllToolStripMenuItem
+            // toolStripMenuItem1
             // 
-            this.saveAllToolStripMenuItem.Enabled = false;
-            this.saveAllToolStripMenuItem.Name = "saveAllToolStripMenuItem";
-            this.saveAllToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
-            this.saveAllToolStripMenuItem.Text = "&Save All";
-            this.saveAllToolStripMenuItem.Click += new System.EventHandler(this.saveAllToolStripMenuItem_Click);
+            this.toolStripMenuItem1.Enabled = false;
+            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(194, 22);
+            this.toolStripMenuItem1.Text = "&Export Archives (*.rarc)";
             // 
-            // toolStripSeparator3
+            // toolStripMenuItem2
             // 
-            this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(183, 6);
-            // 
-            // exitToolStripMenuItem
-            // 
-            this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
-            this.exitToolStripMenuItem.Text = "&Exit";
-            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
-            // 
-            // toolStripStatusLabel1
-            // 
-            this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
-            this.toolStripStatusLabel1.Size = new System.Drawing.Size(281, 17);
-            this.toolStripStatusLabel1.Text = "Load a project via File->Open  from Worldspace Dir!";
+            this.toolStripMenuItem2.Name = "toolStripMenuItem2";
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(194, 22);
+            this.toolStripMenuItem2.Text = "&Unload All";
             // 
             // MainEditor
             // 
@@ -535,5 +562,8 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
+        private JWC.MruStripMenu.MruMenuItem mruList;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem2;
     }
 }
