@@ -18,6 +18,10 @@ namespace WindViewer.Forms
         //Currently loaded Worldspace Project. Null if no project loaded.
         private WorldspaceProject _loadedWorldspaceProject; 
 
+        //Currently selected Entity data file for Worldspace Project. Null if none selected.
+        private WindWakerEntityData _selectedEntityFile;
+        private EditorHelpers.EntityLayer _selectedEntityLayer;
+
 
         //OpenTK stuff.
         private int _pgmId;
@@ -42,6 +46,9 @@ namespace WindViewer.Forms
         private List<RenderableObject> _renderableObjects = new List<RenderableObject>();
         private Camera _camera;
 
+        //Events
+        public static event Action<WindWakerEntityData> SelectedEntityFileChanged;
+
         public MainEditor()
         {
             InitializeComponent();
@@ -49,7 +56,10 @@ namespace WindViewer.Forms
 
         private void TestLayout_Load(object sender, EventArgs e)
         {
+            //Things we're keeping.
             _loadedWorldspaceProject = null;
+
+
             _camera = new Camera();
             
             _pgmId = GL.CreateProgram();
@@ -298,14 +308,9 @@ namespace WindViewer.Forms
             _loadedWorldspaceProject = new WorldspaceProject();
             _loadedWorldspaceProject.LoadFromDirectory(workDir);
             
+            UpdateProjectFolderTreeview();
 
             //_mruMenu.AddFile(_loadedWorldspaceProject.ProjectFilePath);
-
-            toolStripStatusLabel1.Text = "Updating Entity Treeview...";
-            Stopwatch timer = Stopwatch.StartNew();
-            UpdateEntityTreeview();
-            Console.WriteLine("Updating ETV took: " + timer.Elapsed);
-            toolStripStatusLabel1.Text = "Completed.";
         }
 
         /// <summary>
@@ -348,50 +353,167 @@ namespace WindViewer.Forms
 
         private void UpdateEntityTreeview()
         {
+            Stopwatch timer = Stopwatch.StartNew();
+            toolStripStatusLabel1.Text = "Updating Entity Treeview...";
+
             EntityTreeview.SuspendLayout();
             EntityTreeview.BeginUpdate();
             EntityTreeview.Nodes.Clear();
 
-            if (_loadedWorldspaceProject == null)
+            if (_loadedWorldspaceProject == null || _selectedEntityFile == null)
             {
                 EntityTreeview.ResumeLayout();
+                EntityTreeview.EndUpdate();
                 return;
             }
 
-            foreach (ZArchive archive in _loadedWorldspaceProject.GetAllArchives())
+            foreach (var kvPair in _selectedEntityFile.GetAllChunks())
             {
-                foreach (var  kvPair in archive.GetFileByType<WindWakerEntityData>().GetAllChunks())
-                {
-                    //This is the top-level grouping, ie: "Doors". We don't know the name yet though.
-                    TreeNode topLevelNode = EntityTreeview.Nodes.Add("ChunkHeader");
-                    int i = 0;
+                //This is the top-level grouping, ie: "Doors". We don't know the name yet though.
+                TreeNode topLevelNode = EntityTreeview.Nodes.Add("ChunkHeader");
+                TreeNode topLevelNodeLayer = null;
+                int i = 0;
 
-                    foreach (var chunk in kvPair.Value)
+                foreach (var chunk in kvPair.Value)
+                {
+                    if(chunk.ChunkLayer != EditorHelpers.EntityLayer.DefaultLayer && chunk.ChunkLayer != _selectedEntityLayer)
+                        continue;
+
+                    TreeNode curParentNode = topLevelNode;
+
+                    //If it's a non-default layer we want to put them under a different TLN
+                    if (chunk.ChunkLayer != EditorHelpers.EntityLayer.DefaultLayer)
+                    {
+                        if (topLevelNodeLayer == null)
+                            topLevelNodeLayer = EntityTreeview.Nodes.Add("ChunkHeaderLayer");
+                        topLevelNodeLayer.Text = "[" + chunk.ChunkName.ToUpper() + "] " + chunk.ChunkDescription + " [" + EditorHelpers.LayerIdToString(chunk.ChunkLayer)+ "]";
+                        topLevelNodeLayer.BackColor = EditorHelpers.LayerIdToColor(chunk.ChunkLayer);
+                        curParentNode = topLevelNodeLayer;
+                    }
+                    else
                     {
                         topLevelNode.Text = "[" + chunk.ChunkName.ToUpper() + "] " + chunk.ChunkDescription;
-
-                        string displayName = string.Empty;
-                        //Now generate the name for our current node. If it doesn't have a DisplayName attribute then we'll just
-                        //use an index, otherwise we'll use the display name + index.
-                        foreach (var field in chunk.GetType().GetFields())
-                        {
-                            DisplayName dispNameAttribute =
-                                (DisplayName)Attribute.GetCustomAttribute(field, typeof(DisplayName));
-                            if (dispNameAttribute != null)
-                            {
-                                displayName = (string)field.GetValue(chunk);
-
-                            }
-                        }
-
-                        topLevelNode.Nodes.Add("[" + i + "] " + displayName);
-                        i++;
                     }
+  
+                    string displayName = string.Empty;
+                    //Now generate the name for our current node. If it doesn't have a DisplayName attribute then we'll just
+                    //use an index, otherwise we'll use the display name + index.
+                    foreach (var field in chunk.GetType().GetFields())
+                    {
+                        DisplayName dispNameAttribute =
+                            (DisplayName)Attribute.GetCustomAttribute(field, typeof(DisplayName));
+                        if (dispNameAttribute != null)
+                        {
+                            displayName = (string)field.GetValue(chunk);
+                        }
+                    }
+
+                    TreeNode newNode = curParentNode.Nodes.Add("[" + i + "] " + displayName);
+                    if(chunk.ChunkLayer != EditorHelpers.EntityLayer.DefaultLayer)
+                        newNode.BackColor = EditorHelpers.LayerIdToColor(chunk.ChunkLayer);
+                    i++;
                 }
             }
 
             EntityTreeview.EndUpdate();
             EntityTreeview.ResumeLayout();
+            Console.WriteLine("Updating ETV took: " + timer.Elapsed);
+            toolStripStatusLabel1.Text = "Completed.";
+        }
+
+        private void UpdateProjectFolderTreeview()
+        {
+            ProjectTreeview.BeginUpdate();
+            ProjectTreeview.SuspendLayout();
+            ProjectTreeview.Nodes.Clear();
+
+            if (_loadedWorldspaceProject == null)
+            {
+                ProjectTreeview.EndUpdate();
+                ProjectTreeview.ResumeLayout();
+                return;
+            }
+
+            foreach (ZArchive archive in _loadedWorldspaceProject.GetAllArchives())
+            {
+                TreeNode arcRoot = ProjectTreeview.Nodes.Add(archive.Name, archive.Name);
+                foreach (BaseArchiveFile archiveFile in archive.GetAllFiles())
+                {
+                    //Multiple files can share the same folder, so either find a node with the existing folder name or make a new one if it doesn't exist yet.
+                    TreeNode folderNode = !arcRoot.Nodes.ContainsKey(archiveFile.FolderName) ? arcRoot.Nodes.Add(archiveFile.FolderName, archiveFile.FolderName) : arcRoot.Nodes.Find(archiveFile.FolderName, false)[0];
+
+                    TreeNode fileName = folderNode.Nodes.Add(archiveFile.FileName);
+                    fileName.Tag = archiveFile; //Store a reference to the archive file so we can get it later.
+
+                    if (archiveFile is WindWakerEntityData && _selectedEntityFile == null)
+                    {
+                        _selectedEntityFile = (WindWakerEntityData)archiveFile;
+                        UpdateLayersView(); //Updates the Entityview for us.
+
+                        if (SelectedEntityFileChanged != null)
+                            SelectedEntityFileChanged((WindWakerEntityData)archiveFile);
+                    }
+                }
+            }
+
+            ProjectTreeview.ResumeLayout();
+            ProjectTreeview.EndUpdate();
+        }
+
+        private void ProjectTreeview_AfterSelect(object sender, TreeViewEventArgs e)
+        {
+            if (!(e.Node.Tag is WindWakerEntityData))
+                return;
+
+            if (SelectedEntityFileChanged != null)
+            {
+                var entData = (WindWakerEntityData) e.Node.Tag;
+                _selectedEntityFile = entData;
+                
+
+                UpdateLayersView(); //Updates the Entity view for us.
+                SelectedEntityFileChanged(entData); //Broadcast event.
+            }
+        }
+
+        
+
+        private void UpdateLayersView()
+        {
+            LayersListBox.SuspendLayout();
+            LayersListBox.BeginUpdate();
+            LayersListBox.Items.Clear();
+
+            WindWakerEntityData entData = _selectedEntityFile;
+            List<EditorHelpers.EntityLayer> validLayers = new List<EditorHelpers.EntityLayer>();
+
+            foreach (var kvPair in entData.GetAllChunks())
+            {
+                foreach (WindWakerEntityData.BaseChunk chunk in kvPair.Value)
+                {
+                    if(validLayers.Contains(chunk.ChunkLayer))
+                        continue;
+
+                    validLayers.Add(chunk.ChunkLayer);
+                }
+            }
+
+            for(int i = validLayers.Count-1; i >= 0; i--)
+            {
+                LayersListBox.Items.Add(EditorHelpers.LayerIdToString(validLayers[i]));
+            }
+
+            //Select the Default layer by uh... default.
+            LayersListBox.SetSelected(LayersListBox.Items.Count-1, true);
+
+            LayersListBox.ResumeLayout();
+            LayersListBox.EndUpdate();
+        }
+
+        private void LayersListBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            _selectedEntityLayer = EditorHelpers.ConvertStringToLayerId((string)((ListBox) sender).SelectedItem);
+            UpdateEntityTreeview();
         }
     }
 }

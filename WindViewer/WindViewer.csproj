@@ -56,6 +56,7 @@
     <Compile Include="src\Editor\CommonClasses.cs" />
     <Compile Include="src\Editor\Cube.cs" />
     <Compile Include="src\Editor\EditorAttributes.cs" />
+    <Compile Include="src\Editor\EditorHelpers.cs" />
     <Compile Include="src\Editor\FSHelpers.cs" />
     <Compile Include="src\Editor\MathExtensions.cs" />
     <Compile Include="src\Editor\RenderableObject.cs" />

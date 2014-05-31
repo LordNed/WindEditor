@@ -28,32 +28,32 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.TreeNode treeNode166 = new System.Windows.Forms.TreeNode("[SCOOB] Scaleable Objects");
-            System.Windows.Forms.TreeNode treeNode167 = new System.Windows.Forms.TreeNode("[0] LinkRM");
-            System.Windows.Forms.TreeNode treeNode168 = new System.Windows.Forms.TreeNode("[SCLS] Exits", new System.Windows.Forms.TreeNode[] {
-            treeNode167});
-            System.Windows.Forms.TreeNode treeNode169 = new System.Windows.Forms.TreeNode("[0] KNOB00D");
-            System.Windows.Forms.TreeNode treeNode170 = new System.Windows.Forms.TreeNode("[TGDR] Door", new System.Windows.Forms.TreeNode[] {
-            treeNode169});
-            System.Windows.Forms.TreeNode treeNode171 = new System.Windows.Forms.TreeNode("model.bdl");
-            System.Windows.Forms.TreeNode treeNode172 = new System.Windows.Forms.TreeNode("model1.bdl");
-            System.Windows.Forms.TreeNode treeNode173 = new System.Windows.Forms.TreeNode("model3.bdl");
-            System.Windows.Forms.TreeNode treeNode174 = new System.Windows.Forms.TreeNode("bdl", new System.Windows.Forms.TreeNode[] {
-            treeNode171,
-            treeNode172,
-            treeNode173});
-            System.Windows.Forms.TreeNode treeNode175 = new System.Windows.Forms.TreeNode("model1.btk");
-            System.Windows.Forms.TreeNode treeNode176 = new System.Windows.Forms.TreeNode("btk", new System.Windows.Forms.TreeNode[] {
-            treeNode175});
-            System.Windows.Forms.TreeNode treeNode177 = new System.Windows.Forms.TreeNode("room.dzb");
-            System.Windows.Forms.TreeNode treeNode178 = new System.Windows.Forms.TreeNode("dzb", new System.Windows.Forms.TreeNode[] {
-            treeNode177});
-            System.Windows.Forms.TreeNode treeNode179 = new System.Windows.Forms.TreeNode("Room44", new System.Windows.Forms.TreeNode[] {
-            treeNode174,
-            treeNode176,
-            treeNode178});
-            System.Windows.Forms.TreeNode treeNode180 = new System.Windows.Forms.TreeNode("Outset", new System.Windows.Forms.TreeNode[] {
-            treeNode179});
+            System.Windows.Forms.TreeNode treeNode31 = new System.Windows.Forms.TreeNode("[SCOOB] Scaleable Objects");
+            System.Windows.Forms.TreeNode treeNode32 = new System.Windows.Forms.TreeNode("[0] LinkRM");
+            System.Windows.Forms.TreeNode treeNode33 = new System.Windows.Forms.TreeNode("[SCLS] Exits", new System.Windows.Forms.TreeNode[] {
+            treeNode32});
+            System.Windows.Forms.TreeNode treeNode34 = new System.Windows.Forms.TreeNode("[0] KNOB00D");
+            System.Windows.Forms.TreeNode treeNode35 = new System.Windows.Forms.TreeNode("[TGDR] Door", new System.Windows.Forms.TreeNode[] {
+            treeNode34});
+            System.Windows.Forms.TreeNode treeNode36 = new System.Windows.Forms.TreeNode("model.bdl");
+            System.Windows.Forms.TreeNode treeNode37 = new System.Windows.Forms.TreeNode("model1.bdl");
+            System.Windows.Forms.TreeNode treeNode38 = new System.Windows.Forms.TreeNode("model3.bdl");
+            System.Windows.Forms.TreeNode treeNode39 = new System.Windows.Forms.TreeNode("bdl", new System.Windows.Forms.TreeNode[] {
+            treeNode36,
+            treeNode37,
+            treeNode38});
+            System.Windows.Forms.TreeNode treeNode40 = new System.Windows.Forms.TreeNode("model1.btk");
+            System.Windows.Forms.TreeNode treeNode41 = new System.Windows.Forms.TreeNode("btk", new System.Windows.Forms.TreeNode[] {
+            treeNode40});
+            System.Windows.Forms.TreeNode treeNode42 = new System.Windows.Forms.TreeNode("room.dzb");
+            System.Windows.Forms.TreeNode treeNode43 = new System.Windows.Forms.TreeNode("dzb", new System.Windows.Forms.TreeNode[] {
+            treeNode42});
+            System.Windows.Forms.TreeNode treeNode44 = new System.Windows.Forms.TreeNode("Room44", new System.Windows.Forms.TreeNode[] {
+            treeNode39,
+            treeNode41,
+            treeNode43});
+            System.Windows.Forms.TreeNode treeNode45 = new System.Windows.Forms.TreeNode("Outset", new System.Windows.Forms.TreeNode[] {
+            treeNode44});
             this.glControl = new OpenTK.GLControl();
             this.MainSplitter = new System.Windows.Forms.SplitContainer();
             this.leftColumGameSplit = new System.Windows.Forms.SplitContainer();
@@ -61,11 +61,11 @@
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.EntityTreeview = new System.Windows.Forms.TreeView();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.treeView2 = new System.Windows.Forms.TreeView();
+            this.ProjectTreeview = new System.Windows.Forms.TreeView();
             this.PropertiesLayerSplit = new System.Windows.Forms.SplitContainer();
             this.PropertiesBox = new System.Windows.Forms.GroupBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.listBox1 = new System.Windows.Forms.ListBox();
+            this.LayersListBox = new System.Windows.Forms.ListBox();
             this.panel1 = new System.Windows.Forms.Panel();
             this.button4 = new System.Windows.Forms.Button();
             this.button3 = new System.Windows.Forms.Button();
@@ -199,26 +199,26 @@
             this.EntityTreeview.Dock = System.Windows.Forms.DockStyle.Fill;
             this.EntityTreeview.Location = new System.Drawing.Point(3, 16);
             this.EntityTreeview.Name = "EntityTreeview";
-            treeNode166.Name = "Node0";
-            treeNode166.Text = "[SCOOB] Scaleable Objects";
-            treeNode167.Name = "Node4";
-            treeNode167.Text = "[0] LinkRM";
-            treeNode168.Name = "Node1";
-            treeNode168.Text = "[SCLS] Exits";
-            treeNode169.Name = "Node3";
-            treeNode169.Text = "[0] KNOB00D";
-            treeNode170.Name = "Node2";
-            treeNode170.Text = "[TGDR] Door";
+            treeNode31.Name = "Node0";
+            treeNode31.Text = "[SCOOB] Scaleable Objects";
+            treeNode32.Name = "Node4";
+            treeNode32.Text = "[0] LinkRM";
+            treeNode33.Name = "Node1";
+            treeNode33.Text = "[SCLS] Exits";
+            treeNode34.Name = "Node3";
+            treeNode34.Text = "[0] KNOB00D";
+            treeNode35.Name = "Node2";
+            treeNode35.Text = "[TGDR] Door";
             this.EntityTreeview.Nodes.AddRange(new System.Windows.Forms.TreeNode[] {
-            treeNode166,
-            treeNode168,
-            treeNode170});
+            treeNode31,
+            treeNode33,
+            treeNode35});
             this.EntityTreeview.Size = new System.Drawing.Size(207, 287);
             this.EntityTreeview.TabIndex = 0;
             // 
             // groupBox2
             // 
-            this.groupBox2.Controls.Add(this.treeView2);
+            this.groupBox2.Controls.Add(this.ProjectTreeview);
             this.groupBox2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBox2.Location = new System.Drawing.Point(0, 0);
             this.groupBox2.Name = "groupBox2";
@@ -227,35 +227,36 @@
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Project View";
             // 
-            // treeView2
+            // ProjectTreeview
             // 
-            this.treeView2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.treeView2.Location = new System.Drawing.Point(3, 16);
-            this.treeView2.Name = "treeView2";
-            treeNode171.Name = "Node3";
-            treeNode171.Text = "model.bdl";
-            treeNode172.Name = "Node4";
-            treeNode172.Text = "model1.bdl";
-            treeNode173.Name = "Node5";
-            treeNode173.Text = "model3.bdl";
-            treeNode174.Name = "Node2";
-            treeNode174.Text = "bdl";
-            treeNode175.Name = "Node7";
-            treeNode175.Text = "model1.btk";
-            treeNode176.Name = "Node6";
-            treeNode176.Text = "btk";
-            treeNode177.Name = "Node9";
-            treeNode177.Text = "room.dzb";
-            treeNode178.Name = "Node8";
-            treeNode178.Text = "dzb";
-            treeNode179.Name = "Node1";
-            treeNode179.Text = "Room44";
-            treeNode180.Name = "Node0";
-            treeNode180.Text = "Outset";
-            this.treeView2.Nodes.AddRange(new System.Windows.Forms.TreeNode[] {
-            treeNode180});
-            this.treeView2.Size = new System.Drawing.Size(207, 303);
-            this.treeView2.TabIndex = 0;
+            this.ProjectTreeview.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ProjectTreeview.Location = new System.Drawing.Point(3, 16);
+            this.ProjectTreeview.Name = "ProjectTreeview";
+            treeNode36.Name = "Node3";
+            treeNode36.Text = "model.bdl";
+            treeNode37.Name = "Node4";
+            treeNode37.Text = "model1.bdl";
+            treeNode38.Name = "Node5";
+            treeNode38.Text = "model3.bdl";
+            treeNode39.Name = "Node2";
+            treeNode39.Text = "bdl";
+            treeNode40.Name = "Node7";
+            treeNode40.Text = "model1.btk";
+            treeNode41.Name = "Node6";
+            treeNode41.Text = "btk";
+            treeNode42.Name = "Node9";
+            treeNode42.Text = "room.dzb";
+            treeNode43.Name = "Node8";
+            treeNode43.Text = "dzb";
+            treeNode44.Name = "Node1";
+            treeNode44.Text = "Room44";
+            treeNode45.Name = "Node0";
+            treeNode45.Text = "Outset";
+            this.ProjectTreeview.Nodes.AddRange(new System.Windows.Forms.TreeNode[] {
+            treeNode45});
+            this.ProjectTreeview.Size = new System.Drawing.Size(207, 303);
+            this.ProjectTreeview.TabIndex = 0;
+            this.ProjectTreeview.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.ProjectTreeview_AfterSelect);
             // 
             // PropertiesLayerSplit
             // 
@@ -289,7 +290,7 @@
             // 
             // groupBox1
             // 
-            this.groupBox1.Controls.Add(this.listBox1);
+            this.groupBox1.Controls.Add(this.LayersListBox);
             this.groupBox1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBox1.Location = new System.Drawing.Point(0, 0);
             this.groupBox1.Name = "groupBox1";
@@ -298,11 +299,11 @@
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Layers";
             // 
-            // listBox1
+            // LayersListBox
             // 
-            this.listBox1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.listBox1.FormattingEnabled = true;
-            this.listBox1.Items.AddRange(new object[] {
+            this.LayersListBox.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.LayersListBox.FormattingEnabled = true;
+            this.LayersListBox.Items.AddRange(new object[] {
             "Layer 0",
             "Layer 1",
             "Layer 2",
@@ -319,10 +320,11 @@
             "Layer D",
             "Layer E",
             "Layer F"});
-            this.listBox1.Location = new System.Drawing.Point(3, 16);
-            this.listBox1.Name = "listBox1";
-            this.listBox1.Size = new System.Drawing.Size(164, 216);
-            this.listBox1.TabIndex = 0;
+            this.LayersListBox.Location = new System.Drawing.Point(3, 16);
+            this.LayersListBox.Name = "LayersListBox";
+            this.LayersListBox.Size = new System.Drawing.Size(164, 216);
+            this.LayersListBox.TabIndex = 0;
+            this.LayersListBox.SelectedIndexChanged += new System.EventHandler(this.LayersListBox_SelectedIndexChanged);
             // 
             // panel1
             // 
@@ -513,13 +515,13 @@
         private System.Windows.Forms.Button button4;
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.GroupBox groupBox1;
-        private System.Windows.Forms.ListBox listBox1;
+        private System.Windows.Forms.ListBox LayersListBox;
         private System.Windows.Forms.GroupBox PropertiesBox;
         private System.Windows.Forms.SplitContainer EntitiesProjectSplit;
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.TreeView EntityTreeview;
         private System.Windows.Forms.GroupBox groupBox3;
-        private System.Windows.Forms.TreeView treeView2;
+        private System.Windows.Forms.TreeView ProjectTreeview;
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;

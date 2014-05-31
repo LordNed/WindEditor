@@ -63,16 +63,14 @@ namespace WindViewer.FileFormats
                             chunk = new ActrChunk();
                             if (!chunkHeader.Tag.ToUpper().EndsWith("R"))
                             {
-                                int layerNumber = ConvertZeroToFToLayer(chunkHeader.Tag.ToUpper().Substring(3, 1));
-                                chunk.ChunkLayer = layerNumber;
+                                chunk.ChunkLayer = EditorHelpers.ConvertStringToLayerId(chunkHeader.Tag.ToUpper().Substring(3, 1));
                             }
                             break;
                         case "SCO": 
                             chunk = new EnvrChunk();
                             if (!chunkHeader.Tag.EndsWith("b"))
                             {
-                                int layerNumber = ConvertZeroToFToLayer(chunkHeader.Tag.ToUpper().Substring(3, 1));
-                                chunk.ChunkLayer = layerNumber;
+                                chunk.ChunkLayer = EditorHelpers.ConvertStringToLayerId(chunkHeader.Tag.ToUpper().Substring(3, 1));
                             }
                             break;
                         case "STA": chunk = new StagChunk(); break;
@@ -116,32 +114,7 @@ namespace WindViewer.FileFormats
             return _chunkList;
         }
 
-        private int ConvertZeroToFToLayer(string lastChar)
-        {
-            switch (lastChar)
-            {
-                case "0": return 0;
-                case "1": return 1;
-                case "2": return 2;
-                case "3": return 3;
-                case "4": return 4;
-                case "5": return 5;
-                case "6": return 6;
-                case "7": return 7;
-                case "8": return 8;
-                case "9": return 9;
-                case "A": return 10;
-                case "B": return 11;
-                case "C": return 12;
-                case "D": return 13;
-                case "E": return 14;
-                case "F": return 15;
-
-                default:
-                    Console.WriteLine("WARNING: Failed to convert ACT*/SCO* chunk to layer! Last Char: " + lastChar);
-                    return -1;
-            }
-        }
+        
 
         public override void Save(BinaryWriter stream)
         {
@@ -218,7 +191,7 @@ namespace WindViewer.FileFormats
             public string ChunkDescription { get; private set; }
 
             //Layer this chunk belongs to (or -1 for default/no layer)
-            public int ChunkLayer = -1;
+            public EditorHelpers.EntityLayer ChunkLayer = EditorHelpers.EntityLayer.DefaultLayer;
 
             protected BaseChunk()
             {
@@ -970,7 +943,7 @@ namespace WindViewer.FileFormats
             public Vector3 Scale; //Or Intensity
             public ByteColorAlpha Color;
 
-            public LghtChunk():base("LGHT", "INterior Light Source"){}
+            public LghtChunk():base("LGHT", "Interior Light Source"){}
             public LghtChunk(string chunkName, string chunkDescription):base(chunkName, chunkDescription){}
             public override void LoadData(byte[] data, ref int srcOffset)
             {
