@@ -45,8 +45,8 @@ namespace WindViewer.Forms
         Vector3[] coldata;
         int[] indexdata;
         Matrix4[] mviewdata;
-        private List<IRenderable> _renderableObjects = new List<IRenderable>();
         private Camera _camera;
+        private IRenderer _renderer;
 
         //Events
         public static event Action<WindWakerEntityData> SelectedEntityFileChanged;
@@ -87,6 +87,9 @@ namespace WindViewer.Forms
 
 
             _camera = new Camera();
+
+            // TODO(mtwilliams): Abstract this so we're not tied to OpenGL?
+            _renderer = new IRenderer();
             
             _pgmId = GL.CreateProgram();
             LoadShader("src/shaders/vs.glsl", ShaderType.VertexShader, _pgmId, out _vsId);
@@ -126,10 +129,9 @@ namespace WindViewer.Forms
             Cube cube2 = new Cube();
             cube2.Transform.Position = new Vector3(0, 0, -5);
             cube2.Transform.Scale = new Vector3(0.25f, 0.5f, 0.25f);
-            
-            _renderableObjects.Add(cube1);
-            _renderableObjects.Add(cube2);
 
+            _renderer.AddRenderable(cube1);
+            _renderer.RemoveRenderable(cube2);
 
             //Test
             TestUserControl tcu = new TestUserControl();
@@ -230,10 +232,7 @@ namespace WindViewer.Forms
             GL.ClearColor(Color.GreenYellow);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            foreach (IRenderable R in _renderableObjects)
-            {
-                R.Render();
-            }
+            _renderer.Render(_camera);
 
             glControl.SwapBuffers();
         }

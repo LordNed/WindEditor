@@ -4,6 +4,14 @@ namespace WindViewer.Editor
 {
     public class Cube : IRenderable
     {
+        public Transform Transform;
+
+        private int VertexCount;
+        private int IndexCount;
+        private Matrix4 ModelMatrix = Matrix4.Identity;
+        private Matrix4 ViewProjectionMatrix = Matrix4.Identity;
+        private Matrix4 ModelViewProjectionMatrix = Matrix4.Identity;
+
         public Cube()
         {
             VertexCount = 8;
@@ -11,7 +19,7 @@ namespace WindViewer.Editor
             Transform = new Transform();
         }
 
-        public override Vector3[] GetVerts()
+        public Vector3[] GetVerts()
         {
             return new Vector3[] {
                 new Vector3(-0.5f, -0.5f,  -0.5f),
@@ -25,7 +33,7 @@ namespace WindViewer.Editor
             };
         }
 
-        public override int[] GetIndices(int offset = 0)
+        public int[] GetIndices(int offset = 0)
         {
             int[] inds = new int[] {
                 //left
@@ -61,13 +69,13 @@ namespace WindViewer.Editor
             return inds;
         }
 
-        public override void CalculateModelMatrix()
+        public void CalculateModelMatrix()
         {
             ModelMatrix = Matrix4.CreateScale(Transform.Scale) * Matrix4.CreateFromQuaternion(Transform.Rotation) * Matrix4.CreateTranslation(Transform.Position);
             //ModelMatrix = Matrix4.Identity;
         }
 
-        public override Vector3[] GetColorData()
+        public Vector3[] GetColorData()
         {
             return new Vector3[] {
                 new Vector3( 1f, 0f, 0f),
@@ -83,7 +91,6 @@ namespace WindViewer.Editor
 
         public override void Render()
         {
-            throw new System.NotImplementedException();
         }
     }
 }
