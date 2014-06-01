@@ -45,7 +45,7 @@ namespace WindViewer.Forms
         Vector3[] coldata;
         int[] indexdata;
         Matrix4[] mviewdata;
-        private List<RenderableObject> _renderableObjects = new List<RenderableObject>();
+        private List<IRenderable> _renderableObjects = new List<IRenderable>();
         private Camera _camera;
 
         //Events
@@ -241,7 +241,7 @@ namespace WindViewer.Forms
             List<int> indexes = new List<int>();
             int vertCount = 0;
 
-            foreach (RenderableObject o in _renderableObjects)
+            foreach (IRenderable o in _renderableObjects)
             {
                 verts.AddRange(o.GetVerts().ToList());
                 indexes.AddRange(o.GetIndices(vertCount).ToList());
@@ -268,7 +268,7 @@ namespace WindViewer.Forms
 
             //Pre-Render?
             //GL.UniformMatrix4(_uniformMview, false, ref mviewdata[0]);
-            foreach (RenderableObject o in _renderableObjects)
+            foreach (IRenderable o in _renderableObjects)
             {
                 o.CalculateModelMatrix();
                 Matrix4 projMatrix = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4f, glControl.Width / (float)glControl.Height, 0.01f, 1000f);
@@ -285,7 +285,7 @@ namespace WindViewer.Forms
             
 
             int indexAt = 0;
-            foreach (RenderableObject o in _renderableObjects)
+            foreach (IRenderable o in _renderableObjects)
             {
                 //o.CalculateModelMatrix();
                 GL.UniformMatrix4(_uniformMview, false, ref o.ModelViewProjectionMatrix);

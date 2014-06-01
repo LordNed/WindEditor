@@ -2,7 +2,7 @@
 
 namespace WindViewer.Editor
 {
-    public class Cube : RenderableObject
+    public class Cube : IRenderable
     {
         public Cube()
         {

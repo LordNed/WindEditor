@@ -2,7 +2,7 @@
 
 namespace WindViewer.Editor
 {
-    public abstract class RenderableObject
+    public abstract class IRenderable
     {
         public Transform Transform;
 
