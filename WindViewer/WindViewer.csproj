@@ -58,8 +58,9 @@
     <Compile Include="src\Editor\EditorAttributes.cs" />
     <Compile Include="src\Editor\EditorHelpers.cs" />
     <Compile Include="src\Editor\FSHelpers.cs" />
+    <Compile Include="src\Editor\IRenderer.cs" />
     <Compile Include="src\Editor\MathExtensions.cs" />
-    <Compile Include="src\Editor\RenderableObject.cs" />
+    <Compile Include="src\Editor\IRenderable.cs" />
     <Compile Include="src\Editor\Transform.cs" />
     <Compile Include="src\Editor\WorldspaceProject.cs" />
     <Compile Include="src\FileFormats\GenericArchiveData.cs" />
