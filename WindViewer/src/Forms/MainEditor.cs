@@ -13,6 +13,7 @@ using OpenTK.Graphics.OpenGL;
 using WindViewer.Editor;
 using WindViewer.Editor.Renderer;
 using WindViewer.FileFormats;
+using WindViewer.src.Forms;
 
 namespace WindViewer.Forms
 {
@@ -279,6 +280,41 @@ namespace WindViewer.Forms
                 _mruMenu.RemoveFile(filename);
             }
         }
+
+        /// <summary>
+        /// Open the link to our Wiki which has more information about file formats, their usages, etc.
+        /// Launches the default web browser on the users computer.
+        /// </summary>
+        private void wikiToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Process.Start(@"https://github.com/LordNed/WindEditor/wiki");
+        }
+
+        private void issueTrackerToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Process.Start(@"https://github.com/LordNed/WindEditor/issues");
+        }
+
+        /// <summary>
+        /// Opens a Utility for converting Big-Endian floats from Hexidecimal to Float and back.
+        /// </summary>
+        private void floatConverterToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            FloatConverter popup = new FloatConverter();
+            popup.Show(this);
+        }
+
+        private void preferencesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            PreferencesWindow popup = new PreferencesWindow();
+            popup.Show(this);
+        }
+
+        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            AboutWindow popup = new AboutWindow();
+            popup.Show();
+        }
         #endregion
 
 
@@ -461,5 +497,7 @@ namespace WindViewer.Forms
 
             //ToDo: Ask if the user wants to save.
         }
+
+        
     }
 }

@@ -8,7 +8,7 @@
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>WindViewer</RootNamespace>
-    <AssemblyName>WindViewer</AssemblyName>
+    <AssemblyName>Wind Viewer</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -67,6 +67,18 @@
     <Compile Include="src\FileFormats\GenericArchiveData.cs" />
     <Compile Include="src\FileFormats\StaticCollisionModel.cs" />
     <Compile Include="src\FileFormats\WindWakerEntityData.cs" />
+    <Compile Include="src\Forms\AboutWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Forms\AboutWindow.Designer.cs">
+      <DependentUpon>AboutWindow.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Forms\FloatConverter.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Forms\FloatConverter.Designer.cs">
+      <DependentUpon>FloatConverter.cs</DependentUpon>
+    </Compile>
     <Compile Include="src\Forms\InvalidRoomNumberPopup.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -81,6 +93,12 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="src\Forms\PreferencesWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Forms\PreferencesWindow.Designer.cs">
+      <DependentUpon>PreferencesWindow.cs</DependentUpon>
+    </Compile>
     <Compile Include="src\Forms\TestUserControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -91,6 +109,12 @@
     <Compile Include="src\Util\MruStripMenu.cs" />
     <Compile Include="src\Util\ObjectExtensions.cs" />
     <Compile Include="src\Util\Reflector.cs" />
+    <EmbeddedResource Include="src\Forms\AboutWindow.resx">
+      <DependentUpon>AboutWindow.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Forms\FloatConverter.resx">
+      <DependentUpon>FloatConverter.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\InvalidRoomNumberPopup.resx">
       <DependentUpon>InvalidRoomNumberPopup.cs</DependentUpon>
     </EmbeddedResource>
@@ -105,6 +129,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <EmbeddedResource Include="src\Forms\TestUserControl.resx">
       <DependentUpon>TestUserControl.cs</DependentUpon>
@@ -130,6 +155,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Notes.txt" />
+    <Content Include="Resources\aboutlogo.png" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
