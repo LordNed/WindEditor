@@ -46,8 +46,8 @@ namespace WindViewer.Forms
 
             _mruMenu = new MruStripMenu(mruList, OnMruClickedHandler, _mruRegKey + "\\MRU", 6);
 
-            //This can get really annoying...
-            this.CenterToScreen();
+            //Editor fails to auto-center on primary screen for some users.
+            CenterToScreen();
         }
 
         private void TestLayout_Load(object sender, EventArgs e)
