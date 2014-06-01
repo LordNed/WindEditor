@@ -236,8 +236,8 @@ namespace WindViewer.Editor
 
                             /* Map Collision Format */
                             case "dzb":
-                                //file = new DZB();
-                                //break;
+                                file = new StaticCollisionModel();
+                                break;
 
                             /* Room and Stage Entity Data */
                             case "dzr":

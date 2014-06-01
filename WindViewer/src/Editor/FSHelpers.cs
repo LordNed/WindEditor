@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using OpenTK;
 
 namespace WindViewer.Editor
 {
@@ -121,6 +122,13 @@ namespace WindViewer.Editor
             Array.Reverse(reversed);
 
             binaryWriter.Write(reversed);
+        }
+
+        public static void WriteVector(BinaryWriter binaryWriter, Vector3 value)
+        {
+            WriteFloat(binaryWriter, value.X);
+            WriteFloat(binaryWriter, value.Y);
+            WriteFloat(binaryWriter, value.Z);
         }
         #endregion
 
