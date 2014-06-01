@@ -80,5 +80,10 @@ namespace WindViewer.Editor
                 new Vector3( 0f, 0f, 1f)
             };
         }
+
+        public override void Render()
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

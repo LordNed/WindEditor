@@ -16,5 +16,7 @@ namespace WindViewer.Editor
         public abstract int[] GetIndices(int offset = 0);
         public abstract void CalculateModelMatrix();
         public abstract Vector3[] GetColorData();
+
+        public abstract void Render();
     }
 }
