@@ -37,6 +37,7 @@ namespace WindViewer.Forms
         private string _mruRegKey = "SOFTWARE\\Wind Viewer";
         private bool _glControlInitalized;
 
+        //Framerate Independent Camera Movement
         public static float DeltaTime;
 
         public MainEditor()
@@ -50,34 +51,12 @@ namespace WindViewer.Forms
             CenterToScreen();
         }
 
-        private void TestLayout_Load(object sender, EventArgs e)
+        private void MainEditor_Load(object sender, EventArgs e)
         {
-            //Things we're keeping.
             _loadedWorldspaceProject = null;
 
             _camera = new Camera();
             _renderer = new GLRenderer();
-
-            Cube cube1 = new Cube();
-            Cube cube2 = new Cube();
-            Cube cube3 = new Cube();
-            Cube cube4 = new Cube();
-            cube1.transform.Position = new Vector3(0, 0, -5);
-            cube1.transform.Scale = new Vector3(0.25f, 0.5f, 0.25f);
-
-            cube2.transform.Position = new Vector3(0, -5, -5);
-            cube2.transform.Scale = new Vector3(0.25f, 1f, 0.25f);
-
-            _renderer.AddRenderable(cube1);
-            _renderer.AddRenderable(cube2);
-
-            //Test
-            TestUserControl tcu = new TestUserControl();
-            tcu.Dock = DockStyle.Fill;
-
-            PropertiesBox.SuspendLayout();
-            PropertiesBox.Controls.Add(tcu);
-            PropertiesBox.ResumeLayout();
 
             _glControlInitalized = true;
         }
@@ -309,8 +288,8 @@ namespace WindViewer.Forms
 
         private void preferencesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            PreferencesWindow popup = new PreferencesWindow();
-            popup.Show(this);
+            /*PreferencesWindow popup = new PreferencesWindow();
+            popup.Show(this);*/
         }
 
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)

@@ -99,10 +99,10 @@
     <Compile Include="src\Forms\TestUserControl.Designer.cs">
       <DependentUpon>TestUserControl.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Util\FolderSelectDialog.cs" />
-    <Compile Include="src\Util\MruStripMenu.cs" />
-    <Compile Include="src\Util\ObjectExtensions.cs" />
-    <Compile Include="src\Util\Reflector.cs" />
+    <Compile Include="src\Editor\Util\FolderSelectDialog.cs" />
+    <Compile Include="src\Editor\Util\MruStripMenu.cs" />
+    <Compile Include="src\Editor\Util\ObjectExtensions.cs" />
+    <Compile Include="src\Editor\Util\Reflector.cs" />
     <EmbeddedResource Include="src\Forms\AboutWindow.resx">
       <DependentUpon>AboutWindow.cs</DependentUpon>
     </EmbeddedResource>
@@ -148,7 +148,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Notes.txt" />
     <Content Include="Resources\aboutlogo.png" />
   </ItemGroup>
   <ItemGroup />

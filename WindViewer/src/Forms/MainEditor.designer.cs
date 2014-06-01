@@ -58,16 +58,17 @@
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.mainArea = new System.Windows.Forms.Panel();
             this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.preferencesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.floatConverterToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.wikiToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.issueTrackerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.floatConverterToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.mainArea = new System.Windows.Forms.Panel();
+            this.label1 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.MainSplitter)).BeginInit();
             this.MainSplitter.Panel1.SuspendLayout();
             this.MainSplitter.Panel2.SuspendLayout();
@@ -86,6 +87,7 @@
             this.PropertiesLayerSplit.Panel1.SuspendLayout();
             this.PropertiesLayerSplit.Panel2.SuspendLayout();
             this.PropertiesLayerSplit.SuspendLayout();
+            this.PropertiesBox.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.panel1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -230,6 +232,7 @@
             // 
             // PropertiesBox
             // 
+            this.PropertiesBox.Controls.Add(this.label1);
             this.PropertiesBox.Dock = System.Windows.Forms.DockStyle.Fill;
             this.PropertiesBox.Location = new System.Drawing.Point(0, 0);
             this.PropertiesBox.Name = "PropertiesBox";
@@ -412,16 +415,6 @@
             this.exitToolStripMenuItem.Text = "E&xit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
-            // mainArea
-            // 
-            this.mainArea.Controls.Add(this.MainSplitter);
-            this.mainArea.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.mainArea.Location = new System.Drawing.Point(0, 24);
-            this.mainArea.Name = "mainArea";
-            this.mainArea.Padding = new System.Windows.Forms.Padding(0, 0, 0, 24);
-            this.mainArea.Size = new System.Drawing.Size(1409, 656);
-            this.mainArea.TabIndex = 0;
-            // 
             // optionsToolStripMenuItem
             // 
             this.optionsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -430,49 +423,12 @@
             this.optionsToolStripMenuItem.Size = new System.Drawing.Size(61, 20);
             this.optionsToolStripMenuItem.Text = "&Options";
             // 
-            // helpToolStripMenuItem
-            // 
-            this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.wikiToolStripMenuItem,
-            this.issueTrackerToolStripMenuItem,
-            this.toolStripSeparator4,
-            this.aboutToolStripMenuItem});
-            this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
-            this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
-            this.helpToolStripMenuItem.Text = "&Help";
-            // 
             // preferencesToolStripMenuItem
             // 
             this.preferencesToolStripMenuItem.Name = "preferencesToolStripMenuItem";
-            this.preferencesToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.preferencesToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
             this.preferencesToolStripMenuItem.Text = "&Preferences...";
             this.preferencesToolStripMenuItem.Click += new System.EventHandler(this.preferencesToolStripMenuItem_Click);
-            // 
-            // wikiToolStripMenuItem
-            // 
-            this.wikiToolStripMenuItem.Name = "wikiToolStripMenuItem";
-            this.wikiToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.wikiToolStripMenuItem.Text = "&Wiki";
-            this.wikiToolStripMenuItem.Click += new System.EventHandler(this.wikiToolStripMenuItem_Click);
-            // 
-            // issueTrackerToolStripMenuItem
-            // 
-            this.issueTrackerToolStripMenuItem.Name = "issueTrackerToolStripMenuItem";
-            this.issueTrackerToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.issueTrackerToolStripMenuItem.Text = "&Issue Tracker";
-            this.issueTrackerToolStripMenuItem.Click += new System.EventHandler(this.issueTrackerToolStripMenuItem_Click);
-            // 
-            // toolStripSeparator4
-            // 
-            this.toolStripSeparator4.Name = "toolStripSeparator4";
-            this.toolStripSeparator4.Size = new System.Drawing.Size(149, 6);
-            // 
-            // aboutToolStripMenuItem
-            // 
-            this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.aboutToolStripMenuItem.Text = "&About...";
-            this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
             // 
             // toolsToolStripMenuItem
             // 
@@ -489,6 +445,64 @@
             this.floatConverterToolStripMenuItem.Text = "&Float Converter...";
             this.floatConverterToolStripMenuItem.Click += new System.EventHandler(this.floatConverterToolStripMenuItem_Click);
             // 
+            // helpToolStripMenuItem
+            // 
+            this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.wikiToolStripMenuItem,
+            this.issueTrackerToolStripMenuItem,
+            this.toolStripSeparator4,
+            this.aboutToolStripMenuItem});
+            this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
+            this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
+            this.helpToolStripMenuItem.Text = "&Help";
+            // 
+            // wikiToolStripMenuItem
+            // 
+            this.wikiToolStripMenuItem.Name = "wikiToolStripMenuItem";
+            this.wikiToolStripMenuItem.Size = new System.Drawing.Size(142, 22);
+            this.wikiToolStripMenuItem.Text = "&Wiki";
+            this.wikiToolStripMenuItem.Click += new System.EventHandler(this.wikiToolStripMenuItem_Click);
+            // 
+            // issueTrackerToolStripMenuItem
+            // 
+            this.issueTrackerToolStripMenuItem.Name = "issueTrackerToolStripMenuItem";
+            this.issueTrackerToolStripMenuItem.Size = new System.Drawing.Size(142, 22);
+            this.issueTrackerToolStripMenuItem.Text = "&Issue Tracker";
+            this.issueTrackerToolStripMenuItem.Click += new System.EventHandler(this.issueTrackerToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator4
+            // 
+            this.toolStripSeparator4.Name = "toolStripSeparator4";
+            this.toolStripSeparator4.Size = new System.Drawing.Size(139, 6);
+            // 
+            // aboutToolStripMenuItem
+            // 
+            this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(142, 22);
+            this.aboutToolStripMenuItem.Text = "&About...";
+            this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
+            // 
+            // mainArea
+            // 
+            this.mainArea.Controls.Add(this.MainSplitter);
+            this.mainArea.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.mainArea.Location = new System.Drawing.Point(0, 24);
+            this.mainArea.Name = "mainArea";
+            this.mainArea.Padding = new System.Windows.Forms.Padding(0, 0, 0, 24);
+            this.mainArea.Size = new System.Drawing.Size(1409, 656);
+            this.mainArea.TabIndex = 0;
+            // 
+            // label1
+            // 
+            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(34, 195);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(94, 13);
+            this.label1.TabIndex = 0;
+            this.label1.Text = "Not yet supported.";
+            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
             // MainEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -501,7 +515,7 @@
             this.Name = "MainEditor";
             this.Text = "Wind Editor";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
-            this.Load += new System.EventHandler(this.TestLayout_Load);
+            this.Load += new System.EventHandler(this.MainEditor_Load);
             this.MainSplitter.Panel1.ResumeLayout(false);
             this.MainSplitter.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.MainSplitter)).EndInit();
@@ -520,6 +534,8 @@
             this.PropertiesLayerSplit.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.PropertiesLayerSplit)).EndInit();
             this.PropertiesLayerSplit.ResumeLayout(false);
+            this.PropertiesBox.ResumeLayout(false);
+            this.PropertiesBox.PerformLayout();
             this.groupBox1.ResumeLayout(false);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
@@ -575,5 +591,6 @@
         private System.Windows.Forms.ToolStripMenuItem issueTrackerToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
+        private System.Windows.Forms.Label label1;
     }
 }
