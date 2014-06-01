@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using OpenTK;
+using OpenTK.Graphics.OpenGL;
 
 namespace WindViewer.Editor
 {
@@ -19,11 +21,14 @@ namespace WindViewer.Editor
             _renderable.Remove(renderable);
         }
 
-        public void Render(Camera camera)
+        public void Render(Camera camera, float aspectRatio)
         {
-            foreach (IRenderable R in _renderable)
+            Matrix4 projMatrix = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4f, aspectRatio, 0.01f, 1000f);
+            Matrix4 viewProjMatrix = camera.GetViewMatrix() * projMatrix;
+
+            foreach (IRenderable renderable in _renderable)
             {
-                R.Render();
+                renderable.Render(viewProjMatrix);
             }
         }
     }

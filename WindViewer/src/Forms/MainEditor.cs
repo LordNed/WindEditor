@@ -24,27 +24,6 @@ namespace WindViewer.Forms
         private WindWakerEntityData _selectedEntityFile;
         private EditorHelpers.EntityLayer _selectedEntityLayer;
 
-
-        //OpenTK stuff.
-        private int _pgmId;
-        private int _vsId;
-        private int _fsId;
-
-        //OpenTK::Shader
-        private int _attributeVcol;
-        private int _attributeVpos;
-        private int _uniformMview;
-
-
-        //OpenTK::PerObject
-        private int vbo_position;
-        private int ibo_elements;
-        private int vbo_color;
-        private int vbo_mview;
-        Vector3[] vertdata;
-        Vector3[] coldata;
-        int[] indexdata;
-        Matrix4[] mviewdata;
         private Camera _camera;
         private IRenderer _renderer;
 
@@ -91,47 +70,13 @@ namespace WindViewer.Forms
             // TODO(mtwilliams): Abstract this so we're not tied to OpenGL?
             _renderer = new IRenderer();
             
-            _pgmId = GL.CreateProgram();
-            LoadShader("src/shaders/vs.glsl", ShaderType.VertexShader, _pgmId, out _vsId);
-            LoadShader("src/shaders/fs.glsl", ShaderType.FragmentShader, _pgmId, out _fsId);
-            GL.LinkProgram(_pgmId);
-            Console.WriteLine(GL.GetProgramInfoLog(_pgmId));
-
-            _attributeVpos = GL.GetAttribLocation(_pgmId, "vPosition");
-            _attributeVcol = GL.GetAttribLocation(_pgmId, "vColor");
-            _uniformMview = GL.GetUniformLocation(_pgmId, "modelview");
-
-            if (_attributeVpos == -1 || _attributeVcol == -1 || _uniformMview == -1)
-            {
-                Console.WriteLine("Error binding attributes");
-            }
-
-            GL.GenBuffers(1, out vbo_position);
-            GL.GenBuffers(1, out vbo_color);
-            GL.GenBuffers(1, out vbo_mview);
-            GL.GenBuffers(1, out ibo_elements);
-
-            /*vertdata = new Vector3[] { new Vector3(-0.8f, -0.8f, 0f),
-                new Vector3( 0.8f, -0.8f, 0f),
-                new Vector3( 0f,  0.8f, 0f)};
-
-
-            coldata = new Vector3[] { new Vector3(1f, 0f, 0f),
-                new Vector3( 0f, 0f, 1f),
-                new Vector3( 0f,  1f, 0f)};*/
-
-
-            mviewdata = new Matrix4[]{
-                Matrix4.Identity
-            };
-
             Cube cube1 = new Cube();
             Cube cube2 = new Cube();
             cube2.Transform.Position = new Vector3(0, 0, -5);
             cube2.Transform.Scale = new Vector3(0.25f, 0.5f, 0.25f);
 
             _renderer.AddRenderable(cube1);
-            _renderer.RemoveRenderable(cube2);
+            _renderer.AddRenderable(cube2);
 
             //Test
             TestUserControl tcu = new TestUserControl();
@@ -232,7 +177,7 @@ namespace WindViewer.Forms
             GL.ClearColor(Color.GreenYellow);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            _renderer.Render(_camera);
+            _renderer.Render(_camera, (float)glControl.Width / (float)glControl.Height);
 
             glControl.SwapBuffers();
         }
