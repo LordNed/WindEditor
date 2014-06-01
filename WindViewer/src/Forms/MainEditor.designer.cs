@@ -77,14 +77,14 @@
             this.newFromArchiveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.openWorldspaceDirToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.mruList = new JWC.MruStripMenu.MruMenuItem();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.saveAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mainArea = new System.Windows.Forms.Panel();
-            this.mruList = new JWC.MruStripMenu.MruMenuItem();
-            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.MainSplitter)).BeginInit();
             this.MainSplitter.Panel1.SuspendLayout();
             this.MainSplitter.Panel2.SuspendLayout();
@@ -125,10 +125,6 @@
             this.glControl.Paint += new System.Windows.Forms.PaintEventHandler(this.glControl_Paint);
             this.glControl.KeyDown += new System.Windows.Forms.KeyEventHandler(this.glControl_KeyDown);
             this.glControl.KeyUp += new System.Windows.Forms.KeyEventHandler(this.glControl_KeyUp);
-            this.glControl.MouseDown += new System.Windows.Forms.MouseEventHandler(this.glControl_MouseDown);
-            this.glControl.MouseMove += new System.Windows.Forms.MouseEventHandler(this.glControl_MouseMove);
-            this.glControl.MouseUp += new System.Windows.Forms.MouseEventHandler(this.glControl_MouseUp);
-            this.glControl.Resize += new System.EventHandler(this.glControl_Resize);
             // 
             // MainSplitter
             // 
@@ -433,6 +429,14 @@
             this.openWorldspaceDirToolStripMenuItem.Text = "&Open Worldspace Dir";
             this.openWorldspaceDirToolStripMenuItem.Click += new System.EventHandler(this.openWorldspaceDirToolStripMenuItem_Click);
             // 
+            // mruList
+            // 
+            this.mruList.Filename = "";
+            this.mruList.Name = "mruList";
+            this.mruList.Size = new System.Drawing.Size(194, 22);
+            this.mruList.Tag = "";
+            this.mruList.Text = "&Recent Dirs...";
+            // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
@@ -446,10 +450,23 @@
             this.saveAllToolStripMenuItem.Text = "&Save All";
             this.saveAllToolStripMenuItem.Click += new System.EventHandler(this.saveAllToolStripMenuItem_Click);
             // 
+            // toolStripMenuItem1
+            // 
+            this.toolStripMenuItem1.Enabled = false;
+            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(194, 22);
+            this.toolStripMenuItem1.Text = "&Export Archives (*.rarc)";
+            // 
             // toolStripSeparator3
             // 
             this.toolStripSeparator3.Name = "toolStripSeparator3";
             this.toolStripSeparator3.Size = new System.Drawing.Size(191, 6);
+            // 
+            // toolStripMenuItem2
+            // 
+            this.toolStripMenuItem2.Name = "toolStripMenuItem2";
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(194, 22);
+            this.toolStripMenuItem2.Text = "&Unload All";
             // 
             // exitToolStripMenuItem
             // 
@@ -467,27 +484,6 @@
             this.mainArea.Padding = new System.Windows.Forms.Padding(0, 0, 0, 24);
             this.mainArea.Size = new System.Drawing.Size(1409, 656);
             this.mainArea.TabIndex = 0;
-            // 
-            // mruList
-            // 
-            this.mruList.Filename = "";
-            this.mruList.Name = "mruList";
-            this.mruList.Size = new System.Drawing.Size(194, 22);
-            this.mruList.Tag = "";
-            this.mruList.Text = "&Recent Dirs...";
-            // 
-            // toolStripMenuItem1
-            // 
-            this.toolStripMenuItem1.Enabled = false;
-            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(194, 22);
-            this.toolStripMenuItem1.Text = "&Export Archives (*.rarc)";
-            // 
-            // toolStripMenuItem2
-            // 
-            this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(194, 22);
-            this.toolStripMenuItem2.Text = "&Unload All";
             // 
             // MainEditor
             // 

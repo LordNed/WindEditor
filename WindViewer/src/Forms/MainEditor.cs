@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
@@ -53,6 +54,7 @@ namespace WindViewer.Forms
         //Misc
         private MruStripMenu _mruMenu;
         private string _mruRegKey = "SOFTWARE\\Wind Viewer";
+        private bool _glControlInitalized;
 
         public MainEditor()
         {
@@ -87,8 +89,8 @@ namespace WindViewer.Forms
             _camera = new Camera();
             
             _pgmId = GL.CreateProgram();
-            LoadShader("shaders/vs.glsl", ShaderType.VertexShader, _pgmId, out _vsId);
-            LoadShader("shaders/fs.glsl", ShaderType.FragmentShader, _pgmId, out _fsId);
+            LoadShader("src/shaders/vs.glsl", ShaderType.VertexShader, _pgmId, out _vsId);
+            LoadShader("src/shaders/fs.glsl", ShaderType.FragmentShader, _pgmId, out _fsId);
             GL.LinkProgram(_pgmId);
             Console.WriteLine(GL.GetProgramInfoLog(_pgmId));
 
@@ -123,7 +125,7 @@ namespace WindViewer.Forms
             Cube cube1 = new Cube();
             Cube cube2 = new Cube();
             cube2.Transform.Position = new Vector3(0, 0, -5);
-            cube2.Transform.Scale = new Vector3(0.5f, 0.5f, 0.5f);
+            cube2.Transform.Scale = new Vector3(0.25f, 0.5f, 0.25f);
             
             _renderableObjects.Add(cube1);
             _renderableObjects.Add(cube2);
@@ -136,13 +138,15 @@ namespace WindViewer.Forms
             PropertiesBox.SuspendLayout();
             PropertiesBox.Controls.Add(tcu);
             PropertiesBox.ResumeLayout();
+
+            _glControlInitalized = true;
         }
 
 
         #region GLControl
         void Application_Idle(object sender, EventArgs e)
         {
-            while (glControl.IsIdle == true)
+            while (glControl.IsIdle)
             {
                 RenderFrame();
             }
@@ -160,7 +164,8 @@ namespace WindViewer.Forms
 
         void glControl_Resize(object sender, EventArgs e)
         {
-            
+            if (!_glControlInitalized)
+                return;
 
             GL.Viewport(0, 0, glControl.Width, glControl.Height);
             Matrix4 projMatrix = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4f,
@@ -219,6 +224,9 @@ namespace WindViewer.Forms
 
         void RenderFrame()
         {
+            if (!_glControlInitalized)
+                return;
+
             GL.ClearColor(Color.GreenYellow);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
@@ -266,7 +274,7 @@ namespace WindViewer.Forms
                 Matrix4 projMatrix = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4f, glControl.Width / (float)glControl.Height, 0.01f, 1000f);
                 o.ViewProjectionMatrix = _camera.GetViewMatrix() * projMatrix;
                 //Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4f, glControl.Width / (float)glControl.Height, 1.0f, 64f);
-                o.ModelViewProjectionMatrix = /*o.ModelMatrix**/o.ViewProjectionMatrix;
+                o.ModelViewProjectionMatrix = o.ViewProjectionMatrix; //*o.ModelMatrix**/o.ViewProjectionMatrix;
             }
             GL.UseProgram(_pgmId);
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
