@@ -122,6 +122,22 @@ namespace WindViewer.Forms
                 case Keys.D:
                     _camera.Move(.1f, 0f, 0f);
                     break;
+
+                case Keys.Q:
+                    _camera.Rotate(40, 0);
+                    break;
+
+                case Keys.E:
+                    _camera.Rotate(-40, 0);
+                    break;
+
+                case Keys.R:
+                    _camera.Rotate(0, 40);
+                    break;
+
+                case Keys.F:
+                    _camera.Rotate(0, -40);
+                    break;
             }
 
            Console.WriteLine("cam pos: " + _camera.transform.Position);
@@ -141,7 +157,7 @@ namespace WindViewer.Forms
             Vector2 newMousePos = new Vector2(e.X, e.Y);
             Vector2 delta = newMousePos - _lastMousePos;
 
-            //_camera.Rotate(delta.X, delta.Y);
+            _camera.Rotate(delta.X, delta.Y);
             _lastMousePos = newMousePos;
             //Console.WriteLine("x: " + e.X + " y: " + e.Y);
         }
@@ -206,6 +222,13 @@ namespace WindViewer.Forms
             UpdateProjectFolderTreeview();
 
             _mruMenu.AddFile(_loadedWorldspaceProject.ProjectFilePath);
+
+            //Temp
+            foreach (ZArchive archive in _loadedWorldspaceProject.GetAllArchives())
+            {
+                StaticCollisionModel scm = archive.GetFileByType<StaticCollisionModel>();
+                _renderer.AddRenderable(scm.Renderable);
+            }
         }
 
         /// <summary>

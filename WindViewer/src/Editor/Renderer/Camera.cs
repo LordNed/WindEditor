@@ -5,7 +5,7 @@ namespace WindViewer.Editor
     public class Camera
     {
         public Transform transform { get; private set; }
-        public float MoveSpeed = 0.2f;
+        public float MoveSpeed = 20f;
         public float MouseSensitivity = 0.1f;
 
         public Camera()

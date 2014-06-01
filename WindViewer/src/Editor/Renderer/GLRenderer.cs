@@ -32,6 +32,12 @@ namespace WindViewer.Editor.Renderer
             {
                 Console.WriteLine("Error binding attributes!");
             }
+
+            //We kind of need these.
+            GL.FrontFace(FrontFaceDirection.Cw);
+            GL.CullFace(CullFaceMode.FrontAndBack);
+            GL.Enable(EnableCap.DepthTest);
+            GL.DepthFunc(DepthFunction.Lequal);
         }
 
         public void Dispose()
@@ -56,7 +62,7 @@ namespace WindViewer.Editor.Renderer
 
             foreach (IRenderable o in _renderableObjects)
             {
-                Matrix4 projMatrix = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4f, aspectRatio, 0.01f, 1000f);
+                Matrix4 projMatrix = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4f, aspectRatio, 0.01f, 5000f);
 
                 //Create Model matrix based on Objects Translation/Rotation
                 o.CalculateModelMatrix();

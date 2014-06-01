@@ -225,15 +225,6 @@ namespace WindViewer.Editor
                         byte[] fileData = br.ReadBytes((int)br.BaseStream.Length);
                         switch ((new DirectoryInfo(folder).Name).ToLower())
                         {
-                            /* 3D Model Formats */
-                            case "bmd":
-                            case "bdl":
-                            case "bck":
-                            case "brk":
-                            case "btk":
-                                //file = new J3Dx();
-                                //break;
-
                             /* Map Collision Format */
                             case "dzb":
                                 file = new StaticCollisionModel();
@@ -250,6 +241,15 @@ namespace WindViewer.Editor
                                 else
                                     file = new GenericArchiveData();
                                 break;
+
+                            /* 3D Model Formats */
+                            case "bmd":
+                            case "bdl":
+                            case "bck":
+                            case "brk":
+                            case "btk":
+                            //file = new J3Dx();
+                            //break;
 
                             default:
                                 Console.WriteLine("Unknown folder " + folder +

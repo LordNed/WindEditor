@@ -163,6 +163,12 @@ namespace WindViewer.FileFormats
 
         public class RenderData : IRenderable
         {
+            public RenderData(int vertexCount, int indexCount)
+            {
+                _vertexCount = vertexCount;
+                _indexCount = indexCount;
+            }
+
             public Vector3[] Vertexes;
             public int[] Indexes;
             public override int[] GetIndices()
@@ -204,7 +210,7 @@ namespace WindViewer.FileFormats
                 for(int k = 0; k < 3; k++)
                     tris.Add(tri.Vertices[k]);
 
-                Renderable = new RenderData();
+                Renderable = new RenderData(verts.Count, tris.Count);
                 Renderable.Vertexes = verts.ToArray();
                 Renderable.Indexes = tris.ToArray();
             }
