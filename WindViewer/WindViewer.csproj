@@ -52,13 +52,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="src\Editor\Camera.cs" />
+    <Compile Include="src\Editor\Renderer\Camera.cs" />
     <Compile Include="src\Editor\CommonClasses.cs" />
     <Compile Include="src\Editor\Cube.cs" />
     <Compile Include="src\Editor\EditorAttributes.cs" />
     <Compile Include="src\Editor\EditorHelpers.cs" />
     <Compile Include="src\Editor\FSHelpers.cs" />
-    <Compile Include="src\Editor\IRenderer.cs" />
+    <Compile Include="src\Editor\Renderer\GLRenderer.cs" />
+    <Compile Include="src\Editor\Renderer\IRenderer.cs" />
     <Compile Include="src\Editor\MathExtensions.cs" />
     <Compile Include="src\Editor\IRenderable.cs" />
     <Compile Include="src\Editor\Transform.cs" />
@@ -129,6 +130,7 @@
   <ItemGroup>
     <Content Include="Notes.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

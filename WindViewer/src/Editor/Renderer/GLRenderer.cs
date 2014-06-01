@@ -7,25 +7,10 @@ using OpenTK.Graphics.OpenGL;
 
 namespace WindViewer.Editor.Renderer
 {
-    public class GLRenderer
+    public class GLRenderer : IRenderer
     {
-        //OpenTK stuff.
-        private int _programId;
-        private int _vertexShaderId;
-        private int _fragmentShaderId;
-
-        //OpenTK::Shader
-        private int _attributeVpos;
-        private int _uniformMVP;
-
-        private List<RenderableObject> _renderableObjects;
-        private GLControl _glControl;
-        private Camera _camera;
-
-        public GLRenderer(GLControl control, Camera camera)
+        public GLRenderer()
         {
-            _renderableObjects = new List<RenderableObject>();
-
             //Initialize our Shader
             _programId = GL.CreateProgram();
             LoadShader("src/shaders/vs.glsl", ShaderType.VertexShader, _programId, out _vertexShaderId);
@@ -42,46 +27,40 @@ namespace WindViewer.Editor.Renderer
             {
                 Console.WriteLine("Error binding attributes!");
             }
-
-            _glControl = control;
-            _camera = camera;
         }
 
-        public void AddToRenderList(RenderableObject obj)
+        public override void AddRenderable(IRenderable renderable)
         {
-            _renderableObjects.Add(obj);
-            obj.UpdateBuffers(_attributeVpos); //BLEH!
+            base.AddRenderable(renderable);
+            renderable.UpdateBuffers();
+            GL.VertexAttribPointer(_attributeVpos, 3, VertexAttribPointerType.Float, false, 0, 0);
         }
 
-        public void RenderFrame()
+        override public void Render(Camera camera, float aspectRatio)
         {
-            //Set global things here
-            //GL.Viewport(0, 0, _glControl.Width, _glControl.Height);
-            GL.ClearColor(Color.GreenYellow);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
             GL.UseProgram(_programId);
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0); //What does this do?
             GL.EnableVertexAttribArray(_attributeVpos);
+            //GL.VertexAttribPointer(_attributeVpos, 3, VertexAttribPointerType.Float, false, 0, 0);
 
-            foreach (RenderableObject o in _renderableObjects)
+            foreach (IRenderable o in _renderableObjects)
             {
-                Matrix4 projMatrix = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4f, _glControl.Width / (float)_glControl.Height, 0.01f, 1000f);
+                Matrix4 projMatrix = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4f, aspectRatio, 0.01f, 1000f);
 
                 //Create Model matrix based on Objects Translation/Rotation
                 o.CalculateModelMatrix();
-                o.ViewProjectionMatrix = _camera.GetViewMatrix()*projMatrix;
+                o.ViewProjectionMatrix = camera.GetViewMatrix()*projMatrix;
                 o.ModelViewProjectionMatrix = o.ModelMatrix*o.ViewProjectionMatrix;
 
                 //Upload the Model Matrix to the GPU
                 GL.UniformMatrix4(_uniformMVP, false, ref o.ModelViewProjectionMatrix);
+
+                //Render the object.
                 o.Render();
             }
 
             GL.DisableVertexAttribArray(_attributeVpos);
             GL.Flush();
-
-            _glControl.SwapBuffers();
         }
 
         private void LoadShader(String fileName, ShaderType type, int program, out int address)

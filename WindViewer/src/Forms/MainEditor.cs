@@ -11,6 +11,7 @@ using JWC;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using WindViewer.Editor;
+using WindViewer.Editor.Renderer;
 using WindViewer.FileFormats;
 
 namespace WindViewer.Forms
@@ -43,40 +44,26 @@ namespace WindViewer.Forms
             _mruMenu = new MruStripMenu(mruList, OnMruClickedHandler, _mruRegKey + "\\MRU", 6);
         }
 
-        private void OnMruClickedHandler(int number, string filename)
-        {
-            _mruMenu.SetFirstFile(number);
-
-            if (Directory.Exists(filename))
-            {
-                OpenFileFromWorkingDir(filename);
-            }
-            else
-            {
-                MessageBox.Show("Selected file not found, removing from list.", "Missing File", MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
-                _mruMenu.RemoveFile(filename);
-            }
-        }
-
         private void TestLayout_Load(object sender, EventArgs e)
         {
             //Things we're keeping.
             _loadedWorldspaceProject = null;
 
-
             _camera = new Camera();
+            _renderer = new GLRenderer();
 
-            // TODO(mtwilliams): Abstract this so we're not tied to OpenGL?
-            _renderer = new IRenderer();
-            
             Cube cube1 = new Cube();
             Cube cube2 = new Cube();
-            cube2.Transform.Position = new Vector3(0, 0, -5);
-            cube2.Transform.Scale = new Vector3(0.25f, 0.5f, 0.25f);
+            Cube cube3 = new Cube();
+            Cube cube4 = new Cube();
+            cube1.transform.Position = new Vector3(0, 0, -5);
+            cube1.transform.Scale = new Vector3(0.25f, 0.5f, 0.25f);
+
+            cube2.transform.Position = new Vector3(0, 0, -5);
+            cube2.transform.Scale = new Vector3(0.25f, 0.5f, 0.25f);
 
             _renderer.AddRenderable(cube1);
-            _renderer.AddRenderable(cube2);
+            //_renderer.AddRenderable(cube2);
 
             //Test
             TestUserControl tcu = new TestUserControl();
@@ -232,7 +219,7 @@ namespace WindViewer.Forms
             string workingDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), Application.ProductName);
             ofd.InitialDirectory = workingDir;
 
-            if (ofd.ShowDialog(this.Handle)) ;
+            if (ofd.ShowDialog(this.Handle))
             {
                 //Ensure that the selected directory ends in ".wrkDir". If it doesn't, I don't want to figure out what happens.
                 if (ofd.FileName.EndsWith(".wrkDir"))
@@ -255,6 +242,22 @@ namespace WindViewer.Forms
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Application.Exit();
+        }
+
+        private void OnMruClickedHandler(int number, string filename)
+        {
+            _mruMenu.SetFirstFile(number);
+
+            if (Directory.Exists(filename))
+            {
+                OpenFileFromWorkingDir(filename);
+            }
+            else
+            {
+                MessageBox.Show("Selected file not found, removing from list.", "Missing File", MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                _mruMenu.RemoveFile(filename);
+            }
         }
         #endregion
 
@@ -412,7 +415,8 @@ namespace WindViewer.Forms
             }
 
             //Select the Default layer by uh... default.
-            LayersListBox.SetSelected(LayersListBox.Items.Count-1, true);
+            if(LayersListBox.Items.Count > 0)
+                LayersListBox.SetSelected(LayersListBox.Items.Count-1, true);
 
             LayersListBox.ResumeLayout();
             LayersListBox.EndUpdate();
