@@ -114,12 +114,6 @@ namespace WindViewer.Forms
             if (!_glControlInitalized)
                 return;
 
-            GL.Viewport(0, 0, glControl.Width, glControl.Height);
-            Matrix4 projMatrix = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4f,
-                glControl.Width / (float)glControl.Height, 1.0f, 64f);
-            GL.MatrixMode(MatrixMode.Projection);
-            GL.LoadMatrix(ref projMatrix);
-
             glControl.Invalidate();
         }
 
