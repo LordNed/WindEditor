@@ -1,4 +1,6 @@
-﻿using OpenTK;
+﻿using System;
+using OpenTK;
+using OpenTK.Graphics.OpenGL;
 
 namespace WindViewer.Editor
 {
@@ -12,11 +14,17 @@ namespace WindViewer.Editor
         private Matrix4 ViewProjectionMatrix = Matrix4.Identity;
         private Matrix4 ModelViewProjectionMatrix = Matrix4.Identity;
 
+        private int _indexBuffer;
+        private int _vertexBuffer;
+
         public Cube()
         {
             VertexCount = 8;
             IndexCount = 36;
             Transform = new Transform();
+
+            GenerateIndexBuffer();
+            GenerateVertexBuffer();
         }
 
         public Vector3[] GetVerts()
@@ -87,6 +95,24 @@ namespace WindViewer.Editor
                 new Vector3( 1f, 0f, 0f),
                 new Vector3( 0f, 0f, 1f)
             };
+        }
+
+        public void GenerateIndexBuffer()
+        {
+            GL.GenBuffers(1, out _indexBuffer);
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, _indexBuffer);
+            int[] indicies = GetIndices();
+            GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(indicies.Length * sizeof(int)), indicies, BufferUsageHint.StaticDraw);
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+        }
+
+        public void GenerateVertexBuffer()
+        {
+            GL.GenBuffers(1, out _vertexBuffer);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBuffer);
+            Vector3[] verts = GetVerts();
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(verts.Length * Vector3.SizeInBytes), verts, BufferUsageHint.StaticDraw);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         }
 
         public override void Render()
