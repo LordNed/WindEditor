@@ -48,14 +48,15 @@ namespace WindViewer.Editor
 
         public void LookAt(Vector3 worldPosition)
         {
-            Matrix4 lookAtResult = Matrix4.LookAt(Position, worldPosition, Vector3.UnitY);
-            Rotation = lookAtResult.ExtractRotation();
+            Rotation = Quaternion.FromAxisAngle((Position - worldPosition).Normalized(), 0f);
+            //Matrix4 lookAtResult = Matrix4.LookAt(Position, worldPosition, Vector3.UnitY);
+            //Rotation = lookAtResult.ExtractRotation();
         }
 
         public void Rotate(Vector3 axis, float angleInDegrees)
         {
             Quaternion rotQuat = Quaternion.FromAxisAngle(axis, MathHelper.DegreesToRadians(angleInDegrees));
-            Rotation *= rotQuat;
+            Rotation = rotQuat * Rotation;
         }
 
         public void Translate(Vector3 amount)

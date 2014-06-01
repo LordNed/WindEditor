@@ -113,7 +113,8 @@
             // glControl
             // 
             this.glControl.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.glControl.BackColor = System.Drawing.Color.Black;
+            this.glControl.BackColor = System.Drawing.Color.Transparent;
+            this.glControl.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
             this.glControl.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.glControl.Dock = System.Windows.Forms.DockStyle.Fill;
             this.glControl.Location = new System.Drawing.Point(0, 0);

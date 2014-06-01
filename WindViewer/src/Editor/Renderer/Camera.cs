@@ -26,7 +26,7 @@ namespace WindViewer.Editor
 
         public void Rotate(float x, float y)
         {
-            transform.Rotate(transform.Up, x * MouseSensitivity);
+            transform.Rotate(Vector3.UnitY, x * MouseSensitivity);
             transform.Rotate(transform.Right, y * MouseSensitivity);
         }
 
