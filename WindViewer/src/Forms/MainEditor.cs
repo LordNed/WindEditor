@@ -177,6 +177,8 @@ namespace WindViewer.Forms
             GL.ClearColor(Color.GreenYellow);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
+            GL.Viewport(0, 0, glControl.Width, glControl.Height);
+
             _renderer.Render(_camera, (float)glControl.Width / (float)glControl.Height);
 
             glControl.SwapBuffers();
