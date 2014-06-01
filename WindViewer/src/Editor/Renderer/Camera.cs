@@ -1,11 +1,12 @@
 ﻿using OpenTK;
+using WindViewer.Forms;
 
 namespace WindViewer.Editor
 {
     public class Camera
     {
         public Transform transform { get; private set; }
-        public float MoveSpeed = 20f;
+        public float MoveSpeed = 800f;
         public float MouseSensitivity = 0.1f;
 
         public Camera()
@@ -16,12 +17,12 @@ namespace WindViewer.Editor
         public void Move(float x, float y, float z)
         {
             Vector3 offset = Vector3.Zero;
-            offset += transform.Right*-x;
+            offset += transform.Right*x;
             offset += transform.Forward*z;
             offset.Y += y;
 
             offset.NormalizeFast();
-            transform.Position += Vector3.Multiply(offset, MoveSpeed);
+            transform.Position += Vector3.Multiply(offset, MoveSpeed * MainEditor.DeltaTime);
         }
 
         public void Rotate(float x, float y)

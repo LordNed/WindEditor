@@ -36,6 +36,8 @@ namespace WindViewer.Forms
         private string _mruRegKey = "SOFTWARE\\Wind Viewer";
         private bool _glControlInitalized;
 
+        public static float DeltaTime;
+
         public MainEditor()
         {
             //Initialize the WinForm
@@ -108,68 +110,71 @@ namespace WindViewer.Forms
 
         void glControl_KeyDown(object sender, KeyEventArgs e)
         {
-            switch (e.KeyCode)
-            {
-                case Keys.W:
-                    _camera.Move(0f,  0f, 0.1f);
-                    break;
-                case Keys.S:
-                    _camera.Move(0f, 0f, -0.1f);
-                    break;
-                case Keys.A:
-                    _camera.Move(-0.1f, 0f, 0f);
-                    break;
-                case Keys.D:
-                    _camera.Move(.1f, 0f, 0f);
-                    break;
-
-                case Keys.Q:
-                    _camera.Rotate(40, 0);
-                    break;
-
-                case Keys.E:
-                    _camera.Rotate(-40, 0);
-                    break;
-
-                case Keys.R:
-                    _camera.Rotate(0, 40);
-                    break;
-
-                case Keys.F:
-                    _camera.Rotate(0, -40);
-                    break;
-            }
+            EditorHelpers.KeysDown[e.KeyValue] = true;
 
            Console.WriteLine("cam pos: " + _camera.transform.Position);
         }
 
         void glControl_KeyUp(object sender, KeyEventArgs e)
         {
+            EditorHelpers.KeysDown[e.KeyValue] = false;
         }
 
         void glControl_MouseDown(object sender, MouseEventArgs e)
         {
+            switch (e.Button)
+            {
+                case MouseButtons.Left:
+                    EditorHelpers.MouseState.LDown = true;
+                    break;
+                case MouseButtons.Right:
+                    EditorHelpers.MouseState.RDown = true;
+                    break;
+                case MouseButtons.Middle:
+                    EditorHelpers.MouseState.MDown = true;
+                    break;
+            }
+
+            EditorHelpers.MouseState.Center = new Vector2(e.X, e.Y);
         }
 
-        private Vector2 _lastMousePos;
         void glControl_MouseMove(object sender, MouseEventArgs e)
         {
             Vector2 newMousePos = new Vector2(e.X, e.Y);
-            Vector2 delta = newMousePos - _lastMousePos;
+            Vector2 delta = newMousePos - EditorHelpers.MouseState.Center;
+            EditorHelpers.MouseState.Center = newMousePos;
 
-            _camera.Rotate(delta.X, delta.Y);
-            _lastMousePos = newMousePos;
-            //Console.WriteLine("x: " + e.X + " y: " + e.Y);
+            EditorHelpers.MouseState.Delta = delta;
+
+            if (EditorHelpers.MouseState.LDown)
+            {
+                _camera.Rotate(-delta.X, delta.Y);
+            }
         }
 
         void glControl_MouseUp(object sender, MouseEventArgs e)
         {
+            switch (e.Button)
+            {
+                case MouseButtons.Left:
+                    EditorHelpers.MouseState.LDown = false;
+                    break;
+                case MouseButtons.Right:
+                    EditorHelpers.MouseState.RDown = false;
+                    break;
+                case MouseButtons.Middle:
+                    EditorHelpers.MouseState.MDown = false;
+                    break;
+            }
         }
 
         void RenderFrame()
         {
             if (!_glControlInitalized)
                 return;
+
+            DeltaTime = Program.DeltaTimeStopwatch.Elapsed.Milliseconds/1000f;
+            Program.DeltaTimeStopwatch.Restart();
 
             GL.ClearColor(Color.GreenYellow);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
@@ -178,25 +183,17 @@ namespace WindViewer.Forms
 
             _renderer.Render(_camera, (float)glControl.Width / (float)glControl.Height);
 
+            if (EditorHelpers.KeysDown[(int)Keys.W])
+                _camera.Move(0f, 0f, 1 );
+            if (EditorHelpers.KeysDown[(int)Keys.S])
+                _camera.Move(0f, 0f, -1);
+            if (EditorHelpers.KeysDown[(int)Keys.A])
+                _camera.Move(1 , 0f, 0f);
+            if (EditorHelpers.KeysDown[(int)Keys.D])
+                _camera.Move(-1 , 0f, 0f);
+
             glControl.SwapBuffers();
         }
-
-
-
-        private void LoadShader(String fileName, ShaderType type, int program, out int address)
-        {
-            address = GL.CreateShader(type);
-            using (StreamReader sr = new StreamReader(fileName))
-            {
-                GL.ShaderSource(address, sr.ReadToEnd());
-            }
-            GL.CompileShader(address);
-            GL.AttachShader(program, address);
-            Console.WriteLine(GL.GetShaderInfoLog(address));
-        }
-
-
-
         #endregion
 
         #region Toolstrip Callbacks
@@ -347,6 +344,12 @@ namespace WindViewer.Forms
                         newNode.BackColor = EditorHelpers.LayerIdToColor(chunk.ChunkLayer);
                     i++;
                 }
+
+                //Some maps only have copies of things on sub-layers and not the main
+                //layer, so we're going to remove the main layer one if it hasn't been
+                //used.
+                if (topLevelNode.Text == "ChunkHeader")
+                    EntityTreeview.Nodes.Remove(topLevelNode);
             }
 
             EntityTreeview.EndUpdate();

@@ -28,32 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.TreeNode treeNode1 = new System.Windows.Forms.TreeNode("[SCOOB] Scaleable Objects");
-            System.Windows.Forms.TreeNode treeNode2 = new System.Windows.Forms.TreeNode("[0] LinkRM");
-            System.Windows.Forms.TreeNode treeNode3 = new System.Windows.Forms.TreeNode("[SCLS] Exits", new System.Windows.Forms.TreeNode[] {
-            treeNode2});
-            System.Windows.Forms.TreeNode treeNode4 = new System.Windows.Forms.TreeNode("[0] KNOB00D");
-            System.Windows.Forms.TreeNode treeNode5 = new System.Windows.Forms.TreeNode("[TGDR] Door", new System.Windows.Forms.TreeNode[] {
-            treeNode4});
-            System.Windows.Forms.TreeNode treeNode6 = new System.Windows.Forms.TreeNode("model.bdl");
-            System.Windows.Forms.TreeNode treeNode7 = new System.Windows.Forms.TreeNode("model1.bdl");
-            System.Windows.Forms.TreeNode treeNode8 = new System.Windows.Forms.TreeNode("model3.bdl");
-            System.Windows.Forms.TreeNode treeNode9 = new System.Windows.Forms.TreeNode("bdl", new System.Windows.Forms.TreeNode[] {
-            treeNode6,
-            treeNode7,
-            treeNode8});
-            System.Windows.Forms.TreeNode treeNode10 = new System.Windows.Forms.TreeNode("model1.btk");
-            System.Windows.Forms.TreeNode treeNode11 = new System.Windows.Forms.TreeNode("btk", new System.Windows.Forms.TreeNode[] {
-            treeNode10});
-            System.Windows.Forms.TreeNode treeNode12 = new System.Windows.Forms.TreeNode("room.dzb");
-            System.Windows.Forms.TreeNode treeNode13 = new System.Windows.Forms.TreeNode("dzb", new System.Windows.Forms.TreeNode[] {
-            treeNode12});
-            System.Windows.Forms.TreeNode treeNode14 = new System.Windows.Forms.TreeNode("Room44", new System.Windows.Forms.TreeNode[] {
-            treeNode9,
-            treeNode11,
-            treeNode13});
-            System.Windows.Forms.TreeNode treeNode15 = new System.Windows.Forms.TreeNode("Outset", new System.Windows.Forms.TreeNode[] {
-            treeNode14});
             this.glControl = new OpenTK.GLControl();
             this.MainSplitter = new System.Windows.Forms.SplitContainer();
             this.leftColumGameSplit = new System.Windows.Forms.SplitContainer();
@@ -126,6 +100,9 @@
             this.glControl.Paint += new System.Windows.Forms.PaintEventHandler(this.glControl_Paint);
             this.glControl.KeyDown += new System.Windows.Forms.KeyEventHandler(this.glControl_KeyDown);
             this.glControl.KeyUp += new System.Windows.Forms.KeyEventHandler(this.glControl_KeyUp);
+            this.glControl.MouseDown += new System.Windows.Forms.MouseEventHandler(this.glControl_MouseDown);
+            this.glControl.MouseMove += new System.Windows.Forms.MouseEventHandler(this.glControl_MouseMove);
+            this.glControl.MouseUp += new System.Windows.Forms.MouseEventHandler(this.glControl_MouseUp);
             // 
             // MainSplitter
             // 
@@ -199,20 +176,6 @@
             this.EntityTreeview.Dock = System.Windows.Forms.DockStyle.Fill;
             this.EntityTreeview.Location = new System.Drawing.Point(3, 16);
             this.EntityTreeview.Name = "EntityTreeview";
-            treeNode1.Name = "Node0";
-            treeNode1.Text = "[SCOOB] Scaleable Objects";
-            treeNode2.Name = "Node4";
-            treeNode2.Text = "[0] LinkRM";
-            treeNode3.Name = "Node1";
-            treeNode3.Text = "[SCLS] Exits";
-            treeNode4.Name = "Node3";
-            treeNode4.Text = "[0] KNOB00D";
-            treeNode5.Name = "Node2";
-            treeNode5.Text = "[TGDR] Door";
-            this.EntityTreeview.Nodes.AddRange(new System.Windows.Forms.TreeNode[] {
-            treeNode1,
-            treeNode3,
-            treeNode5});
             this.EntityTreeview.Size = new System.Drawing.Size(207, 287);
             this.EntityTreeview.TabIndex = 0;
             // 
@@ -232,28 +195,6 @@
             this.ProjectTreeview.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ProjectTreeview.Location = new System.Drawing.Point(3, 16);
             this.ProjectTreeview.Name = "ProjectTreeview";
-            treeNode6.Name = "Node3";
-            treeNode6.Text = "model.bdl";
-            treeNode7.Name = "Node4";
-            treeNode7.Text = "model1.bdl";
-            treeNode8.Name = "Node5";
-            treeNode8.Text = "model3.bdl";
-            treeNode9.Name = "Node2";
-            treeNode9.Text = "bdl";
-            treeNode10.Name = "Node7";
-            treeNode10.Text = "model1.btk";
-            treeNode11.Name = "Node6";
-            treeNode11.Text = "btk";
-            treeNode12.Name = "Node9";
-            treeNode12.Text = "room.dzb";
-            treeNode13.Name = "Node8";
-            treeNode13.Text = "dzb";
-            treeNode14.Name = "Node1";
-            treeNode14.Text = "Room44";
-            treeNode15.Name = "Node0";
-            treeNode15.Text = "Outset";
-            this.ProjectTreeview.Nodes.AddRange(new System.Windows.Forms.TreeNode[] {
-            treeNode15});
             this.ProjectTreeview.Size = new System.Drawing.Size(207, 303);
             this.ProjectTreeview.TabIndex = 0;
             this.ProjectTreeview.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.ProjectTreeview_AfterSelect);
@@ -303,23 +244,6 @@
             // 
             this.LayersListBox.Dock = System.Windows.Forms.DockStyle.Fill;
             this.LayersListBox.FormattingEnabled = true;
-            this.LayersListBox.Items.AddRange(new object[] {
-            "Layer 0",
-            "Layer 1",
-            "Layer 2",
-            "Layer 3",
-            "Layer 4",
-            "Layer 5",
-            "Layer 6",
-            "Layer 7",
-            "Layer 8",
-            "Layer 9",
-            "Layer A",
-            "Layer B",
-            "Layer C",
-            "Layer D",
-            "Layer E",
-            "Layer F"});
             this.LayersListBox.Location = new System.Drawing.Point(3, 16);
             this.LayersListBox.Name = "LayersListBox";
             this.LayersListBox.Size = new System.Drawing.Size(164, 216);

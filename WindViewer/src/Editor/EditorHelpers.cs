@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Drawing;
+using OpenTK;
+using OpenTK.Input;
 
 namespace WindViewer.Editor
 {
@@ -97,5 +99,18 @@ namespace WindViewer.Editor
                     return EntityLayer.Invalid;
             }
         }
+
+        #region INPUT
+
+        public struct MouseStruct
+        {
+            public Vector2 Center, Delta;
+            public bool LDown, RDown, MDown;
+        }
+
+        public static bool[] KeysDown = new bool[256];
+        public static MouseStruct MouseState = new MouseStruct();
+
+        #endregion
     }
 }
