@@ -9,6 +9,8 @@ namespace WindViewer.Editor.Renderer
 {
     public class GLRenderer : IRenderer, IDisposable
     {
+        protected List<IRenderable> _renderableObjects = new List<IRenderable>();
+
         public GLRenderer()
         {
             //Initialize our Shader
@@ -35,7 +37,7 @@ namespace WindViewer.Editor.Renderer
 
             //We kind of need these.
             GL.FrontFace(FrontFaceDirection.Cw);
-            GL.CullFace(CullFaceMode.FrontAndBack);
+            GL.CullFace(CullFaceMode.Front);
             GL.Enable(EnableCap.DepthTest);
             GL.DepthFunc(DepthFunction.Lequal);
         }
@@ -48,8 +50,17 @@ namespace WindViewer.Editor.Renderer
         public override void AddRenderable(IRenderable renderable)
         {
             base.AddRenderable(renderable);
+
+            _renderableObjects.Add(renderable);
             renderable.UpdateBuffers();
-            GL.VertexAttribPointer(_attributeVpos, 3, VertexAttribPointerType.Float, false, 0, 0);
+            //GL.VertexAttribPointer(_attributeVpos, 3, VertexAttribPointerType.Float, false, 0, 0);
+        }
+
+        public override void RemoveRenderable(IRenderable renderable)
+        {
+            base.RemoveRenderable(renderable);
+
+            _renderableObjects.Remove(renderable);
         }
 
         override public void Render(Camera camera, float aspectRatio)

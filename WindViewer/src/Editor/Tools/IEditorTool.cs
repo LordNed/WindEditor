@@ -1,11 +1,11 @@
-﻿namespace WindViewer.Editor
+﻿namespace WindViewer.Editor.Tools
 {
-    public interface IEditorTool
+    public abstract class IEditorTool
     {
-        void PreUpdate();
-        void Update();
-        void LateUpdate();
+        public virtual void PreUpdate() { }
+        public virtual void Update() { }
+        public virtual void LateUpdate() { }
 
-        void Render();
+        public virtual void Render() { }
     }
 }

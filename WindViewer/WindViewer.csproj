@@ -52,6 +52,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\Editor\Tools\DebugRenderer.cs" />
+    <Compile Include="src\Editor\Tools\IEditorTool.cs" />
     <Compile Include="src\Editor\Renderer\Camera.cs" />
     <Compile Include="src\Editor\CommonClasses.cs" />
     <Compile Include="src\Editor\Cube.cs" />
