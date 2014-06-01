@@ -45,6 +45,9 @@ namespace WindViewer.Forms
             InitializeComponent();
 
             _mruMenu = new MruStripMenu(mruList, OnMruClickedHandler, _mruRegKey + "\\MRU", 6);
+
+            //This can get really annoying...
+            this.CenterToScreen();
         }
 
         private void TestLayout_Load(object sender, EventArgs e)
