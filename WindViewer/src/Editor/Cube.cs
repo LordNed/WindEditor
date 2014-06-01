@@ -105,7 +105,7 @@ namespace WindViewer.Editor
 
         public override void Render(Matrix4 viewProjMatrix)
         {
-            Matrix4 modelViewProjMatrix = Matrix4.Identity;// CalculateModelMatrix() * viewProjMatrix;
+            Matrix4 modelViewProjMatrix = CalculateModelMatrix() * viewProjMatrix;
 
             GL.UseProgram(_programId);
             GL.UniformMatrix4(_uniformModelViewProjMatrix, false, ref modelViewProjMatrix);
