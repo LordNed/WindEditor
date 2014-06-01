@@ -10,9 +10,6 @@ namespace WindViewer.Editor
 
         private int VertexCount;
         private int IndexCount;
-        private Matrix4 ModelMatrix = Matrix4.Identity;
-        private Matrix4 ViewProjectionMatrix = Matrix4.Identity;
-        private Matrix4 ModelViewProjectionMatrix = Matrix4.Identity;
 
         private int _indexBuffer;
         private int _vertexBuffer;
@@ -77,10 +74,9 @@ namespace WindViewer.Editor
             return inds;
         }
 
-        public void CalculateModelMatrix()
+        public Matrix4 CalculateModelMatrix()
         {
-            ModelMatrix = Matrix4.CreateScale(Transform.Scale) * Matrix4.CreateFromQuaternion(Transform.Rotation) * Matrix4.CreateTranslation(Transform.Position);
-            //ModelMatrix = Matrix4.Identity;
+            return Matrix4.CreateScale(Transform.Scale) * Matrix4.CreateFromQuaternion(Transform.Rotation) * Matrix4.CreateTranslation(Transform.Position);
         }
 
         public Vector3[] GetColorData()
