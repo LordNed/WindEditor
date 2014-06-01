@@ -849,7 +849,8 @@ namespace WindViewer.FileFormats
         public class ShipChunk : BaseChunkSpatial
         {
             //public Vector3 Position;
-            public uint Unknown; //This basically has to be a rotation of some form.
+            public ushort YRotation;
+            public ushort Unknown;
 
             public ShipChunk():base("SHIP", "Ship Spawn Point"){}
             public override void LoadData(byte[] data, ref int srcOffset)
@@ -858,9 +859,10 @@ namespace WindViewer.FileFormats
                 Transform.Position.Y = FSHelpers.ConvertIEEE754Float((uint)FSHelpers.Read32(data, srcOffset + 4));
                 Transform.Position.Z = FSHelpers.ConvertIEEE754Float((uint)FSHelpers.Read32(data, srcOffset + 8));
 
-                Unknown = (uint)FSHelpers.Read32(data, srcOffset + 12);
+                YRotation = (ushort)FSHelpers.Read16(data, srcOffset + 12);
+                Unknown = (ushort) FSHelpers.Read16(data, srcOffset + 14);
 
-                srcOffset += 12;
+                srcOffset += 16;
             }
 
             public override void WriteData(BinaryWriter stream)
@@ -869,7 +871,8 @@ namespace WindViewer.FileFormats
                 FSHelpers.WriteFloat(stream, Transform.Position.Y);
                 FSHelpers.WriteFloat(stream, Transform.Position.Z);
 
-                FSHelpers.Write32(stream, (int)Unknown);
+                FSHelpers.Write16(stream, YRotation);
+                FSHelpers.Write16(stream, Unknown);
             }
         }
 
