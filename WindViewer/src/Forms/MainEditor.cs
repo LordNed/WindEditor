@@ -230,74 +230,10 @@ namespace WindViewer.Forms
             GL.ClearColor(Color.GreenYellow);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            /*Matrix4 modelview = Matrix4.LookAt(Vector3.Zero, Vector3.UnitZ, Vector3.UnitY);
-            GL.MatrixMode(MatrixMode.Modelview);
-            GL.LoadMatrix(ref modelview);*/
-
-            /**/
-
-            List<Vector3> verts = new List<Vector3>();
-            List<Vector3> colors = new List<Vector3>();
-            List<int> indexes = new List<int>();
-            int vertCount = 0;
-
-            foreach (IRenderable o in _renderableObjects)
+            foreach (IRenderable R in _renderableObjects)
             {
-                verts.AddRange(o.GetVerts().ToList());
-                indexes.AddRange(o.GetIndices(vertCount).ToList());
-                colors.AddRange(o.GetColorData().ToList());
-                vertCount += o.VertexCount;
+                R.Render();
             }
-
-            vertdata = verts.ToArray();
-            indexdata = indexes.ToArray();
-            coldata = colors.ToArray();
-
-            //Bind shit
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, ibo_elements);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(indexdata.Length * sizeof(int)), indexdata, BufferUsageHint.StaticDraw);
-
-            GL.BindBuffer(BufferTarget.ArrayBuffer, vbo_position);
-            GL.BufferData<Vector3>(BufferTarget.ArrayBuffer, (IntPtr)(vertdata.Length * Vector3.SizeInBytes), vertdata, BufferUsageHint.StaticDraw);
-            GL.VertexAttribPointer(_attributeVpos, 3, VertexAttribPointerType.Float, false, 0, 0);
-
-            GL.BindBuffer(BufferTarget.ArrayBuffer, vbo_color);
-            GL.BufferData<Vector3>(BufferTarget.ArrayBuffer, (IntPtr)(coldata.Length * Vector3.SizeInBytes), coldata, BufferUsageHint.StaticDraw);
-            GL.VertexAttribPointer(_attributeVcol, 3, VertexAttribPointerType.Float, true, 0, 0);
-            
-
-            //Pre-Render?
-            //GL.UniformMatrix4(_uniformMview, false, ref mviewdata[0]);
-            foreach (IRenderable o in _renderableObjects)
-            {
-                o.CalculateModelMatrix();
-                Matrix4 projMatrix = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4f, glControl.Width / (float)glControl.Height, 0.01f, 1000f);
-                o.ViewProjectionMatrix = _camera.GetViewMatrix() * projMatrix;
-                //Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4f, glControl.Width / (float)glControl.Height, 1.0f, 64f);
-                o.ModelViewProjectionMatrix = o.ViewProjectionMatrix; //*o.ModelMatrix**/o.ViewProjectionMatrix;
-            }
-            GL.UseProgram(_pgmId);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-
-            //Render
-            GL.EnableVertexAttribArray(_attributeVpos);
-            GL.EnableVertexAttribArray(_attributeVcol);
-            
-
-            int indexAt = 0;
-            foreach (IRenderable o in _renderableObjects)
-            {
-                //o.CalculateModelMatrix();
-                GL.UniformMatrix4(_uniformMview, false, ref o.ModelViewProjectionMatrix);
-                GL.DrawElements(PrimitiveType.Triangles, o.IndexCount, DrawElementsType.UnsignedInt,
-                    indexAt*sizeof (uint));
-                indexAt += o.IndexCount;
-            }
-
-
-            GL.DisableVertexAttribArray(_attributeVpos);
-            GL.DisableVertexAttribArray(_attributeVcol);
-            GL.Flush();
 
             glControl.SwapBuffers();
         }
