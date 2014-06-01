@@ -7,17 +7,22 @@ using OpenTK.Graphics.OpenGL;
 
 namespace WindViewer.Editor.Renderer
 {
-    public class GLRenderer : IRenderer
+    public class GLRenderer : IRenderer, IDisposable
     {
         public GLRenderer()
         {
             //Initialize our Shader
             _programId = GL.CreateProgram();
-            LoadShader("src/shaders/vs.glsl", ShaderType.VertexShader, _programId, out _vertexShaderId);
-            LoadShader("src/shaders/fs.glsl", ShaderType.FragmentShader, _programId, out _fragmentShaderId);
+            int vertexShaderId, fragShaderId;
+            LoadShader("src/shaders/vs.glsl", ShaderType.VertexShader, _programId, out vertexShaderId);
+            LoadShader("src/shaders/fs.glsl", ShaderType.FragmentShader, _programId, out fragShaderId);
 
             GL.LinkProgram(_programId);
             Console.WriteLine(GL.GetProgramInfoLog(_programId));
+
+            //Remove references to the frag/vert shader, no longer needed.
+            GL.DeleteShader(vertexShaderId);
+            GL.DeleteShader(fragShaderId);
 
             //Bind to the shader attributes
             _attributeVpos = GL.GetAttribLocation(_programId, "vPosition");
@@ -27,6 +32,11 @@ namespace WindViewer.Editor.Renderer
             {
                 Console.WriteLine("Error binding attributes!");
             }
+        }
+
+        public void Dispose()
+        {
+            GL.DeleteProgram(_programId);
         }
 
         public override void AddRenderable(IRenderable renderable)
@@ -39,9 +49,10 @@ namespace WindViewer.Editor.Renderer
         override public void Render(Camera camera, float aspectRatio)
         {
             GL.UseProgram(_programId);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, 0); //What does this do?
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0); //Clear any previously bound buffer
+
+            //Enable Attributes for this shader
             GL.EnableVertexAttribArray(_attributeVpos);
-            //GL.VertexAttribPointer(_attributeVpos, 3, VertexAttribPointerType.Float, false, 0, 0);
 
             foreach (IRenderable o in _renderableObjects)
             {
@@ -54,6 +65,12 @@ namespace WindViewer.Editor.Renderer
 
                 //Upload the Model Matrix to the GPU
                 GL.UniformMatrix4(_uniformMVP, false, ref o.ModelViewProjectionMatrix);
+
+                //Bind the buffers for the model we want to draw.
+                o.BindBuffers();
+
+                //Now update the vertex attribute to point to the newly bound buffer.
+                GL.VertexAttribPointer(_attributeVpos, 3, VertexAttribPointerType.Float, false, 0, 0);
 
                 //Render the object.
                 o.Render();

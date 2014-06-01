@@ -59,11 +59,11 @@ namespace WindViewer.Forms
             cube1.transform.Position = new Vector3(0, 0, -5);
             cube1.transform.Scale = new Vector3(0.25f, 0.5f, 0.25f);
 
-            cube2.transform.Position = new Vector3(0, 0, -5);
-            cube2.transform.Scale = new Vector3(0.25f, 0.5f, 0.25f);
+            cube2.transform.Position = new Vector3(0, -5, -5);
+            cube2.transform.Scale = new Vector3(0.25f, 1f, 0.25f);
 
             _renderer.AddRenderable(cube1);
-            //_renderer.AddRenderable(cube2);
+            _renderer.AddRenderable(cube2);
 
             //Test
             TestUserControl tcu = new TestUserControl();

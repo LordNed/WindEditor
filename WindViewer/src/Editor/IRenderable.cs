@@ -8,7 +8,7 @@ namespace WindViewer.Editor
     {
         private int _vboPosition;
         private int _iboIndexes;
-
+       
         protected int _vertexCount;
         protected int _indexCount;
 
@@ -31,20 +31,24 @@ namespace WindViewer.Editor
 
         public virtual void UpdateBuffers()
         {
-            //Bind Index Buffer
+            //Bind Index Buffer & Upload Data
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, _iboIndexes);
             GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr) (_indexCount*sizeof (int)), GetIndices(), BufferUsageHint.StaticDraw);
 
-            //Bind Vertex Buffer
+            //Bind Vertex Buffer & Upload Data
             GL.BindBuffer(BufferTarget.ArrayBuffer, _vboPosition);
             GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(_vertexCount * Vector3.SizeInBytes), GetVerts(), BufferUsageHint.StaticDraw);
-            //GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 0, 0);
+        }
 
+        public virtual void BindBuffers()
+        {
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, _iboIndexes);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _vboPosition);
         }
 
         public virtual void Render()
         {
-            GL.DrawElements(PrimitiveType.Triangles, _indexCount, DrawElementsType.UnsignedInt, _iboIndexes);            
+            GL.DrawElements(PrimitiveType.Triangles, _indexCount, DrawElementsType.UnsignedInt, 0);            
         }
 
         public virtual void CalculateModelMatrix()

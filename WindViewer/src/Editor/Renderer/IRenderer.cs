@@ -8,8 +8,8 @@ namespace WindViewer.Editor.Renderer
     {
         //Shader Identifier
         protected int _programId;
-        protected int _vertexShaderId;
-        protected int _fragmentShaderId;
+        //protected int _vertexShaderId;
+        //protected int _fragmentShaderId;
 
         //OpenTK::Shader Attributes
         protected int _attributeVpos;
