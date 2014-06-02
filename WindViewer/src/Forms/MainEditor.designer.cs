@@ -68,7 +68,6 @@
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mainArea = new System.Windows.Forms.Panel();
-            this.label1 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.MainSplitter)).BeginInit();
             this.MainSplitter.Panel1.SuspendLayout();
             this.MainSplitter.Panel2.SuspendLayout();
@@ -87,7 +86,6 @@
             this.PropertiesLayerSplit.Panel1.SuspendLayout();
             this.PropertiesLayerSplit.Panel2.SuspendLayout();
             this.PropertiesLayerSplit.SuspendLayout();
-            this.PropertiesBox.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.panel1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -189,6 +187,7 @@
             this.EntityTreeview.Name = "EntityTreeview";
             this.EntityTreeview.Size = new System.Drawing.Size(207, 287);
             this.EntityTreeview.TabIndex = 0;
+            this.EntityTreeview.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.EntityTreeview_AfterSelect);
             // 
             // groupBox2
             // 
@@ -232,7 +231,6 @@
             // 
             // PropertiesBox
             // 
-            this.PropertiesBox.Controls.Add(this.label1);
             this.PropertiesBox.Dock = System.Windows.Forms.DockStyle.Fill;
             this.PropertiesBox.Location = new System.Drawing.Point(0, 0);
             this.PropertiesBox.Name = "PropertiesBox";
@@ -492,17 +490,6 @@
             this.mainArea.Size = new System.Drawing.Size(1409, 656);
             this.mainArea.TabIndex = 0;
             // 
-            // label1
-            // 
-            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(34, 195);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(94, 13);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "Not yet supported.";
-            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
             // MainEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -534,8 +521,6 @@
             this.PropertiesLayerSplit.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.PropertiesLayerSplit)).EndInit();
             this.PropertiesLayerSplit.ResumeLayout(false);
-            this.PropertiesBox.ResumeLayout(false);
-            this.PropertiesBox.PerformLayout();
             this.groupBox1.ResumeLayout(false);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
@@ -591,6 +576,5 @@
         private System.Windows.Forms.ToolStripMenuItem issueTrackerToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
-        private System.Windows.Forms.Label label1;
     }
 }

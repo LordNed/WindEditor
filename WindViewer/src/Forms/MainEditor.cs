@@ -14,6 +14,7 @@ using WindViewer.Editor;
 using WindViewer.Editor.Renderer;
 using WindViewer.Editor.Tools;
 using WindViewer.FileFormats;
+using WindViewer.Forms.EntityEditors;
 using WindViewer.src.Forms;
 
 namespace WindViewer.Forms
@@ -422,6 +423,8 @@ namespace WindViewer.Forms
                     }
 
                     TreeNode newNode = curParentNode.Nodes.Add("[" + i + "] " + displayName);
+                    newNode.Tag = chunk;
+
                     if(chunk.ChunkLayer != EditorHelpers.EntityLayer.DefaultLayer)
                         newNode.BackColor = EditorHelpers.LayerIdToColor(chunk.ChunkLayer);
                     i++;
@@ -542,6 +545,35 @@ namespace WindViewer.Forms
             _mruMenu.SaveToRegistry(_mruRegKey + "\\MRU");
 
             //ToDo: Ask if the user wants to save.
+        }
+
+        private void EntityTreeview_AfterSelect(object sender, TreeViewEventArgs e)
+        {
+            WindWakerEntityData.BaseChunk chunk = e.Node.Tag as WindWakerEntityData.BaseChunk;
+            if (chunk != null)
+            {
+                //Find the Editor Type attribute.
+                EntEditorType editorType = null;
+                WindWakerEntityData.PlyrChunk plyr = chunk as WindWakerEntityData.PlyrChunk;;
+
+                if (chunk.GetType().IsDefined(typeof(EntEditorType), true))
+                {
+                    Console.WriteLine("Yes!");
+                    editorType = (EntEditorType) chunk.GetType().GetCustomAttributes(typeof (EntEditorType), false)[0];
+                }
+
+
+                if (editorType == null)
+                    return;
+
+                Type editType = editorType.EditorType;
+                Control obj = Activator.CreateInstance(editType) as Control;
+                
+
+
+                PropertiesBox.Controls.Clear();
+                PropertiesBox.Controls.Add(obj);
+            }
         }
 
         

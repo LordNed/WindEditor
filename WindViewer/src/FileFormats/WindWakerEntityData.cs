@@ -5,6 +5,7 @@ using System.Security.Permissions;
 using System.Windows.Forms.VisualStyles;
 using OpenTK;
 using WindViewer.Editor;
+using WindViewer.Forms.EntityEditors;
 
 namespace WindViewer.FileFormats
 {
@@ -496,6 +497,7 @@ namespace WindViewer.FileFormats
         /// <summary>
         /// The Plyr (Player) chunk defines spawn points for Link.
         /// </summary>
+        [EntEditorType(typeof(PlayerEditor))]
         public class PlyrChunk : BaseChunkSpatial
         {
             [DisplayName]
