@@ -7,7 +7,7 @@ using WindViewer.Editor.Renderer;
 
 namespace WindViewer.Editor.Tools
 {
-    public class DebugRenderer : IRenderer
+    public sealed class DebugRenderer : IRenderer
     {
         class Instance
         {
@@ -37,7 +37,16 @@ namespace WindViewer.Editor.Tools
                 throw new Exception("Attempted to create multiple DebugRenderers!");
             _singleton = this;
 
+            InitializeShader("shaders/vs.glsl", "shaders/fs_solid.glsl");
+
             _cubeShape = new Cube();
+            _cubeShape.UpdateBuffers();
+
+            //We kind of need these.
+            GL.FrontFace(FrontFaceDirection.Cw);
+            GL.CullFace(CullFaceMode.FrontAndBack);
+            GL.Enable(EnableCap.DepthTest);
+            GL.DepthFunc(DepthFunction.Lequal);
         }
 
 
@@ -53,19 +62,24 @@ namespace WindViewer.Editor.Tools
 
         public override void Render(Camera camera, float aspectRatio)
         {
-            /*foreach (KeyValuePair<IRenderable, List<Instance>> pair in _renderList)
+            GL.UseProgram(_programId);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0); //Clear any previously bound buffer
+
+            //Enable Attributes for this shader
+            GL.EnableVertexAttribArray((int)ShaderAttributeIds.Position);
+
+            foreach (KeyValuePair<IRenderable, List<Instance>> pair in _renderList)
             {
                 //Bind the buffers of the instance we're drawing.
                 pair.Key.BindBuffers();
 
                 //Now update the vertex attribute to point to the newly bound buffer.
-                GL.VertexAttribPointer(_attributeVpos, 3, VertexAttribPointerType.Float, false, 0, 0);
+                GL.VertexAttribPointer((int)ShaderAttributeIds.Position, 3, VertexAttribPointerType.Float, false, 0, 0);
+
 
                 //Then draw each instance of it.
                 foreach (Instance instance in pair.Value)
                 {
-                    //etc other stuff.
-
                     //Create Model matrix based on instance position instead.
                     Matrix4 worldMatrix = Matrix4.CreateScale(instance.Scale) *
                                           Matrix4.CreateFromQuaternion(instance.Rotation) *
@@ -77,12 +91,15 @@ namespace WindViewer.Editor.Tools
                     Matrix4 modelViewProjectionMatrix = worldMatrix * (camera.GetViewMatrix() * projMatrix);
 
                     //Upload the WVP to the GPU
-                    //GL.UniformMatrix4(_uniformMVP, false, ref modelViewProjectionMatrix);
+                    GL.UniformMatrix4(_uniformMVP, false, ref modelViewProjectionMatrix);
 
                     //Finally render the object.
                     _cubeShape.Render();
                 }
-            }*/
+            }
+
+            GL.DisableVertexAttribArray((int)ShaderAttributeIds.Position);
+            GL.Flush();
         }
     }
 }

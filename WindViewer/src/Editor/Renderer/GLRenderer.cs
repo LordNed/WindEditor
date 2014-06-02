@@ -7,33 +7,12 @@ using OpenTK.Graphics.OpenGL;
 
 namespace WindViewer.Editor.Renderer
 {
-    public sealed class GLRenderer : IRenderer, IDisposable
+    public sealed class GLRenderer : IRenderer
     {
-        private List<IRenderable> _renderableObjects = new List<IRenderable>();
+        private readonly List<IRenderable> _renderableObjects = new List<IRenderable>();
 
         public GLRenderer()
         {
-            //Initialize our Shader
-            /*_programId = GL.CreateProgram();
-            int vertexShaderId, fragShaderId;
-            LoadShader("src/shaders/vs.glsl", ShaderType.VertexShader, _programId, out vertexShaderId);
-            LoadShader("src/shaders/fs.glsl", ShaderType.FragmentShader, _programId, out fragShaderId);
-
-            GL.LinkProgram(_programId);
-            Console.WriteLine(GL.GetProgramInfoLog(_programId));
-
-            //Remove references to the frag/vert shader, no longer needed.
-            GL.DeleteShader(vertexShaderId);
-            GL.DeleteShader(fragShaderId);
-
-            //Bind to the shader attributes
-            _attributeVpos = GL.GetAttribLocation(_programId, "vPosition");
-            _uniformMVP = GL.GetUniformLocation(_programId, "modelview");
-
-            if (_attributeVpos == -1 || _uniformMVP == -1)
-            {
-                Console.WriteLine("Error binding attributes!");
-            }*/
             InitializeShader("shaders/vs.glsl", "shaders/fs.glsl");
 
             //We kind of need these.
@@ -43,18 +22,12 @@ namespace WindViewer.Editor.Renderer
             GL.DepthFunc(DepthFunction.Lequal);
         }
 
-        public void Dispose()
-        {
-            GL.DeleteProgram(_programId);
-        }
-
         public override void AddRenderable(IRenderable renderable)
         {
             base.AddRenderable(renderable);
 
             _renderableObjects.Add(renderable);
             renderable.UpdateBuffers();
-            //GL.VertexAttribPointer(_attributeVpos, 3, VertexAttribPointerType.Float, false, 0, 0);
         }
 
         public override void RemoveRenderable(IRenderable renderable)

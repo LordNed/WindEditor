@@ -66,7 +66,11 @@ namespace WindViewer.Forms
 
             _renderers = new List<IRenderer>();
             _renderers.Add(_collisionRenderer);
-            //_renderers.Add(new DebugRenderer());
+            _renderers.Add(new DebugRenderer());
+
+            _collisionRenderer.AddRenderable(new Cube());
+
+            DebugRenderer.DrawWireCube(new Vector3(0, 0, 0), Quaternion.Identity, new Vector3(200, 200, 200));
 
             _glControlInitalized = true;
         }

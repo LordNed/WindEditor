@@ -5,7 +5,7 @@ using WindViewer.Editor.Tools;
 
 namespace WindViewer.Editor.Renderer
 {
-    public abstract class IRenderer : IEditorTool
+    public abstract class IRenderer : IEditorTool, IDisposable
     {
         protected enum ShaderAttributeIds
         {
@@ -37,6 +37,11 @@ namespace WindViewer.Editor.Renderer
             GL.BindAttribLocation(_programId, (int)ShaderAttributeIds.Position, "vPosition");
 
             Console.WriteLine(GL.GetProgramInfoLog(_programId));
+        }
+
+        public void Dispose()
+        {
+            GL.DeleteProgram(_programId);
         }
 
         private void LoadShader(string fileName, ShaderType type, int program, out int address)
