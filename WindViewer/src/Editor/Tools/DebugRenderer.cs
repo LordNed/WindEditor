@@ -86,7 +86,7 @@ namespace WindViewer.Editor.Tools
                                           Matrix4.CreateTranslation(instance.Position);
 
                     //ToDo: Camera should really own the view and proj matrix.
-                    Matrix4 projMatrix = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4f, aspectRatio, 0.01f, 5000f);
+                    Matrix4 projMatrix = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4f, aspectRatio, 0.01f, 8000f);
 
                     Matrix4 modelViewProjectionMatrix = worldMatrix * (camera.GetViewMatrix() * projMatrix);
 
@@ -100,6 +100,12 @@ namespace WindViewer.Editor.Tools
 
             GL.DisableVertexAttribArray((int)ShaderAttributeIds.Position);
             GL.Flush();
+        }
+
+        public override void PreUpdate()
+        {
+            base.PreUpdate();
+            _renderList.Clear();
         }
     }
 }

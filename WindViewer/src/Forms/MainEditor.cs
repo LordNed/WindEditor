@@ -34,6 +34,7 @@ namespace WindViewer.Forms
         private IRenderer _collisionRenderer;
 
         //Editor stuffs
+        private List<IEditorTool> _editorTools; 
 
         //Events
         public static event Action<WindWakerEntityData> SelectedEntityFileChanged;
@@ -62,17 +63,19 @@ namespace WindViewer.Forms
             _loadedWorldspaceProject = null;
 
             _camera = new Camera();
-            //_renderer = new GLRenderer();
-
-            _collisionRenderer = new GLRenderer();
-
             _renderers = new List<IRenderer>();
+            _editorTools = new List<IEditorTool>();
+
+
+            //Add our renderers to the list 
+            _collisionRenderer = new GLRenderer();
+            DebugRenderer dbgRender = new DebugRenderer();
             _renderers.Add(_collisionRenderer);
-            _renderers.Add(new DebugRenderer());
+            _renderers.Add(dbgRender);
 
-            //_collisionRenderer.AddRenderable(new Cube());
-
-            //DebugRenderer.DrawWireCube(new Vector3(0, 0, 0), Quaternion.Identity, new Vector3(1, 1, 1));
+            //Then add them to the tool list so they get updates
+            _editorTools.Add(dbgRender);
+            _editorTools.Add(_collisionRenderer);
 
             _glControlInitalized = true;
         }
@@ -298,6 +301,45 @@ namespace WindViewer.Forms
             Program.DeltaTimeStopwatch.Restart();
             toolStripStatusLabel1.Text = (1 / DeltaTime).ToString("00") + " fps.";
 
+            foreach (IEditorTool tool in _editorTools)
+            {
+                tool.PreUpdate();
+            }
+
+            //Hack...
+            if (_loadedWorldspaceProject != null)
+            {
+                
+                foreach (var archive in _loadedWorldspaceProject.GetAllArchives())
+                {
+                    WindWakerEntityData entData = archive.GetFileByType<WindWakerEntityData>();
+                    if (entData != null)
+                    {
+                        foreach (var kvp in entData.GetAllChunks())
+                        {
+                            foreach (WindWakerEntityData.BaseChunk chunk in kvp.Value)
+                            {
+                                var spatial = chunk as WindWakerEntityData.BaseChunkSpatial;
+                                if (spatial != null)
+                                {
+                                    Vector3 flippedZ = spatial.Transform.Position;
+                                    flippedZ.X = -flippedZ.X;
+                                    flippedZ.Z = -flippedZ.Z;
+                                    DebugRenderer.DrawWireCube(flippedZ);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            foreach (IEditorTool tool in _editorTools)
+            {
+                tool.LateUpdate();
+            }
+
+
+            //Actual render stuff
             GL.ClearColor(Color.GreenYellow);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
