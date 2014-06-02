@@ -53,7 +53,7 @@ namespace WindViewer.Editor.Tools
 
         public override void Render(Camera camera, float aspectRatio)
         {
-            foreach (KeyValuePair<IRenderable, List<Instance>> pair in _renderList)
+            /*foreach (KeyValuePair<IRenderable, List<Instance>> pair in _renderList)
             {
                 //Bind the buffers of the instance we're drawing.
                 pair.Key.BindBuffers();
@@ -82,7 +82,7 @@ namespace WindViewer.Editor.Tools
                     //Finally render the object.
                     _cubeShape.Render();
                 }
-            }
+            }*/
         }
     }
 }

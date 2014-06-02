@@ -66,7 +66,7 @@ namespace WindViewer.Forms
 
             _renderers = new List<IRenderer>();
             _renderers.Add(_collisionRenderer);
-            _renderers.Add(new DebugRenderer());
+            //_renderers.Add(new DebugRenderer());
 
             _glControlInitalized = true;
         }

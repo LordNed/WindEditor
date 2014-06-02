@@ -9,14 +9,12 @@ namespace WindViewer.Editor.Renderer
     {
         protected enum ShaderAttributeIds
         {
-            Position = 1,
-            ModelViewPerspectiveMatrix = 2,
+            Position,
         }
         //Shader Identifier
         protected int _programId;
 
         //OpenTK::Shader Attributes
-        protected int _attributeVpos;
         protected int _uniformMVP;
 
         protected virtual void InitializeShader(string vertShader, string fragShader)
@@ -27,16 +25,16 @@ namespace WindViewer.Editor.Renderer
             int vertShaderId, fragShaderId;
             LoadShader(vertShader, ShaderType.VertexShader, _programId, out vertShaderId);
             LoadShader(fragShader, ShaderType.FragmentShader, _programId, out fragShaderId);
-
-            //GL.BindAttribLocation(_programId, (int)ShaderAttributeIds.Position, "vPosition");
-            //GL.BindAttribLocation(_programId, (int) ShaderAttributeIds.ModelViewPerspectiveMatrix, "modelview");
-
+            
             //Link & Debug Spew!
             GL.LinkProgram(_programId);
 
-            _attributeVpos = GL.GetAttribLocation(_programId, "vPosition");
-            _uniformMVP = GL.GetUniformLocation(_programId, "modelview");
+            //Remove references to the frag/vert shader, no longer needed.
+            GL.DeleteShader(vertShaderId);
+            GL.DeleteShader(fragShaderId);
 
+            _uniformMVP = GL.GetUniformLocation(_programId, "modelview");
+            GL.BindAttribLocation(_programId, (int)ShaderAttributeIds.Position, "vPosition");
 
             Console.WriteLine(GL.GetProgramInfoLog(_programId));
         }

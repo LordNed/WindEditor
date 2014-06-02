@@ -70,7 +70,7 @@ namespace WindViewer.Editor.Renderer
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0); //Clear any previously bound buffer
 
             //Enable Attributes for this shader
-            GL.EnableVertexAttribArray(_attributeVpos);
+            GL.EnableVertexAttribArray((int)ShaderAttributeIds.Position);
 
             foreach (IRenderable o in _renderableObjects)
             {
@@ -88,13 +88,13 @@ namespace WindViewer.Editor.Renderer
                 o.BindBuffers();
 
                 //Now update the vertex attribute to point to the newly bound buffer.
-                GL.VertexAttribPointer(_attributeVpos, 3, VertexAttribPointerType.Float, false, 0, 0);
+                GL.VertexAttribPointer((int)ShaderAttributeIds.Position, 3, VertexAttribPointerType.Float, false, 0, 0);
 
                 //Render the object.
                 o.Render();
             }
 
-            GL.DisableVertexAttribArray(_attributeVpos);
+            GL.DisableVertexAttribArray((int)ShaderAttributeIds.Position);
             GL.Flush();
         }
 
