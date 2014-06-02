@@ -95,6 +95,7 @@ namespace WindViewer.FileFormats
                         continue;
 
                     chunk.LoadData(data, ref chunkHeader.ChunkOffset);
+                    Console.WriteLine(chunkHeader.Tag + " offset: " + chunkHeader.ChunkOffset);
                     AddChunk(chunk);
                 }
             }
@@ -119,7 +120,16 @@ namespace WindViewer.FileFormats
 
         public override void Save(BinaryWriter stream)
         {
-            
+            foreach (KeyValuePair<Type, List<BaseChunk>> keyValuePair in GetAllChunks())
+            {
+                if (keyValuePair.Key == typeof (PlyrChunk))
+                {
+                    foreach (BaseChunk chunk in keyValuePair.Value)
+                    {
+                        chunk.WriteData(stream);
+                    }
+                }
+            }
         }
 
         #region File Formats
@@ -507,11 +517,11 @@ namespace WindViewer.FileFormats
             public byte SpawnType; //How Link enters the room.
             public byte RoomNumber; //Room number the spawn is in.
             //public Vector3 Position;
-            //public HalfRotation Rotation;
+            public HalfRotation Rotation; //Temp
 
             public PlyrChunk(): base("PLYR", "Player Spawns")
             {
-                Name = "DefaultSpawn";
+                Name = "Link";
             }
 
 
@@ -523,14 +533,15 @@ namespace WindViewer.FileFormats
                 SpawnType = FSHelpers.Read8(data, srcOffset + 10);
                 RoomNumber = FSHelpers.Read8(data, srcOffset + 11);
 
-                /*Position.X = Helpers.ConvertIEEE754Float(Helpers.Read32(data, srcOffset + 12));
-                Position.Y = Helpers.ConvertIEEE754Float(Helpers.Read32(data, srcOffset + 16));
-                Position.Z = Helpers.ConvertIEEE754Float(Helpers.Read32(data, srcOffset + 20));*/
+                Vector3 position = new Vector3();
+                position.X = FSHelpers.ConvertIEEE754Float((uint)FSHelpers.Read32(data, srcOffset + 12));
+                position.Y = FSHelpers.ConvertIEEE754Float((uint)FSHelpers.Read32(data, srcOffset + 16));
+                position.Z = FSHelpers.ConvertIEEE754Float((uint)FSHelpers.Read32(data, srcOffset + 20));
+                Transform.Position = position;
 
                 srcOffset += 24;
-                //Rotation = new HalfRotation(data, ref srcOffset);
-                srcOffset += 6;
-
+                Rotation = new HalfRotation(data, ref srcOffset);
+   
                 srcOffset += 2; //Two bytes Padding
             }
 
@@ -544,12 +555,11 @@ namespace WindViewer.FileFormats
                 FSHelpers.WriteFloat(stream, Transform.Position.X);
                 FSHelpers.WriteFloat(stream, Transform.Position.Y);
                 FSHelpers.WriteFloat(stream, Transform.Position.Z);
-                FSHelpers.Write16(stream, (ushort)255);
-                FSHelpers.Write16(stream, (ushort)255);
-                FSHelpers.Write16(stream, (ushort)255);
+                FSHelpers.Write16(stream, (ushort)Rotation.X);
+                FSHelpers.Write16(stream, (ushort)Rotation.Y);
+                FSHelpers.Write16(stream, (ushort)Rotation.Z);
 
-                //ToDo: SOLVE!
-
+                //Padding.
                 FSHelpers.WriteArray(stream, FSHelpers.ToBytes(0xFFFF, 2));
             }
         }

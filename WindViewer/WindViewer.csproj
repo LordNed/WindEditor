@@ -119,6 +119,7 @@
     <Compile Include="src\Editor\Util\Reflector.cs" />
     <EmbeddedResource Include="src\Forms\AboutWindow.resx">
       <DependentUpon>AboutWindow.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\EntityEditors\PlayerEditor.resx">
       <DependentUpon>PlayerEditor.cs</DependentUpon>

@@ -76,7 +76,12 @@ namespace WindViewer.Forms.EntityEditors
 
         private void fieldRot_ValueChanged(object sender, EventArgs e)
         {
-            Console.WriteLine("NOT SUPPORTED YET STOP STOP STOP");
+            if(sender == fieldRotX)
+                Console.WriteLine("NOT SUPPORTED YET STOP STOP STOP");
+            if(sender == fieldRotY)
+                Console.WriteLine("NOT SUPPORTED YET STOP STOP STOP");
+            if(sender == fieldRotZ)
+                Console.WriteLine("NOT SUPPORTED YET STOP STOP STOP");
         }
 
     }

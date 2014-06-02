@@ -1,4 +1,7 @@
-﻿using OpenTK;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using OpenTK;
 
 namespace WindViewer.Editor
 {
@@ -35,6 +38,16 @@ namespace WindViewer.Editor
             X = (short)(rot.X * 182.04444444444f);
             Y = (short)(rot.Y * 182.04444444444f);
             Z = (short)(rot.Z * 182.04444444444f);
+        }
+
+        public byte[] GetBytes()
+        {
+            List<byte> bytes = new List<byte>();
+            bytes.AddRange(BitConverter.GetBytes(X).Reverse());
+            bytes.AddRange(BitConverter.GetBytes(Y).Reverse());
+            bytes.AddRange(BitConverter.GetBytes(Z).Reverse());
+
+            return bytes.ToArray();
         }
     }
 
