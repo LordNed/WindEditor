@@ -570,7 +570,7 @@ namespace WindViewer.Forms
                 }
                 else
                 {
-                    editType = editorType.EditorType;
+                    editType = editorType.EditorType();
                 }
                 UserControl obj = Activator.CreateInstance(editType) as UserControl;
                 
@@ -578,6 +578,9 @@ namespace WindViewer.Forms
                 obj.Dock = DockStyle.Fill;
                 PropertiesBox.Controls.Clear();
                 PropertiesBox.Controls.Add(obj);
+
+                if (MainSplitter.Panel2.Width < editorType.MinEditorWidth)
+                    MainSplitter.SplitterDistance = MainSplitter.Width - editorType.MinEditorWidth;
 
                 if (SelectedEntityChanged != null)
                     SelectedEntityChanged(chunk);

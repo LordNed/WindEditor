@@ -1360,7 +1360,7 @@ namespace WindViewer.FileFormats
             }
         }
 
-        [EntEditorType(typeof(ScaleableObjectEditor))]
+        [EntEditorType(typeof(ScaleableObjectEditor), MinEditorWidth = 200)]
         public class ScobChunk : BaseChunk
         {
             [DisplayName] public string ObjectName; //Always 8 bytes

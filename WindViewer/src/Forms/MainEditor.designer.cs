@@ -231,6 +231,7 @@
             // 
             // PropertiesBox
             // 
+            this.PropertiesBox.AutoSize = true;
             this.PropertiesBox.Dock = System.Windows.Forms.DockStyle.Fill;
             this.PropertiesBox.Location = new System.Drawing.Point(0, 0);
             this.PropertiesBox.Name = "PropertiesBox";
@@ -518,6 +519,7 @@
             this.groupBox3.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
             this.PropertiesLayerSplit.Panel1.ResumeLayout(false);
+            this.PropertiesLayerSplit.Panel1.PerformLayout();
             this.PropertiesLayerSplit.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.PropertiesLayerSplit)).EndInit();
             this.PropertiesLayerSplit.ResumeLayout(false);

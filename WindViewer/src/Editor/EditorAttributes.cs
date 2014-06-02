@@ -11,10 +11,18 @@ namespace WindViewer.Editor
     [AttributeUsage(AttributeTargets.Class)]
     public class EntEditorType : Attribute
     {
-        public Type EditorType;
+        private Type _editorType;
+
         public EntEditorType(Type type)
         {
-            EditorType = type;
+            _editorType = type;
+        }
+
+        public int MinEditorWidth { get; set; }
+
+        public Type EditorType()
+        {
+            return _editorType;
         }
     }
 }
