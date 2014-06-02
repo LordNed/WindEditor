@@ -33,6 +33,8 @@ namespace WindViewer.Forms
         private List<IRenderer> _renderers;
         private IRenderer _collisionRenderer;
 
+        //Editor stuffs
+
         //Events
         public static event Action<WindWakerEntityData> SelectedEntityFileChanged;
 
@@ -68,9 +70,9 @@ namespace WindViewer.Forms
             _renderers.Add(_collisionRenderer);
             _renderers.Add(new DebugRenderer());
 
-            _collisionRenderer.AddRenderable(new Cube());
+            //_collisionRenderer.AddRenderable(new Cube());
 
-            DebugRenderer.DrawWireCube(new Vector3(0, 0, 0), Quaternion.Identity, new Vector3(200, 200, 200));
+            //DebugRenderer.DrawWireCube(new Vector3(0, 0, 0), Quaternion.Identity, new Vector3(1, 1, 1));
 
             _glControlInitalized = true;
         }
@@ -165,36 +167,6 @@ namespace WindViewer.Forms
             }
         }
 
-        void RenderFrame()
-        {
-            if (!_glControlInitalized)
-                return;
-
-            DeltaTime = Program.DeltaTimeStopwatch.Elapsed.Milliseconds/1000f;
-            Program.DeltaTimeStopwatch.Restart();
-
-            GL.ClearColor(Color.GreenYellow);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-            GL.Viewport(0, 0, glControl.Width, glControl.Height);
-
-            foreach (IRenderer renderer in _renderers)
-            {
-                renderer.Render(_camera, (float)glControl.Width / (float)glControl.Height);
-            }
-            
-
-            if (EditorHelpers.KeysDown[(int)Keys.W])
-                _camera.Move(0f, 0f, 1 );
-            if (EditorHelpers.KeysDown[(int)Keys.S])
-                _camera.Move(0f, 0f, -1);
-            if (EditorHelpers.KeysDown[(int)Keys.A])
-                _camera.Move(1 , 0f, 0f);
-            if (EditorHelpers.KeysDown[(int)Keys.D])
-                _camera.Move(-1 , 0f, 0f);
-
-            glControl.SwapBuffers();
-        }
         #endregion
 
         #region Toolstrip Callbacks
@@ -316,6 +288,38 @@ namespace WindViewer.Forms
             popup.Show();
         }
         #endregion
+
+        void RenderFrame()
+        {
+            if (!_glControlInitalized)
+                return;
+
+            DeltaTime = Program.DeltaTimeStopwatch.Elapsed.Milliseconds / 1000f;
+            Program.DeltaTimeStopwatch.Restart();
+            toolStripStatusLabel1.Text = (1 / DeltaTime).ToString("00") + " fps.";
+
+            GL.ClearColor(Color.GreenYellow);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+            GL.Viewport(0, 0, glControl.Width, glControl.Height);
+
+            foreach (IRenderer renderer in _renderers)
+            {
+                renderer.Render(_camera, (float)glControl.Width / (float)glControl.Height);
+            }
+
+
+            if (EditorHelpers.KeysDown[(int)Keys.W])
+                _camera.Move(0f, 0f, 1);
+            if (EditorHelpers.KeysDown[(int)Keys.S])
+                _camera.Move(0f, 0f, -1);
+            if (EditorHelpers.KeysDown[(int)Keys.A])
+                _camera.Move(1, 0f, 0f);
+            if (EditorHelpers.KeysDown[(int)Keys.D])
+                _camera.Move(-1, 0f, 0f);
+
+            glControl.SwapBuffers();
+        }
 
 
         private void UpdateEntityTreeview()
