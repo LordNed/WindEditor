@@ -12,6 +12,7 @@ using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using WindViewer.Editor;
 using WindViewer.Editor.Renderer;
+using WindViewer.Editor.Tools;
 using WindViewer.FileFormats;
 using WindViewer.src.Forms;
 
@@ -27,7 +28,10 @@ namespace WindViewer.Forms
         private EditorHelpers.EntityLayer _selectedEntityLayer;
 
         private Camera _camera;
-        private IRenderer _renderer;
+
+        //Rendering stuffs
+        private List<IRenderer> _renderers;
+        private IRenderer _collisionRenderer;
 
         //Events
         public static event Action<WindWakerEntityData> SelectedEntityFileChanged;
@@ -56,7 +60,13 @@ namespace WindViewer.Forms
             _loadedWorldspaceProject = null;
 
             _camera = new Camera();
-            _renderer = new GLRenderer();
+            //_renderer = new GLRenderer();
+
+            _collisionRenderer = new GLRenderer();
+
+            _renderers = new List<IRenderer>();
+            _renderers.Add(_collisionRenderer);
+            _renderers.Add(new DebugRenderer());
 
             _glControlInitalized = true;
         }
@@ -164,7 +174,11 @@ namespace WindViewer.Forms
 
             GL.Viewport(0, 0, glControl.Width, glControl.Height);
 
-            _renderer.Render(_camera, (float)glControl.Width / (float)glControl.Height);
+            foreach (IRenderer renderer in _renderers)
+            {
+                renderer.Render(_camera, (float)glControl.Width / (float)glControl.Height);
+            }
+            
 
             if (EditorHelpers.KeysDown[(int)Keys.W])
                 _camera.Move(0f, 0f, 1 );
@@ -207,7 +221,7 @@ namespace WindViewer.Forms
             foreach (ZArchive archive in _loadedWorldspaceProject.GetAllArchives())
             {
                 StaticCollisionModel scm = archive.GetFileByType<StaticCollisionModel>();
-                _renderer.AddRenderable(scm.Renderable);
+                _collisionRenderer.AddRenderable(scm.Renderable);
             }
         }
 

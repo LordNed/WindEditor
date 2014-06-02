@@ -40,6 +40,9 @@ namespace WindViewer.Editor.Tools
             _cubeShape = new Cube();
         }
 
+
+        public static void DrawWireCube(Vector3 position) { DrawWireCube(position, Quaternion.Identity, Vector3.One);}
+        public static void DrawWireCube(Vector3 position, Quaternion rotation) { DrawWireCube(position, rotation, Vector3.One);}
         public static void DrawWireCube(Vector3 position, Quaternion rotation, Vector3 scale)
         {
             if (!_singleton._renderList.ContainsKey(_singleton._cubeShape))

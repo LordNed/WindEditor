@@ -7,14 +7,14 @@ using OpenTK.Graphics.OpenGL;
 
 namespace WindViewer.Editor.Renderer
 {
-    public class GLRenderer : IRenderer, IDisposable
+    public sealed class GLRenderer : IRenderer, IDisposable
     {
-        protected List<IRenderable> _renderableObjects = new List<IRenderable>();
+        private List<IRenderable> _renderableObjects = new List<IRenderable>();
 
         public GLRenderer()
         {
             //Initialize our Shader
-            _programId = GL.CreateProgram();
+            /*_programId = GL.CreateProgram();
             int vertexShaderId, fragShaderId;
             LoadShader("src/shaders/vs.glsl", ShaderType.VertexShader, _programId, out vertexShaderId);
             LoadShader("src/shaders/fs.glsl", ShaderType.FragmentShader, _programId, out fragShaderId);
@@ -33,7 +33,8 @@ namespace WindViewer.Editor.Renderer
             if (_attributeVpos == -1 || _uniformMVP == -1)
             {
                 Console.WriteLine("Error binding attributes!");
-            }
+            }*/
+            InitializeShader("shaders/vs.glsl", "shaders/fs.glsl");
 
             //We kind of need these.
             GL.FrontFace(FrontFaceDirection.Cw);
@@ -97,16 +98,6 @@ namespace WindViewer.Editor.Renderer
             GL.Flush();
         }
 
-        private void LoadShader(String fileName, ShaderType type, int program, out int address)
-        {
-            address = GL.CreateShader(type);
-            using (StreamReader sr = new StreamReader(fileName))
-            {
-                GL.ShaderSource(address, sr.ReadToEnd());
-            }
-            GL.CompileShader(address);
-            GL.AttachShader(program, address);
-            Console.WriteLine(GL.GetShaderInfoLog(address));
-        }
+        
     }
 }
