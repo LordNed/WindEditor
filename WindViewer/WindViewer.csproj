@@ -81,6 +81,12 @@
     <Compile Include="src\Forms\EntityEditors\PlayerEditor.Designer.cs">
       <DependentUpon>PlayerEditor.cs</DependentUpon>
     </Compile>
+    <Compile Include="src\Forms\EntityEditors\UnsupportedEntity.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="src\Forms\EntityEditors\UnsupportedEntity.Designer.cs">
+      <DependentUpon>UnsupportedEntity.cs</DependentUpon>
+    </Compile>
     <Compile Include="src\Forms\FloatConverter.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -116,6 +122,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\EntityEditors\PlayerEditor.resx">
       <DependentUpon>PlayerEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Forms\EntityEditors\UnsupportedEntity.resx">
+      <DependentUpon>UnsupportedEntity.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\FloatConverter.resx">
       <DependentUpon>FloatConverter.cs</DependentUpon>

@@ -39,6 +39,7 @@ namespace WindViewer.Forms
 
         //Events
         public static event Action<WindWakerEntityData> SelectedEntityFileChanged;
+        public static event Action<WindWakerEntityData.BaseChunk> SelectedEntityChanged;
 
         //Misc
         private MruStripMenu _mruMenu;
@@ -562,17 +563,24 @@ namespace WindViewer.Forms
                     editorType = (EntEditorType) chunk.GetType().GetCustomAttributes(typeof (EntEditorType), false)[0];
                 }
 
-
+                Type editType = null;
                 if (editorType == null)
-                    return;
-
-                Type editType = editorType.EditorType;
-                Control obj = Activator.CreateInstance(editType) as Control;
+                {
+                    editType = typeof (UnsupportedEntity);
+                }
+                else
+                {
+                    editType = editorType.EditorType;
+                }
+                UserControl obj = Activator.CreateInstance(editType) as UserControl;
                 
 
-
+                obj.Dock = DockStyle.Fill;
                 PropertiesBox.Controls.Clear();
                 PropertiesBox.Controls.Add(obj);
+
+                if (SelectedEntityChanged != null)
+                    SelectedEntityChanged(chunk);
             }
         }
 

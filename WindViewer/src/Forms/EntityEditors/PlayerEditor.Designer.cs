@@ -29,61 +29,61 @@
         private void InitializeComponent()
         {
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
-            this.label1 = new System.Windows.Forms.Label();
-            this.textBox1 = new System.Windows.Forms.TextBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.numericUpDown1 = new System.Windows.Forms.NumericUpDown();
-            this.label3 = new System.Windows.Forms.Label();
-            this.numericUpDown2 = new System.Windows.Forms.NumericUpDown();
-            this.label4 = new System.Windows.Forms.Label();
-            this.numericUpDown3 = new System.Windows.Forms.NumericUpDown();
-            this.label5 = new System.Windows.Forms.Label();
-            this.numericUpDown4 = new System.Windows.Forms.NumericUpDown();
-            this.label6 = new System.Windows.Forms.Label();
-            this.numericUpDown6 = new System.Windows.Forms.NumericUpDown();
-            this.panel1 = new System.Windows.Forms.Panel();
-            this.numericUpDown5 = new System.Windows.Forms.NumericUpDown();
-            this.numericUpDown7 = new System.Windows.Forms.NumericUpDown();
-            this.label7 = new System.Windows.Forms.Label();
             this.panel2 = new System.Windows.Forms.Panel();
-            this.numericUpDown8 = new System.Windows.Forms.NumericUpDown();
-            this.numericUpDown9 = new System.Windows.Forms.NumericUpDown();
-            this.numericUpDown10 = new System.Windows.Forms.NumericUpDown();
+            this.fieldRotZ = new System.Windows.Forms.NumericUpDown();
+            this.fieldRotY = new System.Windows.Forms.NumericUpDown();
+            this.fieldRotX = new System.Windows.Forms.NumericUpDown();
+            this.label7 = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
+            this.fieldName = new System.Windows.Forms.TextBox();
+            this.fieldEventIndex = new System.Windows.Forms.NumericUpDown();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.fieldUnkn1 = new System.Windows.Forms.NumericUpDown();
+            this.label4 = new System.Windows.Forms.Label();
+            this.fieldSpawnType = new System.Windows.Forms.NumericUpDown();
+            this.label5 = new System.Windows.Forms.Label();
+            this.fieldRoomNumber = new System.Windows.Forms.NumericUpDown();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.fieldPosZ = new System.Windows.Forms.NumericUpDown();
+            this.fieldPosY = new System.Windows.Forms.NumericUpDown();
+            this.fieldPosX = new System.Windows.Forms.NumericUpDown();
             this.tableLayoutPanel1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown3)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown4)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown6)).BeginInit();
-            this.panel1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown5)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown7)).BeginInit();
             this.panel2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown8)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown9)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown10)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fieldRotZ)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fieldRotY)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fieldRotX)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fieldEventIndex)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fieldUnkn1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fieldSpawnType)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fieldRoomNumber)).BeginInit();
+            this.panel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.fieldPosZ)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fieldPosY)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fieldPosX)).BeginInit();
             this.SuspendLayout();
             // 
             // tableLayoutPanel1
             // 
             this.tableLayoutPanel1.AutoScroll = true;
             this.tableLayoutPanel1.ColumnCount = 2;
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 55.88235F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 44.11765F));
             this.tableLayoutPanel1.Controls.Add(this.panel2, 1, 6);
-            this.tableLayoutPanel1.Controls.Add(this.label7, 0, 6);
-            this.tableLayoutPanel1.Controls.Add(this.label6, 0, 5);
             this.tableLayoutPanel1.Controls.Add(this.label1, 0, 0);
-            this.tableLayoutPanel1.Controls.Add(this.textBox1, 1, 0);
-            this.tableLayoutPanel1.Controls.Add(this.numericUpDown1, 1, 1);
+            this.tableLayoutPanel1.Controls.Add(this.fieldName, 1, 0);
+            this.tableLayoutPanel1.Controls.Add(this.fieldEventIndex, 1, 1);
             this.tableLayoutPanel1.Controls.Add(this.label2, 0, 1);
             this.tableLayoutPanel1.Controls.Add(this.label3, 0, 2);
-            this.tableLayoutPanel1.Controls.Add(this.numericUpDown2, 1, 2);
+            this.tableLayoutPanel1.Controls.Add(this.fieldUnkn1, 1, 2);
             this.tableLayoutPanel1.Controls.Add(this.label4, 0, 3);
-            this.tableLayoutPanel1.Controls.Add(this.numericUpDown3, 1, 3);
+            this.tableLayoutPanel1.Controls.Add(this.fieldSpawnType, 1, 3);
             this.tableLayoutPanel1.Controls.Add(this.label5, 0, 4);
-            this.tableLayoutPanel1.Controls.Add(this.numericUpDown4, 1, 4);
+            this.tableLayoutPanel1.Controls.Add(this.fieldRoomNumber, 1, 4);
             this.tableLayoutPanel1.Controls.Add(this.panel1, 1, 5);
+            this.tableLayoutPanel1.Controls.Add(this.label6, 0, 5);
+            this.tableLayoutPanel1.Controls.Add(this.label7, 0, 6);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
@@ -99,6 +99,100 @@
             this.tableLayoutPanel1.Size = new System.Drawing.Size(170, 320);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
+            // panel2
+            // 
+            this.panel2.Anchor = System.Windows.Forms.AnchorStyles.Right;
+            this.panel2.Controls.Add(this.fieldRotZ);
+            this.panel2.Controls.Add(this.fieldRotY);
+            this.panel2.Controls.Add(this.fieldRotX);
+            this.panel2.Location = new System.Drawing.Point(95, 210);
+            this.panel2.Margin = new System.Windows.Forms.Padding(0);
+            this.panel2.Name = "panel2";
+            this.panel2.Size = new System.Drawing.Size(75, 80);
+            this.panel2.TabIndex = 15;
+            // 
+            // fieldRotZ
+            // 
+            this.fieldRotZ.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+            this.fieldRotZ.Location = new System.Drawing.Point(3, 55);
+            this.fieldRotZ.Maximum = new decimal(new int[] {
+            100000,
+            0,
+            0,
+            0});
+            this.fieldRotZ.Minimum = new decimal(new int[] {
+            100000,
+            0,
+            0,
+            -2147483648});
+            this.fieldRotZ.Name = "fieldRotZ";
+            this.fieldRotZ.Size = new System.Drawing.Size(70, 20);
+            this.fieldRotZ.TabIndex = 14;
+            this.fieldRotZ.ThousandsSeparator = true;
+            this.fieldRotZ.ValueChanged += new System.EventHandler(this.fieldRot_ValueChanged);
+            // 
+            // fieldRotY
+            // 
+            this.fieldRotY.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+            this.fieldRotY.Location = new System.Drawing.Point(3, 29);
+            this.fieldRotY.Maximum = new decimal(new int[] {
+            100000,
+            0,
+            0,
+            0});
+            this.fieldRotY.Minimum = new decimal(new int[] {
+            100000,
+            0,
+            0,
+            -2147483648});
+            this.fieldRotY.Name = "fieldRotY";
+            this.fieldRotY.Size = new System.Drawing.Size(70, 20);
+            this.fieldRotY.TabIndex = 13;
+            this.fieldRotY.ThousandsSeparator = true;
+            this.fieldRotY.ValueChanged += new System.EventHandler(this.fieldRot_ValueChanged);
+            // 
+            // fieldRotX
+            // 
+            this.fieldRotX.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+            this.fieldRotX.Location = new System.Drawing.Point(3, 3);
+            this.fieldRotX.Maximum = new decimal(new int[] {
+            100000,
+            0,
+            0,
+            0});
+            this.fieldRotX.Minimum = new decimal(new int[] {
+            100000,
+            0,
+            0,
+            -2147483648});
+            this.fieldRotX.Name = "fieldRotX";
+            this.fieldRotX.Size = new System.Drawing.Size(70, 20);
+            this.fieldRotX.TabIndex = 12;
+            this.fieldRotX.ThousandsSeparator = true;
+            this.fieldRotX.ValueChanged += new System.EventHandler(this.fieldRot_ValueChanged);
+            // 
+            // label7
+            // 
+            this.label7.Anchor = System.Windows.Forms.AnchorStyles.Top;
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(16, 215);
+            this.label7.Margin = new System.Windows.Forms.Padding(3, 5, 3, 0);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(63, 13);
+            this.label7.TabIndex = 14;
+            this.label7.Text = "Spawn Rot:";
+            // 
+            // label6
+            // 
+            this.label6.Anchor = System.Windows.Forms.AnchorStyles.Top;
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(15, 135);
+            this.label6.Margin = new System.Windows.Forms.Padding(3, 5, 3, 0);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(64, 13);
+            this.label6.TabIndex = 10;
+            this.label6.Text = "Spawn Pos:";
+            // 
             // label1
             // 
             this.label1.Anchor = System.Windows.Forms.AnchorStyles.Left;
@@ -109,13 +203,33 @@
             this.label1.TabIndex = 0;
             this.label1.Text = "Name:";
             // 
-            // textBox1
+            // fieldName
             // 
-            this.textBox1.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.textBox1.Location = new System.Drawing.Point(88, 3);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(79, 20);
-            this.textBox1.TabIndex = 1;
+            this.fieldName.Anchor = System.Windows.Forms.AnchorStyles.Right;
+            this.fieldName.Location = new System.Drawing.Point(98, 3);
+            this.fieldName.Name = "fieldName";
+            this.fieldName.Size = new System.Drawing.Size(69, 20);
+            this.fieldName.TabIndex = 1;
+            this.fieldName.TextChanged += new System.EventHandler(this.fieldName_TextChanged);
+            // 
+            // fieldEventIndex
+            // 
+            this.fieldEventIndex.Anchor = System.Windows.Forms.AnchorStyles.Right;
+            this.fieldEventIndex.Location = new System.Drawing.Point(98, 29);
+            this.fieldEventIndex.Maximum = new decimal(new int[] {
+            255,
+            0,
+            0,
+            0});
+            this.fieldEventIndex.Name = "fieldEventIndex";
+            this.fieldEventIndex.Size = new System.Drawing.Size(69, 20);
+            this.fieldEventIndex.TabIndex = 3;
+            this.fieldEventIndex.Value = new decimal(new int[] {
+            255,
+            0,
+            0,
+            0});
+            this.fieldEventIndex.ValueChanged += new System.EventHandler(this.fieldEventIndex_ValueChanged);
             // 
             // label2
             // 
@@ -127,24 +241,6 @@
             this.label2.TabIndex = 2;
             this.label2.Text = "Event Index";
             // 
-            // numericUpDown1
-            // 
-            this.numericUpDown1.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.numericUpDown1.Location = new System.Drawing.Point(88, 29);
-            this.numericUpDown1.Maximum = new decimal(new int[] {
-            255,
-            0,
-            0,
-            0});
-            this.numericUpDown1.Name = "numericUpDown1";
-            this.numericUpDown1.Size = new System.Drawing.Size(79, 20);
-            this.numericUpDown1.TabIndex = 3;
-            this.numericUpDown1.Value = new decimal(new int[] {
-            255,
-            0,
-            0,
-            0});
-            // 
             // label3
             // 
             this.label3.Anchor = System.Windows.Forms.AnchorStyles.Left;
@@ -155,18 +251,19 @@
             this.label3.TabIndex = 4;
             this.label3.Text = "Unknown 1:";
             // 
-            // numericUpDown2
+            // fieldUnkn1
             // 
-            this.numericUpDown2.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.numericUpDown2.Location = new System.Drawing.Point(88, 55);
-            this.numericUpDown2.Maximum = new decimal(new int[] {
+            this.fieldUnkn1.Anchor = System.Windows.Forms.AnchorStyles.Right;
+            this.fieldUnkn1.Location = new System.Drawing.Point(98, 55);
+            this.fieldUnkn1.Maximum = new decimal(new int[] {
             255,
             0,
             0,
             0});
-            this.numericUpDown2.Name = "numericUpDown2";
-            this.numericUpDown2.Size = new System.Drawing.Size(79, 20);
-            this.numericUpDown2.TabIndex = 5;
+            this.fieldUnkn1.Name = "fieldUnkn1";
+            this.fieldUnkn1.Size = new System.Drawing.Size(69, 20);
+            this.fieldUnkn1.TabIndex = 5;
+            this.fieldUnkn1.ValueChanged += new System.EventHandler(this.fieldUnkn1_ValueChanged);
             // 
             // label4
             // 
@@ -178,18 +275,19 @@
             this.label4.TabIndex = 6;
             this.label4.Text = "Spawn Type:";
             // 
-            // numericUpDown3
+            // fieldSpawnType
             // 
-            this.numericUpDown3.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.numericUpDown3.Location = new System.Drawing.Point(88, 81);
-            this.numericUpDown3.Maximum = new decimal(new int[] {
+            this.fieldSpawnType.Anchor = System.Windows.Forms.AnchorStyles.Right;
+            this.fieldSpawnType.Location = new System.Drawing.Point(98, 81);
+            this.fieldSpawnType.Maximum = new decimal(new int[] {
             255,
             0,
             0,
             0});
-            this.numericUpDown3.Name = "numericUpDown3";
-            this.numericUpDown3.Size = new System.Drawing.Size(79, 20);
-            this.numericUpDown3.TabIndex = 7;
+            this.fieldSpawnType.Name = "fieldSpawnType";
+            this.fieldSpawnType.Size = new System.Drawing.Size(69, 20);
+            this.fieldSpawnType.TabIndex = 7;
+            this.fieldSpawnType.ValueChanged += new System.EventHandler(this.fieldSpawnType_ValueChanged);
             // 
             // label5
             // 
@@ -201,140 +299,91 @@
             this.label5.TabIndex = 8;
             this.label5.Text = "Room Number:";
             // 
-            // numericUpDown4
+            // fieldRoomNumber
             // 
-            this.numericUpDown4.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.numericUpDown4.Location = new System.Drawing.Point(88, 107);
-            this.numericUpDown4.Maximum = new decimal(new int[] {
+            this.fieldRoomNumber.Anchor = System.Windows.Forms.AnchorStyles.Right;
+            this.fieldRoomNumber.Location = new System.Drawing.Point(98, 107);
+            this.fieldRoomNumber.Maximum = new decimal(new int[] {
             255,
             0,
             0,
             0});
-            this.numericUpDown4.Name = "numericUpDown4";
-            this.numericUpDown4.Size = new System.Drawing.Size(79, 20);
-            this.numericUpDown4.TabIndex = 9;
-            // 
-            // label6
-            // 
-            this.label6.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(3, 163);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(64, 13);
-            this.label6.TabIndex = 10;
-            this.label6.Text = "Spawn Pos:";
-            // 
-            // numericUpDown6
-            // 
-            this.numericUpDown6.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-            this.numericUpDown6.Location = new System.Drawing.Point(3, 3);
-            this.numericUpDown6.Maximum = new decimal(new int[] {
-            255,
-            0,
-            0,
-            0});
-            this.numericUpDown6.Name = "numericUpDown6";
-            this.numericUpDown6.Size = new System.Drawing.Size(80, 20);
-            this.numericUpDown6.TabIndex = 12;
+            this.fieldRoomNumber.Name = "fieldRoomNumber";
+            this.fieldRoomNumber.Size = new System.Drawing.Size(69, 20);
+            this.fieldRoomNumber.TabIndex = 9;
+            this.fieldRoomNumber.ValueChanged += new System.EventHandler(this.fieldRoomNumber_ValueChanged);
             // 
             // panel1
             // 
             this.panel1.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.panel1.Controls.Add(this.numericUpDown7);
-            this.panel1.Controls.Add(this.numericUpDown5);
-            this.panel1.Controls.Add(this.numericUpDown6);
-            this.panel1.Location = new System.Drawing.Point(85, 130);
+            this.panel1.Controls.Add(this.fieldPosZ);
+            this.panel1.Controls.Add(this.fieldPosY);
+            this.panel1.Controls.Add(this.fieldPosX);
+            this.panel1.Location = new System.Drawing.Point(95, 130);
             this.panel1.Margin = new System.Windows.Forms.Padding(0);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(85, 80);
+            this.panel1.Size = new System.Drawing.Size(75, 80);
             this.panel1.TabIndex = 13;
             // 
-            // numericUpDown5
+            // fieldPosZ
             // 
-            this.numericUpDown5.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.numericUpDown5.Location = new System.Drawing.Point(3, 29);
-            this.numericUpDown5.Maximum = new decimal(new int[] {
-            255,
+            this.fieldPosZ.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+            this.fieldPosZ.Location = new System.Drawing.Point(3, 55);
+            this.fieldPosZ.Maximum = new decimal(new int[] {
+            100000,
             0,
             0,
             0});
-            this.numericUpDown5.Name = "numericUpDown5";
-            this.numericUpDown5.Size = new System.Drawing.Size(80, 20);
-            this.numericUpDown5.TabIndex = 13;
+            this.fieldPosZ.Minimum = new decimal(new int[] {
+            100000,
+            0,
+            0,
+            -2147483648});
+            this.fieldPosZ.Name = "fieldPosZ";
+            this.fieldPosZ.Size = new System.Drawing.Size(70, 20);
+            this.fieldPosZ.TabIndex = 14;
+            this.fieldPosZ.ThousandsSeparator = true;
+            this.fieldPosZ.ValueChanged += new System.EventHandler(this.fieldPos_ValueChanged);
             // 
-            // numericUpDown7
+            // fieldPosY
             // 
-            this.numericUpDown7.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.numericUpDown7.Location = new System.Drawing.Point(3, 55);
-            this.numericUpDown7.Maximum = new decimal(new int[] {
-            255,
+            this.fieldPosY.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+            this.fieldPosY.Location = new System.Drawing.Point(3, 29);
+            this.fieldPosY.Maximum = new decimal(new int[] {
+            100000,
             0,
             0,
             0});
-            this.numericUpDown7.Name = "numericUpDown7";
-            this.numericUpDown7.Size = new System.Drawing.Size(80, 20);
-            this.numericUpDown7.TabIndex = 14;
+            this.fieldPosY.Minimum = new decimal(new int[] {
+            100000,
+            0,
+            0,
+            -2147483648});
+            this.fieldPosY.Name = "fieldPosY";
+            this.fieldPosY.Size = new System.Drawing.Size(70, 20);
+            this.fieldPosY.TabIndex = 13;
+            this.fieldPosY.ThousandsSeparator = true;
+            this.fieldPosY.ValueChanged += new System.EventHandler(this.fieldPos_ValueChanged);
             // 
-            // label7
+            // fieldPosX
             // 
-            this.label7.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(3, 243);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(63, 13);
-            this.label7.TabIndex = 14;
-            this.label7.Text = "Spawn Rot:";
-            // 
-            // panel2
-            // 
-            this.panel2.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.panel2.Controls.Add(this.numericUpDown8);
-            this.panel2.Controls.Add(this.numericUpDown9);
-            this.panel2.Controls.Add(this.numericUpDown10);
-            this.panel2.Location = new System.Drawing.Point(85, 210);
-            this.panel2.Margin = new System.Windows.Forms.Padding(0);
-            this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(85, 80);
-            this.panel2.TabIndex = 15;
-            // 
-            // numericUpDown8
-            // 
-            this.numericUpDown8.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.numericUpDown8.Location = new System.Drawing.Point(3, 55);
-            this.numericUpDown8.Maximum = new decimal(new int[] {
-            255,
+            this.fieldPosX.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+            this.fieldPosX.Location = new System.Drawing.Point(3, 3);
+            this.fieldPosX.Maximum = new decimal(new int[] {
+            100000,
             0,
             0,
             0});
-            this.numericUpDown8.Name = "numericUpDown8";
-            this.numericUpDown8.Size = new System.Drawing.Size(80, 20);
-            this.numericUpDown8.TabIndex = 14;
-            // 
-            // numericUpDown9
-            // 
-            this.numericUpDown9.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.numericUpDown9.Location = new System.Drawing.Point(3, 29);
-            this.numericUpDown9.Maximum = new decimal(new int[] {
-            255,
+            this.fieldPosX.Minimum = new decimal(new int[] {
+            100000,
             0,
             0,
-            0});
-            this.numericUpDown9.Name = "numericUpDown9";
-            this.numericUpDown9.Size = new System.Drawing.Size(80, 20);
-            this.numericUpDown9.TabIndex = 13;
-            // 
-            // numericUpDown10
-            // 
-            this.numericUpDown10.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.numericUpDown10.Location = new System.Drawing.Point(3, 3);
-            this.numericUpDown10.Maximum = new decimal(new int[] {
-            255,
-            0,
-            0,
-            0});
-            this.numericUpDown10.Name = "numericUpDown10";
-            this.numericUpDown10.Size = new System.Drawing.Size(80, 20);
-            this.numericUpDown10.TabIndex = 12;
+            -2147483648});
+            this.fieldPosX.Name = "fieldPosX";
+            this.fieldPosX.Size = new System.Drawing.Size(70, 20);
+            this.fieldPosX.TabIndex = 12;
+            this.fieldPosX.ThousandsSeparator = true;
+            this.fieldPosX.ValueChanged += new System.EventHandler(this.fieldPos_ValueChanged);
             // 
             // PlayerEditor
             // 
@@ -347,18 +396,18 @@
             this.Load += new System.EventHandler(this.PlayerEditor_Load);
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown3)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown4)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown6)).EndInit();
-            this.panel1.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown5)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown7)).EndInit();
             this.panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown8)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown9)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown10)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fieldRotZ)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fieldRotY)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fieldRotX)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fieldEventIndex)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fieldUnkn1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fieldSpawnType)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fieldRoomNumber)).EndInit();
+            this.panel1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.fieldPosZ)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fieldPosY)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fieldPosX)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -367,24 +416,24 @@
 
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.TextBox textBox1;
-        private System.Windows.Forms.NumericUpDown numericUpDown1;
+        private System.Windows.Forms.TextBox fieldName;
+        private System.Windows.Forms.NumericUpDown fieldEventIndex;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.NumericUpDown numericUpDown2;
+        private System.Windows.Forms.NumericUpDown fieldUnkn1;
         private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.NumericUpDown numericUpDown3;
+        private System.Windows.Forms.NumericUpDown fieldSpawnType;
         private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.NumericUpDown numericUpDown4;
+        private System.Windows.Forms.NumericUpDown fieldRoomNumber;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.NumericUpDown numericUpDown7;
-        private System.Windows.Forms.NumericUpDown numericUpDown5;
-        private System.Windows.Forms.NumericUpDown numericUpDown6;
+        private System.Windows.Forms.NumericUpDown fieldPosZ;
+        private System.Windows.Forms.NumericUpDown fieldPosY;
+        private System.Windows.Forms.NumericUpDown fieldPosX;
         private System.Windows.Forms.Panel panel2;
-        private System.Windows.Forms.NumericUpDown numericUpDown8;
-        private System.Windows.Forms.NumericUpDown numericUpDown9;
-        private System.Windows.Forms.NumericUpDown numericUpDown10;
+        private System.Windows.Forms.NumericUpDown fieldRotZ;
+        private System.Windows.Forms.NumericUpDown fieldRotY;
+        private System.Windows.Forms.NumericUpDown fieldRotX;
         private System.Windows.Forms.Label label7;
     }
 }
