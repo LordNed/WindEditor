@@ -6,6 +6,7 @@ using System.Windows.Forms.VisualStyles;
 using OpenTK;
 using WindViewer.Editor;
 using WindViewer.Forms.EntityEditors;
+using WindViewer.src.Forms.EntityEditors;
 
 namespace WindViewer.FileFormats
 {
@@ -68,8 +69,8 @@ namespace WindViewer.FileFormats
                             }
                             break;
                         case "SCO": 
-                            chunk = new EnvrChunk();
-                            if (!chunkHeader.Tag.EndsWith("b"))
+                            chunk = new ScobChunk();
+                            if (!chunkHeader.Tag.EndsWith("B"))
                             {
                                 chunk.ChunkLayer = EditorHelpers.ConvertStringToLayerId(chunkHeader.Tag.ToUpper().Substring(3, 1));
                             }
@@ -1359,6 +1360,7 @@ namespace WindViewer.FileFormats
             }
         }
 
+        [EntEditorType(typeof(ScaleableObjectEditor))]
         public class ScobChunk : BaseChunk
         {
             [DisplayName] public string ObjectName; //Always 8 bytes

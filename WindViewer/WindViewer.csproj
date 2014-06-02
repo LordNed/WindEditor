@@ -87,6 +87,18 @@
     <Compile Include="src\Forms\EntityEditors\PlayerEditor.Designer.cs">
       <DependentUpon>PlayerEditor.cs</DependentUpon>
     </Compile>
+    <Compile Include="src\Forms\EntityEditors\PositionField.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="src\Forms\EntityEditors\PositionField.Designer.cs">
+      <DependentUpon>PositionField.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Forms\EntityEditors\ScaleableObjectEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="src\Forms\EntityEditors\ScaleableObjectEditor.Designer.cs">
+      <DependentUpon>ScaleableObjectEditor.cs</DependentUpon>
+    </Compile>
     <Compile Include="src\Forms\EntityEditors\UnsupportedEntity.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -132,6 +144,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\EntityEditors\PlayerEditor.resx">
       <DependentUpon>PlayerEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Forms\EntityEditors\PositionField.resx">
+      <DependentUpon>PositionField.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Forms\EntityEditors\ScaleableObjectEditor.resx">
+      <DependentUpon>ScaleableObjectEditor.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\EntityEditors\UnsupportedEntity.resx">
       <DependentUpon>UnsupportedEntity.cs</DependentUpon>
