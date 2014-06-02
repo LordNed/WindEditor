@@ -75,6 +75,12 @@
     <Compile Include="src\Forms\AboutWindow.Designer.cs">
       <DependentUpon>AboutWindow.cs</DependentUpon>
     </Compile>
+    <Compile Include="src\Forms\EntityEditors\ExitEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="src\Forms\EntityEditors\ExitEditor.Designer.cs">
+      <DependentUpon>ExitEditor.cs</DependentUpon>
+    </Compile>
     <Compile Include="src\Forms\EntityEditors\PlayerEditor.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -120,6 +126,9 @@
     <EmbeddedResource Include="src\Forms\AboutWindow.resx">
       <DependentUpon>AboutWindow.cs</DependentUpon>
       <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Forms\EntityEditors\ExitEditor.resx">
+      <DependentUpon>ExitEditor.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\EntityEditors\PlayerEditor.resx">
       <DependentUpon>PlayerEditor.cs</DependentUpon>

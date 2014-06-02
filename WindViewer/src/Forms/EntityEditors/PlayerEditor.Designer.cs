@@ -33,8 +33,6 @@
             this.fieldRotZ = new System.Windows.Forms.NumericUpDown();
             this.fieldRotY = new System.Windows.Forms.NumericUpDown();
             this.fieldRotX = new System.Windows.Forms.NumericUpDown();
-            this.label7 = new System.Windows.Forms.Label();
-            this.label6 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.fieldName = new System.Windows.Forms.TextBox();
             this.fieldEventIndex = new System.Windows.Forms.NumericUpDown();
@@ -49,6 +47,8 @@
             this.fieldPosZ = new System.Windows.Forms.NumericUpDown();
             this.fieldPosY = new System.Windows.Forms.NumericUpDown();
             this.fieldPosX = new System.Windows.Forms.NumericUpDown();
+            this.label6 = new System.Windows.Forms.Label();
+            this.label7 = new System.Windows.Forms.Label();
             this.tableLayoutPanel1.SuspendLayout();
             this.panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.fieldRotZ)).BeginInit();
@@ -170,28 +170,6 @@
             this.fieldRotX.TabIndex = 12;
             this.fieldRotX.ThousandsSeparator = true;
             this.fieldRotX.ValueChanged += new System.EventHandler(this.fieldRot_ValueChanged);
-            // 
-            // label7
-            // 
-            this.label7.Anchor = System.Windows.Forms.AnchorStyles.Top;
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(16, 215);
-            this.label7.Margin = new System.Windows.Forms.Padding(3, 5, 3, 0);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(63, 13);
-            this.label7.TabIndex = 14;
-            this.label7.Text = "Spawn Rot:";
-            // 
-            // label6
-            // 
-            this.label6.Anchor = System.Windows.Forms.AnchorStyles.Top;
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(15, 135);
-            this.label6.Margin = new System.Windows.Forms.Padding(3, 5, 3, 0);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(64, 13);
-            this.label6.TabIndex = 10;
-            this.label6.Text = "Spawn Pos:";
             // 
             // label1
             // 
@@ -384,6 +362,28 @@
             this.fieldPosX.TabIndex = 12;
             this.fieldPosX.ThousandsSeparator = true;
             this.fieldPosX.ValueChanged += new System.EventHandler(this.fieldPos_ValueChanged);
+            // 
+            // label6
+            // 
+            this.label6.Anchor = System.Windows.Forms.AnchorStyles.Top;
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(15, 135);
+            this.label6.Margin = new System.Windows.Forms.Padding(3, 5, 3, 0);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(64, 13);
+            this.label6.TabIndex = 10;
+            this.label6.Text = "Spawn Pos:";
+            // 
+            // label7
+            // 
+            this.label7.Anchor = System.Windows.Forms.AnchorStyles.Top;
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(15, 215);
+            this.label7.Margin = new System.Windows.Forms.Padding(3, 5, 3, 0);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(63, 13);
+            this.label7.TabIndex = 14;
+            this.label7.Text = "Spawn Rot:";
             // 
             // PlayerEditor
             // 

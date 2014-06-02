@@ -122,7 +122,7 @@ namespace WindViewer.FileFormats
         {
             foreach (KeyValuePair<Type, List<BaseChunk>> keyValuePair in GetAllChunks())
             {
-                if (keyValuePair.Key == typeof (PlyrChunk))
+                if (keyValuePair.Key == typeof (SclsChunk))
                 {
                     foreach (BaseChunk chunk in keyValuePair.Value)
                     {
@@ -467,6 +467,7 @@ namespace WindViewer.FileFormats
         /// The SCLS Chunk defines information about exits on a map. It is pointed to by
         /// the maps collision data (which supplies the actual positions)
         /// </summary>
+        [EntEditorType(typeof(ExitEditor))]
         public class SclsChunk : BaseChunk
         {
             [DisplayName]
