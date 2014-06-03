@@ -189,6 +189,12 @@
     <Compile Include="src\Forms\EntityEditors\RoomPosEditor.Designer.cs">
       <DependentUpon>RoomPosEditor.cs</DependentUpon>
     </Compile>
+    <Compile Include="src\Forms\EntityEditors\RoomVisibilityEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="src\Forms\EntityEditors\RoomVisibilityEditor.Designer.cs">
+      <DependentUpon>RoomVisibilityEditor.cs</DependentUpon>
+    </Compile>
     <Compile Include="src\Forms\EntityEditors\ScaleableObjectEditor.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -309,6 +315,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\EntityEditors\RoomPosEditor.resx">
       <DependentUpon>RoomPosEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Forms\EntityEditors\RoomVisibilityEditor.resx">
+      <DependentUpon>RoomVisibilityEditor.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\EntityEditors\ScaleableObjectEditor.resx">
       <DependentUpon>ScaleableObjectEditor.cs</DependentUpon>

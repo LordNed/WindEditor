@@ -57,7 +57,7 @@ namespace WindViewer.Forms
             _mruMenu = new MruStripMenu(mruList, OnMruClickedHandler, _mruRegKey + "\\MRU", 6);
 
             //Editor fails to auto-center on primary screen for some users.
-            CenterToScreen();
+            //CenterToScreen();
 
             SelectedEntityFileChanged += delegate(WindWakerEntityData data)
             {
