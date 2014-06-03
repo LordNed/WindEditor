@@ -714,7 +714,7 @@ namespace WindViewer.FileFormats
             }
         }
 
-
+        [EntEditorType(typeof(RoomEnvironmentEditor))]
         public class FiliChunk : BaseChunk
         {
             public byte TimePassage;

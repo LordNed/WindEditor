@@ -117,6 +117,12 @@
     <Compile Include="src\Forms\EntityEditors\PositionField.Designer.cs">
       <DependentUpon>PositionField.cs</DependentUpon>
     </Compile>
+    <Compile Include="src\Forms\EntityEditors\RoomEnvironmentEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="src\Forms\EntityEditors\RoomEnvironmentEditor.Designer.cs">
+      <DependentUpon>RoomEnvironmentEditor.cs</DependentUpon>
+    </Compile>
     <Compile Include="src\Forms\EntityEditors\ScaleableObjectEditor.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -183,6 +189,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\EntityEditors\PositionField.resx">
       <DependentUpon>PositionField.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Forms\EntityEditors\RoomEnvironmentEditor.resx">
+      <DependentUpon>RoomEnvironmentEditor.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\EntityEditors\ScaleableObjectEditor.resx">
       <DependentUpon>ScaleableObjectEditor.cs</DependentUpon>
