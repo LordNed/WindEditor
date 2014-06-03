@@ -631,7 +631,7 @@ namespace WindViewer.FileFormats
             public PathChunk():base("PATH", "Path Paths"){}
         }
 
-
+        [EntEditorType(typeof(EnvironmentSoundEditor))]
         public class SondChunk : BaseChunkSpatial
         {
             [DisplayName]
