@@ -937,11 +937,12 @@ namespace WindViewer.FileFormats
             public PpntChunk():base("PPNT", "Path Waypoint"){}
         }
 
+        [EntEditorType(typeof(RoomPosEditor))]
         public class MultChunk : BaseChunk
         {
             public float TranslationX;
             public float TranslationY;
-            public ushort YRotation;
+            public short YRotation;
             public byte RoomNumber;
             public byte Unknown;
 
@@ -951,7 +952,7 @@ namespace WindViewer.FileFormats
             {
                 TranslationX = FSHelpers.ConvertIEEE754Float((uint)FSHelpers.Read32(data, srcOffset + 0));
                 TranslationY = FSHelpers.ConvertIEEE754Float((uint)FSHelpers.Read32(data, srcOffset + 4));
-                YRotation = (ushort)FSHelpers.Read16(data, srcOffset + 8);
+                YRotation = FSHelpers.Read16(data, srcOffset + 8);
                 RoomNumber = FSHelpers.Read8(data, srcOffset + 10);
                 Unknown = FSHelpers.Read8(data, srcOffset + 11);
 
@@ -963,7 +964,7 @@ namespace WindViewer.FileFormats
             {
                 FSHelpers.WriteFloat(stream, TranslationX);
                 FSHelpers.WriteFloat(stream, TranslationY);
-                FSHelpers.Write16(stream, YRotation);
+                FSHelpers.Write16(stream, (ushort)YRotation);
                 FSHelpers.Write8(stream, RoomNumber);
                 FSHelpers.Write8(stream, Unknown);
             }
