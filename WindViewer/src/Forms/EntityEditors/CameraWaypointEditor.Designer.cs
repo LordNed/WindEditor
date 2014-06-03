@@ -93,6 +93,7 @@
             // 
             // fieldPadding
             // 
+            this.fieldPadding.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.fieldPadding.Location = new System.Drawing.Point(88, 143);
             this.fieldPadding.Maximum = new decimal(new int[] {
             32768,
@@ -111,6 +112,7 @@
             // 
             // fieldPosition
             // 
+            this.fieldPosition.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.fieldPosition.AutoSize = true;
             this.fieldPosition.BackColor = System.Drawing.SystemColors.Control;
             this.fieldPosition.Location = new System.Drawing.Point(85, 0);
@@ -127,6 +129,7 @@
             // 
             // fieldRotation
             // 
+            this.fieldRotation.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.fieldRotation.AutoSize = true;
             this.fieldRotation.BackColor = System.Drawing.SystemColors.Control;
             this.fieldRotation.Location = new System.Drawing.Point(85, 70);

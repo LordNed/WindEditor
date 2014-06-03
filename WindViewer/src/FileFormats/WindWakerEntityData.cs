@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Permissions;
+using System.Windows.Forms;
 using System.Windows.Forms.VisualStyles;
 using OpenTK;
 using WindViewer.Editor;
@@ -745,11 +746,16 @@ namespace WindViewer.FileFormats
             }
         }
 
+        [EntEditorType(typeof(CameraBehaviorEditor))]
         public class RcamChunk : BaseChunk
         {
             [DisplayName]
             public string CameraType;
-            public int Padding;
+            public byte RaroIndex;
+            public byte Padding1;
+            public byte Padding2;
+            public byte Padding3;
+            
 
             public RcamChunk(string chunkName, string chunkUsage):base(chunkName, chunkUsage){}
             public RcamChunk():base("RCAM", "Camera Usage"){}
@@ -757,8 +763,10 @@ namespace WindViewer.FileFormats
             public override void LoadData(byte[] data, ref int srcOffset)
             {
                 CameraType = FSHelpers.ReadString(data, srcOffset, 16);
-                Padding = FSHelpers.Read32(data, srcOffset + 16);
-
+                RaroIndex = FSHelpers.Read8(data, srcOffset + 16);
+                Padding1 = FSHelpers.Read8(data, srcOffset + 17);
+                Padding2 = FSHelpers.Read8(data, srcOffset + 18);
+                Padding3 = FSHelpers.Read8(data, srcOffset + 19);
                 srcOffset += 20;
             }
 
@@ -766,10 +774,14 @@ namespace WindViewer.FileFormats
             public override void WriteData(BinaryWriter stream)
             {
                 FSHelpers.WriteString(stream, CameraType, 16);
-                FSHelpers.Write32(stream, Padding);
+                FSHelpers.Write8(stream, RaroIndex);
+                FSHelpers.Write8(stream, Padding1);
+                FSHelpers.Write8(stream, Padding2);
+                FSHelpers.Write8(stream, Padding3);
             }
         }
 
+        [EntEditorType(typeof(CameraBehaviorEditor))]
         public class CamrChunk : RcamChunk
         {
             public CamrChunk():base("CAMR", "Camera Usage"){}
