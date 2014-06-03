@@ -81,6 +81,12 @@
     <Compile Include="src\Forms\EntityEditors\ExitEditor.Designer.cs">
       <DependentUpon>ExitEditor.cs</DependentUpon>
     </Compile>
+    <Compile Include="src\Forms\EntityEditors\InteriorLightEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="src\Forms\EntityEditors\InteriorLightEditor.Designer.cs">
+      <DependentUpon>InteriorLightEditor.cs</DependentUpon>
+    </Compile>
     <Compile Include="src\Forms\EntityEditors\PlayerEditor.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -141,6 +147,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\EntityEditors\ExitEditor.resx">
       <DependentUpon>ExitEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Forms\EntityEditors\InteriorLightEditor.resx">
+      <DependentUpon>InteriorLightEditor.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\EntityEditors\PlayerEditor.resx">
       <DependentUpon>PlayerEditor.cs</DependentUpon>

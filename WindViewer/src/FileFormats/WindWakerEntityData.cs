@@ -6,6 +6,7 @@ using System.Windows.Forms.VisualStyles;
 using OpenTK;
 using WindViewer.Editor;
 using WindViewer.Forms.EntityEditors;
+using WindViewer.src.Forms.EntityEditors;
 
 namespace WindViewer.FileFormats
 {
@@ -94,8 +95,8 @@ namespace WindViewer.FileFormats
                     if(chunk == null)
                         continue;
 
-                    chunk.LoadData(data, ref chunkHeader.ChunkOffset);
                     Console.WriteLine(chunkHeader.Tag + " offset: " + chunkHeader.ChunkOffset);
+                    chunk.LoadData(data, ref chunkHeader.ChunkOffset);
                     AddChunk(chunk);
                 }
             }
@@ -122,7 +123,7 @@ namespace WindViewer.FileFormats
         {
             foreach (KeyValuePair<Type, List<BaseChunk>> keyValuePair in GetAllChunks())
             {
-                if (keyValuePair.Key == typeof (SclsChunk))
+                if (keyValuePair.Key == typeof (LgtvChunk))
                 {
                     foreach (BaseChunk chunk in keyValuePair.Value)
                     {
@@ -953,6 +954,7 @@ namespace WindViewer.FileFormats
             }
         }
 
+        [EntEditorType(typeof(InteriorLightEditor))]
         public class LghtChunk : BaseChunkSpatial
         {
             //public Vector3 Position;
@@ -989,6 +991,7 @@ namespace WindViewer.FileFormats
             }
         }
 
+        [EntEditorType(typeof(InteriorLightEditor))]
         public class LgtvChunk : LghtChunk
         {
             public LgtvChunk():base("LGTV", "Interior Light Source"){}

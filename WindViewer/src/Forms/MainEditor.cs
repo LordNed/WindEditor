@@ -58,6 +58,11 @@ namespace WindViewer.Forms
 
             //Editor fails to auto-center on primary screen for some users.
             CenterToScreen();
+
+            SelectedEntityFileChanged += delegate(WindWakerEntityData data)
+            {
+                Console.WriteLine("Changing Ent file...");
+            };
         }
 
         private void MainEditor_Load(object sender, EventArgs e)
@@ -202,7 +207,8 @@ namespace WindViewer.Forms
             foreach (ZArchive archive in _loadedWorldspaceProject.GetAllArchives())
             {
                 StaticCollisionModel scm = archive.GetFileByType<StaticCollisionModel>();
-                _collisionRenderer.AddRenderable(scm.Renderable);
+                if(scm!=null)
+                    _collisionRenderer.AddRenderable(scm.Renderable);
             }
         }
 
