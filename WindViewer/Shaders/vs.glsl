@@ -9,5 +9,5 @@ main()
 {
 	gl_Position = modelview * vec4(vPosition, 1.0);
 
-	color = gl_Position.z / 5000.0;
+	color = gl_Position.z / 800.0;
 }

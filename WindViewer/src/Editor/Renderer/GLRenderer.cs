@@ -47,7 +47,7 @@ namespace WindViewer.Editor.Renderer
 
             foreach (IRenderable o in _renderableObjects)
             {
-                Matrix4 projMatrix = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4f, aspectRatio, 0.01f, 8000f);
+                Matrix4 projMatrix = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4f, aspectRatio, 100f, 8000f);
 
                 //Create Model matrix based on Objects Translation/Rotation
                 o.CalculateModelMatrix();

@@ -1140,7 +1140,7 @@ namespace WindViewer.FileFormats
                 //Rotation = new HalfRotation(data, ref srcOffset);
                 srcOffset += 6; //ToDo: Fix me
 
-                EnemyNumber = (ushort)FSHelpers.Read16(data, srcOffset + 30);
+                EnemyNumber = (ushort)FSHelpers.Read16(data, srcOffset);
 
                 srcOffset += 2; //Already got +24 from earlier, then +6 from HalfRotation.
             }
