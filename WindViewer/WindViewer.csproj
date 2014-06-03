@@ -177,6 +177,12 @@
     <Compile Include="src\Forms\EntityEditors\ShipSpawnEditor.Designer.cs">
       <DependentUpon>ShipSpawnEditor.cs</DependentUpon>
     </Compile>
+    <Compile Include="src\Forms\EntityEditors\TreasureChestEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="src\Forms\EntityEditors\TreasureChestEditor.Designer.cs">
+      <DependentUpon>TreasureChestEditor.cs</DependentUpon>
+    </Compile>
     <Compile Include="src\Forms\EntityEditors\UnsupportedEntity.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -267,6 +273,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\EntityEditors\ShipSpawnEditor.resx">
       <DependentUpon>ShipSpawnEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Forms\EntityEditors\TreasureChestEditor.resx">
+      <DependentUpon>TreasureChestEditor.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\EntityEditors\UnsupportedEntity.resx">
       <DependentUpon>UnsupportedEntity.cs</DependentUpon>

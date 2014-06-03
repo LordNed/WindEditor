@@ -96,7 +96,7 @@ namespace WindViewer.FileFormats
                     if(chunk == null)
                         continue;
 
-                    Console.WriteLine(chunkHeader.Tag + " offset: " + chunkHeader.ChunkOffset);
+                    //Console.WriteLine(chunkHeader.Tag + " offset: " + chunkHeader.ChunkOffset);
                     chunk.LoadData(data, ref chunkHeader.ChunkOffset);
                     AddChunk(chunk);
                 }
@@ -833,47 +833,48 @@ namespace WindViewer.FileFormats
             }
         }
 
+        [EntEditorType(typeof(TreasureChestEditor))]
         public class TresChunk : BaseChunkSpatial
         {
             [DisplayName]
             public string Name; //Usually Takara, 8 bytes + null terminator.
+            public byte Unknown1;
             public ushort ChestType; //Big Key, Common Wooden, etc.
             //public Vector3 Position;
-            public ushort Unknown1;
+            public ushort Unknown2;
             public ushort YRotation; //Rotation on the Y axis
-            public byte ChestContents; //Rupees, Hookshot, etc.
-            public uint Unknown2;
+            public ushort ChestContents; //Rupees, Hookshot, etc.
+            public ushort Padding;
 
             public TresChunk():base("TRES", "Treasure Chests (Non-Ocean)"){}
 
             public override void LoadData(byte[] data, ref int srcOffset)
             {
                 Name = FSHelpers.ReadString(data, srcOffset, 8);
-                ChestType = (ushort)FSHelpers.Read16(data, srcOffset + 9);
-                Transform.Position.X = FSHelpers.ConvertIEEE754Float((uint)FSHelpers.Read32(data, srcOffset + 11));
-                Transform.Position.Y = FSHelpers.ConvertIEEE754Float((uint)FSHelpers.Read32(data, srcOffset + 15));
-                Transform.Position.Z = FSHelpers.ConvertIEEE754Float((uint)FSHelpers.Read32(data, srcOffset + 19));
-                Unknown1 = (ushort)FSHelpers.Read16(data, srcOffset + 23);
-                YRotation = (ushort)FSHelpers.Read16(data, srcOffset + 25);
-                ChestContents = FSHelpers.Read8(data, srcOffset + 27);
-                Unknown2 = (ushort)FSHelpers.Read32(data, srcOffset + 28);
+                Unknown1 = FSHelpers.Read8(data, srcOffset + 9);
+                ChestType = (ushort)FSHelpers.Read16(data, srcOffset + 10);
+                Transform.Position.X = FSHelpers.ConvertIEEE754Float((uint)FSHelpers.Read32(data, srcOffset + 12));
+                Transform.Position.Y = FSHelpers.ConvertIEEE754Float((uint)FSHelpers.Read32(data, srcOffset + 16));
+                Transform.Position.Z = FSHelpers.ConvertIEEE754Float((uint)FSHelpers.Read32(data, srcOffset + 20));
+                Unknown2 = (ushort)FSHelpers.Read16(data, srcOffset + 24);
+                YRotation = (ushort)FSHelpers.Read16(data, srcOffset + 26);
+                ChestContents = FSHelpers.Read8(data, srcOffset + 28);
+                Unknown2 = (ushort)FSHelpers.Read32(data, srcOffset + 30);
                 srcOffset += 32;
-
-                //ToDo: Fix rotation here too.
             }
 
             public override void WriteData(BinaryWriter stream)
             {
                 FSHelpers.WriteString(stream, Name, 8);
-                FSHelpers.Write8(stream, 0xFF);
+                FSHelpers.Write8(stream, Unknown1);
                 FSHelpers.Write16(stream, ChestType);
                 FSHelpers.WriteFloat(stream, Transform.Position.X);
                 FSHelpers.WriteFloat(stream, Transform.Position.Y);
                 FSHelpers.WriteFloat(stream, Transform.Position.Z);
-                FSHelpers.Write16(stream, Unknown1);
+                FSHelpers.Write16(stream, Unknown2);
                 FSHelpers.Write16(stream, YRotation);
-                FSHelpers.Write8(stream, ChestContents);
-                FSHelpers.Write32(stream, (int)Unknown2);
+                FSHelpers.Write16(stream, ChestContents);
+                FSHelpers.Write32(stream, Padding);
             }
         }
 
