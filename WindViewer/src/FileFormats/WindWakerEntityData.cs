@@ -877,6 +877,7 @@ namespace WindViewer.FileFormats
             }
         }
 
+        [EntEditorType(typeof(ShipSpawnEditor))]
         public class ShipChunk : BaseChunkSpatial
         {
             //public Vector3 Position;
