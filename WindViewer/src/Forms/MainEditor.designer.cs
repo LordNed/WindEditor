@@ -112,7 +112,7 @@
             this.glControl.Dock = System.Windows.Forms.DockStyle.Fill;
             this.glControl.Location = new System.Drawing.Point(0, 0);
             this.glControl.Name = "glControl";
-            this.glControl.Size = new System.Drawing.Size(1018, 632);
+            this.glControl.Size = new System.Drawing.Size(1012, 629);
             this.glControl.TabIndex = 1;
             this.glControl.VSync = true;
             this.glControl.Load += new System.EventHandler(this.glControl_Load);
@@ -127,7 +127,7 @@
             // 
             this.MainSplitter.Dock = System.Windows.Forms.DockStyle.Fill;
             this.MainSplitter.FixedPanel = System.Windows.Forms.FixedPanel.Panel2;
-            this.MainSplitter.Location = new System.Drawing.Point(0, 0);
+            this.MainSplitter.Location = new System.Drawing.Point(3, 3);
             this.MainSplitter.Name = "MainSplitter";
             // 
             // MainSplitter.Panel1
@@ -138,8 +138,8 @@
             // 
             this.MainSplitter.Panel2.Controls.Add(this.PropertiesLayerSplit);
             this.MainSplitter.Panel2MinSize = 170;
-            this.MainSplitter.Size = new System.Drawing.Size(1409, 632);
-            this.MainSplitter.SplitterDistance = 1235;
+            this.MainSplitter.Size = new System.Drawing.Size(1403, 629);
+            this.MainSplitter.SplitterDistance = 1229;
             this.MainSplitter.TabIndex = 2;
             // 
             // leftColumGameSplit
@@ -156,7 +156,7 @@
             // leftColumGameSplit.Panel2
             // 
             this.leftColumGameSplit.Panel2.Controls.Add(this.glControl);
-            this.leftColumGameSplit.Size = new System.Drawing.Size(1235, 632);
+            this.leftColumGameSplit.Size = new System.Drawing.Size(1229, 629);
             this.leftColumGameSplit.SplitterDistance = 213;
             this.leftColumGameSplit.TabIndex = 2;
             // 
@@ -175,8 +175,8 @@
             // EntitiesProjectSplit.Panel2
             // 
             this.EntitiesProjectSplit.Panel2.Controls.Add(this.groupBox2);
-            this.EntitiesProjectSplit.Size = new System.Drawing.Size(213, 632);
-            this.EntitiesProjectSplit.SplitterDistance = 306;
+            this.EntitiesProjectSplit.Size = new System.Drawing.Size(213, 629);
+            this.EntitiesProjectSplit.SplitterDistance = 303;
             this.EntitiesProjectSplit.TabIndex = 0;
             // 
             // groupBox3
@@ -185,7 +185,7 @@
             this.groupBox3.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBox3.Location = new System.Drawing.Point(0, 0);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(213, 306);
+            this.groupBox3.Size = new System.Drawing.Size(213, 303);
             this.groupBox3.TabIndex = 0;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Entities";
@@ -196,7 +196,7 @@
             this.EntityTreeview.Dock = System.Windows.Forms.DockStyle.Fill;
             this.EntityTreeview.Location = new System.Drawing.Point(3, 16);
             this.EntityTreeview.Name = "EntityTreeview";
-            this.EntityTreeview.Size = new System.Drawing.Size(207, 287);
+            this.EntityTreeview.Size = new System.Drawing.Size(207, 284);
             this.EntityTreeview.TabIndex = 0;
             this.EntityTreeview.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.EntityTreeview_AfterSelect);
             // 
@@ -245,8 +245,8 @@
             // 
             this.PropertiesLayerSplit.Panel2.Controls.Add(this.groupBox1);
             this.PropertiesLayerSplit.Panel2.Controls.Add(this.panel1);
-            this.PropertiesLayerSplit.Size = new System.Drawing.Size(170, 632);
-            this.PropertiesLayerSplit.SplitterDistance = 364;
+            this.PropertiesLayerSplit.Size = new System.Drawing.Size(170, 629);
+            this.PropertiesLayerSplit.SplitterDistance = 361;
             this.PropertiesLayerSplit.TabIndex = 1;
             // 
             // PropertiesBox
@@ -255,7 +255,7 @@
             this.PropertiesBox.Dock = System.Windows.Forms.DockStyle.Fill;
             this.PropertiesBox.Location = new System.Drawing.Point(0, 0);
             this.PropertiesBox.Name = "PropertiesBox";
-            this.PropertiesBox.Size = new System.Drawing.Size(170, 364);
+            this.PropertiesBox.Size = new System.Drawing.Size(170, 361);
             this.PropertiesBox.TabIndex = 0;
             this.PropertiesBox.TabStop = false;
             this.PropertiesBox.Text = "Properties";
@@ -507,7 +507,7 @@
             this.mainArea.Dock = System.Windows.Forms.DockStyle.Fill;
             this.mainArea.Location = new System.Drawing.Point(0, 24);
             this.mainArea.Name = "mainArea";
-            this.mainArea.Padding = new System.Windows.Forms.Padding(0, 0, 0, 24);
+            this.mainArea.Padding = new System.Windows.Forms.Padding(3, 3, 3, 24);
             this.mainArea.Size = new System.Drawing.Size(1409, 656);
             this.mainArea.TabIndex = 0;
             // 
