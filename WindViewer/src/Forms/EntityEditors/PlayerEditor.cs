@@ -16,11 +16,18 @@ namespace WindViewer.Forms.EntityEditors
 
         private void PlayerEditor_Load(object sender, EventArgs e)
         {
-            MainEditor.SelectedEntityChanged += delegate(WindWakerEntityData.BaseChunk chunk)
+            MainEditor.SelectedEntityChanged += MainEditorOnSelectedEntityChanged;
+
+            HandleDestroyed += delegate
             {
-                _curChunk = chunk as WindWakerEntityData.PlyrChunk;
-                UpdateEditorUiFromFile();
+                MainEditor.SelectedEntityChanged -= MainEditorOnSelectedEntityChanged;
             };
+        }
+
+        private void MainEditorOnSelectedEntityChanged(WindWakerEntityData.BaseChunk baseChunk)
+        {
+            _curChunk = baseChunk as WindWakerEntityData.PlyrChunk;
+            UpdateEditorUiFromFile();
         }
 
         private void UpdateEditorUiFromFile()
@@ -34,9 +41,9 @@ namespace WindViewer.Forms.EntityEditors
             fieldPosY.Value = (decimal) _curChunk.Transform.Position.Y;
             fieldPosZ.Value = (decimal) _curChunk.Transform.Position.Z;
 
-            fieldRotX.Value = 255;
-            fieldRotY.Value = 255;
-            fieldRotZ.Value = 255;
+            fieldRotX.Value = _curChunk.Rotation.X;
+            fieldRotY.Value = _curChunk.Rotation.Y;
+            fieldRotZ.Value = _curChunk.Rotation.Z;
         }
 
         private void fieldName_TextChanged(object sender, EventArgs e)
@@ -76,12 +83,12 @@ namespace WindViewer.Forms.EntityEditors
 
         private void fieldRot_ValueChanged(object sender, EventArgs e)
         {
-            if(sender == fieldRotX)
-                Console.WriteLine("NOT SUPPORTED YET STOP STOP STOP");
+            if (sender == fieldRotX)
+                _curChunk.Rotation.X = (short)fieldRotX.Value;
             if(sender == fieldRotY)
-                Console.WriteLine("NOT SUPPORTED YET STOP STOP STOP");
+                _curChunk.Rotation.Y = (short)fieldRotY.Value;
             if(sender == fieldRotZ)
-                Console.WriteLine("NOT SUPPORTED YET STOP STOP STOP");
+                _curChunk.Rotation.Z = (short)fieldRotZ.Value;
         }
 
     }

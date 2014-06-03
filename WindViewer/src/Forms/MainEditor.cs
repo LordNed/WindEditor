@@ -576,10 +576,19 @@ namespace WindViewer.Forms
                 
 
                 obj.Dock = DockStyle.Fill;
+
+                PropertiesBox.SuspendLayout();
+                //Dispose of the control manually right now so that they un-register their event
+                //handler to MainForm::SelectedEntityChanged
+                foreach (Control control in PropertiesBox.Controls)
+                {
+                    control.Dispose();
+                }
                 PropertiesBox.Controls.Clear();
                 PropertiesBox.Controls.Add(obj);
+                PropertiesBox.ResumeLayout(true);
 
-                if (MainSplitter.Panel2.Width < editorType.MinEditorWidth)
+                if (editorType != null && MainSplitter.Panel2.Width < editorType.MinEditorWidth)
                     MainSplitter.SplitterDistance = MainSplitter.Width - editorType.MinEditorWidth;
 
                 if (SelectedEntityChanged != null)

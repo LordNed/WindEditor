@@ -6,7 +6,6 @@ using System.Windows.Forms.VisualStyles;
 using OpenTK;
 using WindViewer.Editor;
 using WindViewer.Forms.EntityEditors;
-using WindViewer.src.Forms.EntityEditors;
 
 namespace WindViewer.FileFormats
 {
@@ -1360,7 +1359,7 @@ namespace WindViewer.FileFormats
             }
         }
 
-        [EntEditorType(typeof(ScaleableObjectEditor), MinEditorWidth = 200)]
+        [EntEditorType(typeof(ScaleableObjectEditor), MinEditorWidth = 210)]
         public class ScobChunk : BaseChunk
         {
             [DisplayName] public string ObjectName; //Always 8 bytes
@@ -1369,7 +1368,7 @@ namespace WindViewer.FileFormats
             public byte Param2;
             public byte Param3; //Params are context-sensitive. They differ between objects.
             public Vector3 Position;
-            public ushort AuxilaryParam; //Only objects that call up text use this, contains TextID
+            public ushort TextId; //Only objects that call up text use this, contains TextID
             public HalfRotationSingle YRotation;
             public ushort Unknown1;
             public ushort Unknown2; //May be padding? Always seems to be FF FF
@@ -1390,7 +1389,7 @@ namespace WindViewer.FileFormats
                 Position.X = FSHelpers.ConvertIEEE754Float((uint)FSHelpers.Read32(data, srcOffset + 12));
                 Position.Y = FSHelpers.ConvertIEEE754Float((uint)FSHelpers.Read32(data, srcOffset + 16));
                 Position.Z = FSHelpers.ConvertIEEE754Float((uint)FSHelpers.Read32(data, srcOffset + 20));
-                AuxilaryParam = (ushort)FSHelpers.Read16(data, srcOffset + 24);
+                TextId = (ushort)FSHelpers.Read16(data, srcOffset + 24);
                 YRotation = new HalfRotationSingle(data, srcOffset + 26);
                 Unknown1 = (ushort)FSHelpers.Read16(data, srcOffset + 28);
                 Unknown2 = (ushort)FSHelpers.Read16(data, srcOffset + 30);
@@ -1412,7 +1411,7 @@ namespace WindViewer.FileFormats
                 FSHelpers.WriteFloat(stream, Position.X);
                 FSHelpers.WriteFloat(stream, Position.Y);
                 FSHelpers.WriteFloat(stream, Position.Z);
-                FSHelpers.Write16(stream, AuxilaryParam);
+                FSHelpers.Write16(stream, TextId);
                 FSHelpers.Write16(stream, YRotation.Value);
                 FSHelpers.Write16(stream, Unknown1);
                 FSHelpers.Write16(stream, Unknown2);

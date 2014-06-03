@@ -15,11 +15,18 @@ namespace WindViewer.Forms.EntityEditors
 
         private void ExitEditor_Load(object sender, EventArgs e)
         {
-            MainEditor.SelectedEntityChanged += delegate(WindWakerEntityData.BaseChunk chunk)
+            MainEditor.SelectedEntityChanged += MainEditorOnSelectedEntityChanged;
+
+            HandleDestroyed += delegate
             {
-                _curChunk = chunk as WindWakerEntityData.SclsChunk;
-                UpdateEditorUiFromFile();
+                MainEditor.SelectedEntityChanged -= MainEditorOnSelectedEntityChanged;
             };
+        }
+
+        private void MainEditorOnSelectedEntityChanged(WindWakerEntityData.BaseChunk baseChunk)
+        {
+            _curChunk = baseChunk as WindWakerEntityData.SclsChunk;
+            UpdateEditorUiFromFile();
         }
 
         private void UpdateEditorUiFromFile()
