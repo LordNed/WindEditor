@@ -1222,6 +1222,7 @@ namespace WindViewer.FileFormats
         /// <summary>
         /// 2DMA holds the settings for the map display in the bottom left-hand corner of the screen.
         /// </summary>
+        [EntEditorType(typeof(MinimapEditor))]
         public class TwoDMAChunk : BaseChunk
         {
             public float FullMapImageScaleX;
