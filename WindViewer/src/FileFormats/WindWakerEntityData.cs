@@ -997,10 +997,12 @@ namespace WindViewer.FileFormats
             public LgtvChunk():base("LGTV", "Interior Light Source"){}
         }
 
+        [EntEditorType(typeof(CameraWaypointEditor))]
         public class RaroChunk : BaseChunkSpatial
         {
             //public Vector3 Position;
-            public byte[] Unknown; //Always seems to be 00 00 80 00 00 00 FF FF
+            public HalfRotation Rotation;
+            public short Padding;
 
             public RaroChunk():base("RARO", "Camera Ref Data"){}
             public RaroChunk(string chunkName, string chunkDescription):base(chunkName, chunkDescription){}
@@ -1010,12 +1012,11 @@ namespace WindViewer.FileFormats
                 Transform.Position.X = FSHelpers.ConvertIEEE754Float((uint)FSHelpers.Read32(data, srcOffset + 0));
                 Transform.Position.Y = FSHelpers.ConvertIEEE754Float((uint)FSHelpers.Read32(data, srcOffset + 4));
                 Transform.Position.Z = FSHelpers.ConvertIEEE754Float((uint)FSHelpers.Read32(data, srcOffset + 8));
-
-                Unknown = new byte[8];
-                for (int i = 0; i < 8; i++)
-                    Unknown[i] = FSHelpers.Read8(data, srcOffset + 12 + i);
-
-                srcOffset += 20;
+                srcOffset += 12;
+                
+                Rotation = new HalfRotation(data, ref srcOffset);
+                Padding = FSHelpers.Read16(data, srcOffset);
+                srcOffset += 2;
             }
 
             public override void WriteData(BinaryWriter stream)
@@ -1024,11 +1025,15 @@ namespace WindViewer.FileFormats
                 FSHelpers.WriteFloat(stream, Transform.Position.Y);
                 FSHelpers.WriteFloat(stream, Transform.Position.Z);
 
-                for (int i = 0; i < 8; i++)
-                    FSHelpers.Write8(stream, Unknown[i]);
+                FSHelpers.Write16(stream, (ushort)Rotation.X);
+                FSHelpers.Write16(stream, (ushort)Rotation.Y);
+                FSHelpers.Write16(stream, (ushort)Rotation.Z);
+
+                FSHelpers.Write16(stream, (ushort)Padding);
             }
         }
 
+        [EntEditorType(typeof(CameraWaypointEditor))]
         public class ArobChunk : RaroChunk
         {
             public ArobChunk():base("AROB", "Camera Ref Data"){}
