@@ -87,6 +87,12 @@
     <Compile Include="src\Forms\EntityEditors\CameraWaypointEditor.Designer.cs">
       <DependentUpon>CameraWaypointEditor.cs</DependentUpon>
     </Compile>
+    <Compile Include="src\Forms\EntityEditors\DungeonFloorEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="src\Forms\EntityEditors\DungeonFloorEditor.Designer.cs">
+      <DependentUpon>DungeonFloorEditor.cs</DependentUpon>
+    </Compile>
     <Compile Include="src\Forms\EntityEditors\EventEditor.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -174,6 +180,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\EntityEditors\CameraWaypointEditor.resx">
       <DependentUpon>CameraWaypointEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Forms\EntityEditors\DungeonFloorEditor.resx">
+      <DependentUpon>DungeonFloorEditor.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\EntityEditors\EventEditor.resx">
       <DependentUpon>EventEditor.cs</DependentUpon>

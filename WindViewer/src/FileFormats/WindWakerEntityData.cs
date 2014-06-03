@@ -685,6 +685,7 @@ namespace WindViewer.FileFormats
             }
         }
 
+        [EntEditorType(typeof(DungeonFloorEditor))]
         public class FlorChunk : BaseChunk
         {
             public float LowerBoundaryYCoord; //Y value of the lower boundary of a floor. When link crosses the coord, the map switches him to being on that floor.
