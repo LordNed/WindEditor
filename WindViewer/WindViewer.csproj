@@ -129,6 +129,12 @@
     <Compile Include="src\Forms\EntityEditors\MEMAEditor.Designer.cs">
       <DependentUpon>MEMAEditor.cs</DependentUpon>
     </Compile>
+    <Compile Include="src\Forms\EntityEditors\PathEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="src\Forms\EntityEditors\PathEditor.Designer.cs">
+      <DependentUpon>PathEditor.cs</DependentUpon>
+    </Compile>
     <Compile Include="src\Forms\EntityEditors\PlayerEditor.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -225,6 +231,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\EntityEditors\MEMAEditor.resx">
       <DependentUpon>MEMAEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Forms\EntityEditors\PathEditor.resx">
+      <DependentUpon>PathEditor.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\EntityEditors\PlayerEditor.resx">
       <DependentUpon>PlayerEditor.cs</DependentUpon>

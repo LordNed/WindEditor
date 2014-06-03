@@ -571,6 +571,7 @@ namespace WindViewer.FileFormats
         ///RPAT and Path are two chunks that put RPPN and PPNT chunk entries into groups.
         ///RPAT and RPPN are found in DZR files, while Path and PPNT are found in DZS files.
         ///</summary>
+        [EntEditorType(typeof(PathEditor))]
         public class RPATChunk : BaseChunk
         {
             public ushort NumPoints;
@@ -624,6 +625,7 @@ namespace WindViewer.FileFormats
             }
         }
 
+        [EntEditorType(typeof(PathEditor))]
         public class PathChunk : RPATChunk
         {
             public PathChunk():base("PATH", "Path Paths"){}
