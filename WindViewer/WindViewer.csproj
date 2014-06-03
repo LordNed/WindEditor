@@ -135,6 +135,12 @@
     <Compile Include="src\Forms\EntityEditors\PathEditor.Designer.cs">
       <DependentUpon>PathEditor.cs</DependentUpon>
     </Compile>
+    <Compile Include="src\Forms\EntityEditors\PathWaypointEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="src\Forms\EntityEditors\PathWaypointEditor.Designer.cs">
+      <DependentUpon>PathWaypointEditor.cs</DependentUpon>
+    </Compile>
     <Compile Include="src\Forms\EntityEditors\PlayerEditor.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -234,6 +240,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\EntityEditors\PathEditor.resx">
       <DependentUpon>PathEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Forms\EntityEditors\PathWaypointEditor.resx">
+      <DependentUpon>PathWaypointEditor.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\EntityEditors\PlayerEditor.resx">
       <DependentUpon>PlayerEditor.cs</DependentUpon>

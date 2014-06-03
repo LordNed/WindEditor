@@ -907,16 +907,17 @@ namespace WindViewer.FileFormats
             }
         }
 
+        [EntEditorType(typeof(PathWaypointEditor))]
         public class RppnChunk : BaseChunkSpatial
         {
-            public uint Unknown;
+            public uint Unknown1;
             //public Vector3 Position;
 
             public RppnChunk():base("RPPN", "Path Waypoint"){}
             public RppnChunk(string chunkName, string chunkDescription) : base(chunkName, chunkDescription){}
             public override void LoadData(byte[] data, ref int srcOffset)
             {
-                Unknown = (uint)FSHelpers.Read32(data, srcOffset);
+                Unknown1 = (uint)FSHelpers.Read32(data, srcOffset);
                 Transform.Position.X = FSHelpers.ConvertIEEE754Float((uint)FSHelpers.Read32(data, srcOffset + 4));
                 Transform.Position.Y = FSHelpers.ConvertIEEE754Float((uint)FSHelpers.Read32(data, srcOffset + 8));
                 Transform.Position.Z = FSHelpers.ConvertIEEE754Float((uint)FSHelpers.Read32(data, srcOffset + 12));
@@ -926,7 +927,7 @@ namespace WindViewer.FileFormats
 
             public override void WriteData(BinaryWriter stream)
             {
-                FSHelpers.Write32(stream, (int)Unknown);
+                FSHelpers.Write32(stream, (int)Unknown1);
 
                 FSHelpers.WriteFloat(stream, Transform.Position.X);
                 FSHelpers.WriteFloat(stream, Transform.Position.Y);
@@ -934,6 +935,7 @@ namespace WindViewer.FileFormats
             }
         }
 
+        [EntEditorType(typeof(PathWaypointEditor))]
         public class PpntChunk : RppnChunk
         {
             public PpntChunk():base("PPNT", "Path Waypoint"){}
