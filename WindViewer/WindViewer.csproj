@@ -87,6 +87,12 @@
     <Compile Include="src\Forms\EntityEditors\CameraWaypointEditor.Designer.cs">
       <DependentUpon>CameraWaypointEditor.cs</DependentUpon>
     </Compile>
+    <Compile Include="src\Forms\EntityEditors\EventEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="src\Forms\EntityEditors\EventEditor.Designer.cs">
+      <DependentUpon>EventEditor.cs</DependentUpon>
+    </Compile>
     <Compile Include="src\Forms\EntityEditors\ExitEditor.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -162,6 +168,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\EntityEditors\CameraWaypointEditor.resx">
       <DependentUpon>CameraWaypointEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Forms\EntityEditors\EventEditor.resx">
+      <DependentUpon>EventEditor.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\EntityEditors\ExitEditor.resx">
       <DependentUpon>ExitEditor.cs</DependentUpon>

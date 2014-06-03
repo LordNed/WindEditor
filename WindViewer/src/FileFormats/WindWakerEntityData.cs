@@ -1051,40 +1051,42 @@ namespace WindViewer.FileFormats
             public ArobChunk():base("AROB", "Camera Ref Data"){}
         }
 
+        [EntEditorType(typeof(EventEditor))]
         public class EvntChunk : BaseChunk
         {
-            public byte Unknown;
+            public byte Unknown1;
             [DisplayName] public string EventName;
             public byte Unknown2;
             public byte Unknown3;
             public byte Unknown4;
             public byte Unknown5;
             public byte RoomNumber;
-            public byte Unknown6;
-            public byte Unknown7;
-            public byte Unknown8;
+            public byte Padding1;
+            public byte Padding2;
+            public byte Padding3;
+
 
             public EvntChunk():base("EVNT", "Event"){}
 
             public override void LoadData(byte[] data, ref int srcOffset)
             {
-                Unknown = FSHelpers.Read8(data, srcOffset);
+                Unknown1 = FSHelpers.Read8(data, srcOffset);
                 EventName = FSHelpers.ReadString(data, srcOffset + 1, 15);
                 Unknown2 = FSHelpers.Read8(data, srcOffset + 16);
                 Unknown3 = FSHelpers.Read8(data, srcOffset + 17);
                 Unknown4 = FSHelpers.Read8(data, srcOffset + 18);
                 Unknown5 = FSHelpers.Read8(data, srcOffset + 19);
                 RoomNumber = FSHelpers.Read8(data, srcOffset + 20);
-                Unknown6 = FSHelpers.Read8(data, srcOffset + 21);
-                Unknown7 = FSHelpers.Read8(data, srcOffset + 22);
-                Unknown8 = FSHelpers.Read8(data, srcOffset + 23);
+                Padding1 = FSHelpers.Read8(data, srcOffset + 21);
+                Padding2 = FSHelpers.Read8(data, srcOffset + 22);
+                Padding3 = FSHelpers.Read8(data, srcOffset + 23);
 
                 srcOffset += 24;
             }
 
             public override void WriteData(BinaryWriter stream)
             {
-                FSHelpers.Write8(stream, Unknown);
+                FSHelpers.Write8(stream, Unknown1);
                 FSHelpers.WriteString(stream, EventName, 15);
                 FSHelpers.Write8(stream, Unknown2);
                 FSHelpers.Write8(stream, Unknown3);
@@ -1093,9 +1095,9 @@ namespace WindViewer.FileFormats
 
                 FSHelpers.Write8(stream, RoomNumber);
 
-                FSHelpers.Write8(stream, Unknown6);
-                FSHelpers.Write8(stream, Unknown7);
-                FSHelpers.Write8(stream, Unknown8);
+                FSHelpers.Write8(stream, Padding1);
+                FSHelpers.Write8(stream, Padding2);
+                FSHelpers.Write8(stream, Padding3);
             }
         }
 
