@@ -1119,7 +1119,7 @@ namespace WindViewer.FileFormats
             public byte Unknown2;
             public byte BehaviorType;
             //public Vector3 Position;
-            //public HalfRotation Rotation;
+            public HalfRotation Rotation;
 
             public ushort EnemyNumber; //Unknown purpose. Enemies are given a number here based on their position in the actor list.
             
@@ -1139,8 +1139,8 @@ namespace WindViewer.FileFormats
                 Transform.Position.Z = FSHelpers.ConvertIEEE754Float((uint)FSHelpers.Read32(data, srcOffset + 20));
 
                 srcOffset += 24;
-                //Rotation = new HalfRotation(data, ref srcOffset);
-                srcOffset += 6; //ToDo: Fix me
+                Rotation = new HalfRotation(data, ref srcOffset);
+                //srcOffset += 6; //ToDo: Fix me
 
                 EnemyNumber = (ushort)FSHelpers.Read16(data, srcOffset);
 
@@ -1158,9 +1158,9 @@ namespace WindViewer.FileFormats
                 FSHelpers.WriteFloat(stream, Transform.Position.Y);
                 FSHelpers.WriteFloat(stream, Transform.Position.Z);
 
-                FSHelpers.Write16(stream, (ushort)255);
-                FSHelpers.Write16(stream, (ushort)255);
-                FSHelpers.Write16(stream, (ushort)255); //ToDo: Fix me
+                FSHelpers.Write16(stream, (ushort)Rotation.X);
+                FSHelpers.Write16(stream, (ushort)Rotation.Y);
+                FSHelpers.Write16(stream, (ushort)Rotation.Z); //ToDo: Fix me
 
                 FSHelpers.Write16(stream, EnemyNumber);
             }
@@ -1171,6 +1171,7 @@ namespace WindViewer.FileFormats
             public TgobChunk():base("TGOB", "Actor"){}
         }
 
+        [EntEditorType(typeof(StagePropertyEditor))]
         public class StagChunk : BaseChunk
         {
             public float MinDepth;
