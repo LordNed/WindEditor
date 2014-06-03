@@ -75,6 +75,12 @@
     <Compile Include="src\Forms\AboutWindow.Designer.cs">
       <DependentUpon>AboutWindow.cs</DependentUpon>
     </Compile>
+    <Compile Include="src\Forms\EntityEditors\DungeonMapEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="src\Forms\EntityEditors\DungeonMapEditor.Designer.cs">
+      <DependentUpon>DungeonMapEditor.cs</DependentUpon>
+    </Compile>
     <Compile Include="src\Forms\EntityEditors\MinimapEditor.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -246,6 +252,9 @@
     <EmbeddedResource Include="src\Forms\AboutWindow.resx">
       <DependentUpon>AboutWindow.cs</DependentUpon>
       <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Forms\EntityEditors\DungeonMapEditor.resx">
+      <DependentUpon>DungeonMapEditor.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\EntityEditors\MinimapEditor.resx">
       <DependentUpon>MinimapEditor.cs</DependentUpon>

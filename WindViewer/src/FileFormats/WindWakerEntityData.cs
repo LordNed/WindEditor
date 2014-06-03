@@ -1295,6 +1295,7 @@ namespace WindViewer.FileFormats
             public TwoDChunk():base("TWOD", "Minimap"){}
         }
 
+        [EntEditorType(typeof(DungeonMapEditor))]
         public class DMAPChunk : BaseChunk
         {
             public float MapSpaceX;
