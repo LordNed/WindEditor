@@ -788,6 +788,7 @@ namespace WindViewer.FileFormats
             public CamrChunk():base("CAMR", "Camera Usage"){}
         }
 
+        [EntEditorType(typeof(MECOEditor))]
         public class MecoChunk : BaseChunk
         {
             public byte RoomNumber; //Which room number this applies to
@@ -811,6 +812,7 @@ namespace WindViewer.FileFormats
 
         }
 
+        [EntEditorType(typeof(MEMAEditor))]
         public class MemaChunk : BaseChunk
         {
             public int MemSize; //Amount of memory to allocate for a room.
@@ -1364,6 +1366,7 @@ namespace WindViewer.FileFormats
         /// Presumed to stand for "Left BlaNK" it is typically all null values, except every
         /// now and then when there's an odd byte mixed in.
         /// </summary>
+        [EntEditorType(typeof(LBlankEditor))]
         public class LbnkChunk : BaseChunk
         {
             public byte Data;

@@ -111,6 +111,24 @@
     <Compile Include="src\Forms\EntityEditors\InteriorLightEditor.Designer.cs">
       <DependentUpon>InteriorLightEditor.cs</DependentUpon>
     </Compile>
+    <Compile Include="src\Forms\EntityEditors\LBlankEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="src\Forms\EntityEditors\LBlankEditor.Designer.cs">
+      <DependentUpon>LBlankEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Forms\EntityEditors\MECOEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="src\Forms\EntityEditors\MECOEditor.Designer.cs">
+      <DependentUpon>MECOEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Forms\EntityEditors\MEMAEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="src\Forms\EntityEditors\MEMAEditor.Designer.cs">
+      <DependentUpon>MEMAEditor.cs</DependentUpon>
+    </Compile>
     <Compile Include="src\Forms\EntityEditors\PlayerEditor.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -192,6 +210,15 @@
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\EntityEditors\InteriorLightEditor.resx">
       <DependentUpon>InteriorLightEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Forms\EntityEditors\LBlankEditor.resx">
+      <DependentUpon>LBlankEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Forms\EntityEditors\MECOEditor.resx">
+      <DependentUpon>MECOEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Forms\EntityEditors\MEMAEditor.resx">
+      <DependentUpon>MEMAEditor.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\EntityEditors\PlayerEditor.resx">
       <DependentUpon>PlayerEditor.cs</DependentUpon>
