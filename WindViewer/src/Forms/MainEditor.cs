@@ -348,7 +348,7 @@ namespace WindViewer.Forms
 
 
             //Actual render stuff
-            GL.ClearColor(Color.GreenYellow);
+            GL.ClearColor(Color.LightSeaGreen);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             GL.Viewport(0, 0, glControl.Width, glControl.Height);

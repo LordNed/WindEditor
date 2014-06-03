@@ -1111,6 +1111,7 @@ namespace WindViewer.FileFormats
             }
         }
 
+        [EntEditorType(typeof(ActorEditor))]
         public class ActrChunk : BaseChunkSpatial
         {
             [DisplayName] public string Name;
