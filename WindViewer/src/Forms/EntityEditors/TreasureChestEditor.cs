@@ -32,13 +32,7 @@ namespace WindViewer.Forms.EntityEditors
         private void UpdateEditorUiFromFile()
         {
             fieldChestName.Text = _curChunk.Name;
-            fieldUnknown1.Value = _curChunk.Unknown1;
-            fieldChestType.Value = _curChunk.ChestType;
-            fieldPosition.SetValue(_curChunk.Transform.Position);
-            fieldUnknown2.Value = _curChunk.Unknown2;
-            fieldYRotation.Value = _curChunk.YRotation;
-            fieldChestItem.Value = _curChunk.ChestContents;
-            fieldPadding.Value = _curChunk.Padding;
+
         }
 
         private void fieldChestName_TextChanged(object sender, EventArgs e)
@@ -46,15 +40,6 @@ namespace WindViewer.Forms.EntityEditors
             _curChunk.Name = fieldChestName.Text;
         }
 
-        private void fieldUnknown1_ValueChanged(object sender, EventArgs e)
-        {
-            _curChunk.Unknown1 = (byte) fieldUnknown1.Value;
-        }
-
-        private void fieldChestType_ValueChanged(object sender, EventArgs e)
-        {
-            _curChunk.ChestType = (ushort) fieldChestType.Value;
-        }
 
         private void fieldPosition_XValueChanged(object sender, EventArgs e)
         {
@@ -73,27 +58,5 @@ namespace WindViewer.Forms.EntityEditors
             NumericUpDown num = (NumericUpDown)sender;
             _curChunk.Transform.Position.Z = (float)num.Value;
         }
-
-        private void fieldUnknown2_ValueChanged(object sender, EventArgs e)
-        {
-            _curChunk.Unknown2 = (ushort) fieldUnknown2.Value;
-        }
-
-        private void fieldYRotation_ValueChanged(object sender, EventArgs e)
-        {
-            _curChunk.YRotation = (ushort) fieldYRotation.Value;
-        }
-
-        private void fieldChestItem_ValueChanged(object sender, EventArgs e)
-        {
-            _curChunk.ChestContents = (ushort) fieldChestItem.Value;
-        }
-
-        private void fieldPadding_ValueChanged(object sender, EventArgs e)
-        {
-            _curChunk.Padding = (ushort) fieldPadding.Value;
-        }
-
-
     }
 }

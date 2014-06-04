@@ -432,6 +432,7 @@ namespace WindViewer.Forms
                     TreeNode newNode = curParentNode.Nodes.Add("[" + i + "] " + displayName);
                     newNode.Tag = chunk;
 
+
                     if(chunk.ChunkLayer != EditorHelpers.EntityLayer.DefaultLayer)
                         newNode.BackColor = EditorHelpers.LayerIdToColor(chunk.ChunkLayer);
                     i++;
@@ -559,6 +560,11 @@ namespace WindViewer.Forms
             WindWakerEntityData.BaseChunk chunk = e.Node.Tag as WindWakerEntityData.BaseChunk;
             if (chunk != null)
             {
+                //Temp
+                e.Node.ContextMenuStrip = contextEntityTreeRoot;
+                contextEntityTreeRoot.Tag = chunk;
+
+
                 //Find the Editor Type attribute.
                 EntEditorType editorType = null;
                 WindWakerEntityData.PlyrChunk plyr = chunk as WindWakerEntityData.PlyrChunk;;
@@ -599,6 +605,24 @@ namespace WindViewer.Forms
 
                 if (SelectedEntityChanged != null)
                     SelectedEntityChanged(chunk);
+            }
+        }
+
+        private void exportChunksOfTypeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+            saveFileDialog1.RestoreDirectory = true;
+
+            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                FileStream fs = new FileStream(saveFileDialog1.FileName, FileMode.Create);
+                BinaryWriter stream = new BinaryWriter(fs);
+
+                WindWakerEntityData.BaseChunk chunk = (WindWakerEntityData.BaseChunk) contextEntityTreeRoot.Tag;
+                chunk.WriteData(stream);
+
+                fs.Flush();
+                fs.Close();
             }
         }
 

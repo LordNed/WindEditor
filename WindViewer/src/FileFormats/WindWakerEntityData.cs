@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Windows.Forms;
 using OpenTK;
 using WindViewer.Editor;
 using WindViewer.Forms.EntityEditors;
@@ -26,11 +27,18 @@ namespace WindViewer.FileFormats
 
             _chunkList = new Dictionary<Type, List<BaseChunk>>();
 
+            var chnkHeaders = new List<ChunkHeader>();
             for (int i = 0; i < header.ChunkCount; i++)
             {
                 ChunkHeader chunkHeader = new ChunkHeader();
                 chunkHeader.Load(data, ref offset);
+                chnkHeaders.Add(chunkHeader);
+            }
 
+            var orderedList = chnkHeaders.OrderBy(kvp => kvp.ChunkOffset);
+
+            foreach (ChunkHeader chunkHeader in orderedList)
+            {
                 for (int k = 0; k < chunkHeader.ElementCount; k++)
                 {
                     BaseChunk chunk; 
@@ -95,6 +103,7 @@ namespace WindViewer.FileFormats
                         continue;
 
                     //Console.WriteLine(chunkHeader.Tag + " offset: " + chunkHeader.ChunkOffset);
+                    chunk.ChunkName = chunkHeader.Tag;
                     chunk.LoadData(data, ref chunkHeader.ChunkOffset);
                     AddChunk(chunk);
                 }
@@ -133,6 +142,8 @@ namespace WindViewer.FileFormats
             stream.BaseStream.Position += _chunkList.Count*ChunkHeader.Size;
             List<ChunkHeader> chunkHeaders = new List<ChunkHeader>();
 
+            int rtblHeaderOffset;
+
             foreach (KeyValuePair<Type, List<BaseChunk>> pair in _chunkList)
             {
                 ChunkHeader chunkHeader = new ChunkHeader();
@@ -142,10 +153,41 @@ namespace WindViewer.FileFormats
 
                 chunkHeaders.Add(chunkHeader);
 
-                //Write all of the chunk data into the stream
-                foreach (BaseChunk chunk in pair.Value)
+                if (chunkHeader.Tag == "RTBL")
                 {
-                    chunk.WriteData(stream);
+                    rtblHeaderOffset = (int) stream.BaseStream.Position;
+                    stream.BaseStream.Position += pair.Value.Count*RTBLChunk.Header.Size;
+
+                    //Then write all of the Entry and Table pairs.
+                    foreach (BaseChunk chunk in pair.Value)
+                    {
+                        RTBLChunk rtblHeader = (RTBLChunk) chunk;
+                        rtblHeader.EntryHeader.EntryOffset = (int) stream.BaseStream.Position;
+
+                        //Write the EntryData to disk which writes the Table offset as being
+                        //immediately after itself.
+                        rtblHeader.EntryHeader.Entry.WriteData(stream);
+                        rtblHeader.EntryHeader.Entry.Table.WriteData(stream);
+                    }
+                    
+                    //Then go back and write all of the rtblHeaders to disk now that we've set their offsets.
+                    stream.BaseStream.Position = rtblHeaderOffset;
+                    foreach (BaseChunk baseChunk in pair.Value)
+                    {
+                        baseChunk.WriteData(stream);
+                    }
+
+                    //Finally skip us to the next clear spot in the damn file.
+                    stream.Seek(0, SeekOrigin.End);
+                }
+                else
+                {
+                    //Write all of the chunk data into the stream
+                    for (int i = 0; i < pair.Value.Count; i++)
+                    {
+                        BaseChunk chunk = pair.Value[i];
+                        chunk.WriteData(stream);
+                    }
                 }
             }
 
@@ -225,7 +267,7 @@ namespace WindViewer.FileFormats
             }
 
             //Name of the Chunk (SCOB, VIRT, etc, etc.)
-            public string ChunkName { get; private set; }
+            public string ChunkName;
 
             //Long-form description of the chunk.
             public string ChunkDescription { get; private set; }
@@ -313,39 +355,60 @@ namespace WindViewer.FileFormats
         /// </summary>
         public class ColoChunk : BaseChunk
         {
-            public byte DawnIndex; //Index of the Pale entry to use for Dawn
-            public byte MorningIndex;
-            public byte NoonIndex;
-            public byte AfternoonIndex;
-            public byte DuskIndex;
-            public byte NightIndex;
+            public byte DawnIndexA; //Index of the Pale entry to use for Dawn
+            public byte MorningIndexA;
+            public byte NoonIndexA;
+            public byte AfternoonIndexA;
+            public byte DuskIndexA;
+            public byte NightIndexA;
+
+            public byte DawnIndexB; //Index of the Pale entry to use for Dawn
+            public byte MorningIndexB;
+            public byte NoonIndexB;
+            public byte AfternoonIndexB;
+            public byte DuskIndexB;
+            public byte NightIndexB;
 
             public ColoChunk()
                 : base("COLO", "Color")
             {
-                DawnIndex = MorningIndex = NoonIndex = AfternoonIndex = DuskIndex = NightIndex = 0;
+                DawnIndexA = MorningIndexA = NoonIndexA = AfternoonIndexA = DuskIndexA = NightIndexA = 0;
             }
 
             public override void LoadData(byte[] data, ref int srcOffset)
             {
-                DawnIndex = FSHelpers.Read8(data, srcOffset + 0);
-                MorningIndex = FSHelpers.Read8(data, srcOffset + 1);
-                NoonIndex = FSHelpers.Read8(data, srcOffset + 2);
-                AfternoonIndex = FSHelpers.Read8(data, srcOffset + 3);
-                DuskIndex = FSHelpers.Read8(data, srcOffset + 4);
-                NightIndex = FSHelpers.Read8(data, srcOffset + 5);
+                DawnIndexA = FSHelpers.Read8(data, srcOffset + 0);
+                MorningIndexA = FSHelpers.Read8(data, srcOffset + 1);
+                NoonIndexA = FSHelpers.Read8(data, srcOffset + 2);
+                AfternoonIndexA = FSHelpers.Read8(data, srcOffset + 3);
+                DuskIndexA = FSHelpers.Read8(data, srcOffset + 4);
+                NightIndexA = FSHelpers.Read8(data, srcOffset + 5);
 
-                srcOffset += 6;
+                DawnIndexB = FSHelpers.Read8(data, srcOffset + 6);
+                MorningIndexB = FSHelpers.Read8(data, srcOffset + 7);
+                NoonIndexB = FSHelpers.Read8(data, srcOffset + 8);
+                AfternoonIndexB = FSHelpers.Read8(data, srcOffset + 9);
+                DuskIndexB = FSHelpers.Read8(data, srcOffset + 10);
+                NightIndexB = FSHelpers.Read8(data, srcOffset + 11);
+
+                srcOffset += 12;
             }
 
             public override void WriteData(BinaryWriter stream)
             {
-                FSHelpers.Write8(stream, DawnIndex);
-                FSHelpers.Write8(stream, MorningIndex);
-                FSHelpers.Write8(stream, NoonIndex);
-                FSHelpers.Write8(stream, AfternoonIndex);
-                FSHelpers.Write8(stream, DuskIndex);
-                FSHelpers.Write8(stream, NightIndex);
+                FSHelpers.Write8(stream, DawnIndexA);
+                FSHelpers.Write8(stream, MorningIndexA);
+                FSHelpers.Write8(stream, NoonIndexA);
+                FSHelpers.Write8(stream, AfternoonIndexA);
+                FSHelpers.Write8(stream, DuskIndexA);
+                FSHelpers.Write8(stream, NightIndexA);
+
+                FSHelpers.Write8(stream, DawnIndexB);
+                FSHelpers.Write8(stream, MorningIndexB);
+                FSHelpers.Write8(stream, NoonIndexB);
+                FSHelpers.Write8(stream, AfternoonIndexB);
+                FSHelpers.Write8(stream, DuskIndexB);
+                FSHelpers.Write8(stream, NightIndexB);
             }
         }
 
@@ -448,6 +511,10 @@ namespace WindViewer.FileFormats
             public ByteColor HorizonColor;
             public ByteColor SkyFadeTo; //Color to fade to from CenterSky. 
 
+            public byte Padding1;
+            public byte Padding2;
+            public byte Padding3;
+
             public VirtChunk()
                 : base("VIRT", "Skybox Lighting")
             {
@@ -470,7 +537,9 @@ namespace WindViewer.FileFormats
                 HorizonColor = new ByteColor(data, ref srcOffset);
                 SkyFadeTo = new ByteColor(data, ref srcOffset);
 
-                //More apparently unused bytes.
+                Padding1 = FSHelpers.Read8(data, srcOffset);
+                Padding2 = FSHelpers.Read8(data, srcOffset + 1);
+                Padding3 = FSHelpers.Read8(data, srcOffset + 2);
                 srcOffset += 3;
             }
 
@@ -488,7 +557,9 @@ namespace WindViewer.FileFormats
                 FSHelpers.WriteArray(stream, HorizonColor.GetBytes());
                 FSHelpers.WriteArray(stream, SkyFadeTo.GetBytes());
 
-                FSHelpers.WriteArray(stream, FSHelpers.ToBytes(0xFFFFFF, 3)); //3 Bytes Padding
+                FSHelpers.Write8(stream, Padding1);
+                FSHelpers.Write8(stream, Padding2);
+                FSHelpers.Write8(stream, Padding3);
             }
         }
 
@@ -865,43 +936,55 @@ namespace WindViewer.FileFormats
         {
             [DisplayName]
             public string Name; //Usually Takara, 8 bytes + null terminator.
-            public byte Unknown1;
-            public ushort ChestType; //Big Key, Common Wooden, etc.
+            public byte Param1;
+            public byte Param2;
+            public byte Param3;
+            public byte Param4;
             //public Vector3 Position;
-            public ushort Unknown2;
-            public ushort YRotation; //Rotation on the Y axis
-            public ushort ChestContents; //Rupees, Hookshot, etc.
-            public ushort Padding;
+            public ushort RoomId;
+            public ushort YRotation;
+            public byte ChestItem;
+            public byte Unknown1;
+            public ushort Padding; //Rupees, Hookshot, etc.
+
 
             public TresChunk():base("TRES", "Treasure Chests (Non-Ocean)"){}
 
             public override void LoadData(byte[] data, ref int srcOffset)
             {
                 Name = FSHelpers.ReadString(data, srcOffset, 8);
-                Unknown1 = FSHelpers.Read8(data, srcOffset + 9);
-                ChestType = (ushort)FSHelpers.Read16(data, srcOffset + 10);
+                Param1 = FSHelpers.Read8(data, srcOffset + 8);
+                Param2 = FSHelpers.Read8(data, srcOffset + 9);
+                Param3 = FSHelpers.Read8(data, srcOffset + 10);
+                Param4 = FSHelpers.Read8(data, srcOffset + 11);
+                
                 Transform.Position.X = FSHelpers.ConvertIEEE754Float((uint)FSHelpers.Read32(data, srcOffset + 12));
                 Transform.Position.Y = FSHelpers.ConvertIEEE754Float((uint)FSHelpers.Read32(data, srcOffset + 16));
                 Transform.Position.Z = FSHelpers.ConvertIEEE754Float((uint)FSHelpers.Read32(data, srcOffset + 20));
-                Unknown2 = (ushort)FSHelpers.Read16(data, srcOffset + 24);
+
+                RoomId = (ushort)FSHelpers.Read16(data, srcOffset + 24);
                 YRotation = (ushort)FSHelpers.Read16(data, srcOffset + 26);
-                ChestContents = FSHelpers.Read8(data, srcOffset + 28);
-                Unknown2 = (ushort)FSHelpers.Read32(data, srcOffset + 30);
+                ChestItem = FSHelpers.Read8(data, srcOffset + 28);
+                Unknown1 = FSHelpers.Read8(data, srcOffset + 29);
+                Padding = (ushort)FSHelpers.Read16(data, srcOffset + 30);
                 srcOffset += 32;
             }
 
             public override void WriteData(BinaryWriter stream)
             {
                 FSHelpers.WriteString(stream, Name, 8);
-                FSHelpers.Write8(stream, Unknown1);
-                FSHelpers.Write16(stream, ChestType);
+                FSHelpers.Write8(stream, Param1);
+                FSHelpers.Write8(stream, Param2);
+                FSHelpers.Write8(stream, Param3);
+                FSHelpers.Write8(stream, Param4);
                 FSHelpers.WriteFloat(stream, Transform.Position.X);
                 FSHelpers.WriteFloat(stream, Transform.Position.Y);
                 FSHelpers.WriteFloat(stream, Transform.Position.Z);
-                FSHelpers.Write16(stream, Unknown2);
+                FSHelpers.Write16(stream, RoomId);
                 FSHelpers.Write16(stream, YRotation);
-                FSHelpers.Write16(stream, ChestContents);
-                FSHelpers.Write32(stream, Padding);
+                FSHelpers.Write8(stream, ChestItem);
+                FSHelpers.Write8(stream, Unknown1);
+                FSHelpers.Write16(stream, Padding);
             }
         }
 
@@ -1353,50 +1436,99 @@ namespace WindViewer.FileFormats
 
         public class RTBLChunk : BaseChunk
         {
-            public byte Unknown1;
-            public ushort Unknown2;
-            public byte[] Data;
-            public int Index1;
-            public int Index2;
-            public bool LastRtblChunk;
-
-            public RTBLChunk():base("RTBL", "Room Table")
+            public class Header
             {
-                LastRtblChunk = false;
+                public const int Size = 4;
+
+                public int EntryOffset;
+
+                public Entry Entry;
+                public void Load(byte[] data, int srcOffset)
+                {
+                    EntryOffset = FSHelpers.Read32(data, srcOffset);
+
+                    Entry = new Entry();
+                    Entry.Load(data, EntryOffset);
+                }
+
+                public void WriteData(BinaryWriter stream)
+                {
+                    FSHelpers.Write32(stream, EntryOffset);
+                }
             }
 
+            public class Entry
+            {
+                public const int Size = 8;
+
+                public byte NumRooms;
+                public byte Unknown1;
+                public ushort Unknown2;
+                public int TableOffset;
+
+                public Table Table;
+
+                public void Load(byte[] data, int srcOffset)
+                {
+                    NumRooms = FSHelpers.Read8(data, srcOffset);
+                    Unknown1 = FSHelpers.Read8(data, srcOffset + 1);
+                    Unknown2 = (ushort) FSHelpers.Read16(data, srcOffset + 2);
+                    TableOffset = FSHelpers.Read32(data, srcOffset + 4);
+
+                    Table = new Table();
+                    Table.NumRooms = NumRooms;
+                    Table.Load(data, TableOffset);
+                }
+
+                public void WriteData(BinaryWriter stream)
+                {
+                    FSHelpers.Write8(stream, NumRooms);
+                    FSHelpers.Write8(stream, Unknown1);
+                    FSHelpers.Write16(stream, Unknown2);
+                    FSHelpers.Write32(stream, (int)stream.BaseStream.Position + 4);
+                }
+            }
+
+            public class Table
+            {
+                public byte CurrentRoom;
+                public byte[] ConcurrentRooms;
+
+                //Not part of the Table file format, for loading/saving purposes only!!
+                public int NumRooms;
+
+                public void Load(byte[] data, int tableOffset)
+                {
+                    CurrentRoom = FSHelpers.Read8(data, tableOffset);
+
+                    ConcurrentRooms = new byte[NumRooms];
+                    for (int i = 0; i < NumRooms; i++)
+                        ConcurrentRooms[i] = FSHelpers.Read8(data, tableOffset + 1 + i);
+                }
+
+                public void WriteData(BinaryWriter stream)
+                {
+                    FSHelpers.Write8(stream, CurrentRoom);
+                    for (int i = 0; i < NumRooms; i++)
+                        FSHelpers.Write8(stream, ConcurrentRooms[i]);
+                }
+            }
+
+            public Header EntryHeader;
+
+            public RTBLChunk() : base("RTBL", "Room Visibility Table") { }
 
             public override void LoadData(byte[] data, ref int srcOffset)
             {
-                Index1 = (int)FSHelpers.Read32(data, srcOffset);
-                byte dataSize = FSHelpers.Read8(data, Index1);
-                Unknown1 = FSHelpers.Read8(data, Index1 + 0x1);
-                Unknown2 = (ushort)FSHelpers.Read16(data, Index1 + 0x2); // 0x2 and 0x3 bytes seems to be always 0
-                Index2 = (int)FSHelpers.Read32(data, Index1 + 0x4);
-                Data = FSHelpers.ReadN(data, Index2, dataSize);
+                EntryHeader = new Header();
+                EntryHeader.Load(data, srcOffset);
 
-                srcOffset += 0x4;
+                srcOffset += 4;
             }
 
             public override void WriteData(BinaryWriter stream)
             {
-                //throw new Exception("Hey we haven't tested this, you should test it now!");
-                FSHelpers.WriteFloat(stream, Index1);
-                int nextChunkOffset = (int)stream.BaseStream.Position;
-                stream.Seek(Index1, SeekOrigin.Begin);
-
-                FSHelpers.Write8(stream, (byte)Data.Length);
-                FSHelpers.Write8(stream, Unknown1);
-                FSHelpers.Write16(stream, Unknown2);
-                FSHelpers.WriteFloat(stream, Index2);
-                stream.Seek(Index2, SeekOrigin.Begin);
-
-                FSHelpers.WriteArray(stream, Data);
-                if (!LastRtblChunk)
-                {
-                    // Do we need padding here?
-                    stream.Seek(nextChunkOffset, SeekOrigin.Begin);
-                }
+                EntryHeader.WriteData(stream);
             }
         }
 

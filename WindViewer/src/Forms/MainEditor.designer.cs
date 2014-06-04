@@ -192,7 +192,6 @@
             // 
             // EntityTreeview
             // 
-            this.EntityTreeview.ContextMenuStrip = this.contextEntityTreeRoot;
             this.EntityTreeview.Dock = System.Windows.Forms.DockStyle.Fill;
             this.EntityTreeview.Location = new System.Drawing.Point(3, 16);
             this.EntityTreeview.Name = "EntityTreeview";
@@ -207,7 +206,7 @@
             this.exportChunksOfTypeToolStripMenuItem,
             this.deleteAllChunksOfTypeToolStripMenuItem});
             this.contextEntityTreeRoot.Name = "contextMenuStrip1";
-            this.contextEntityTreeRoot.Size = new System.Drawing.Size(211, 70);
+            this.contextEntityTreeRoot.Size = new System.Drawing.Size(211, 92);
             // 
             // groupBox2
             // 
@@ -551,6 +550,7 @@
             this.exportChunksOfTypeToolStripMenuItem.Name = "exportChunksOfTypeToolStripMenuItem";
             this.exportChunksOfTypeToolStripMenuItem.Size = new System.Drawing.Size(210, 22);
             this.exportChunksOfTypeToolStripMenuItem.Text = "&Export Chunks of Type...";
+            this.exportChunksOfTypeToolStripMenuItem.Click += new System.EventHandler(this.exportChunksOfTypeToolStripMenuItem_Click);
             // 
             // deleteAllChunksOfTypeToolStripMenuItem
             // 
