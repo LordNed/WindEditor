@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Security.Permissions;
-using System.Windows.Forms;
-using System.Windows.Forms.VisualStyles;
+using System.Linq;
 using OpenTK;
 using WindViewer.Editor;
 using WindViewer.Forms.EntityEditors;
@@ -101,6 +99,7 @@ namespace WindViewer.FileFormats
                     AddChunk(chunk);
                 }
             }
+
         }
 
         public void AddChunk(BaseChunk chunk)
@@ -122,21 +121,47 @@ namespace WindViewer.FileFormats
 
         public override void Save(BinaryWriter stream)
         {
-            foreach (KeyValuePair<Type, List<BaseChunk>> keyValuePair in GetAllChunks())
+            //Write the file header
+            FileHeader header = new FileHeader();
+            header.ChunkCount = _chunkList.Count;
+            header.Save(stream);
+
+            //Save the current position of the stream, then allocate numChunkHeaders * chunkHeaderSize
+            //bytes in the stream. We'll then create the chunk headers as we write the chunk data,
+            //and then come back to this position and write the headers in afterwards.
+            int chunkHeaderOffset = (int) stream.BaseStream.Position;
+            stream.BaseStream.Position += _chunkList.Count*ChunkHeader.Size;
+            List<ChunkHeader> chunkHeaders = new List<ChunkHeader>();
+
+            foreach (KeyValuePair<Type, List<BaseChunk>> pair in _chunkList)
             {
-                if (keyValuePair.Key == typeof (LgtvChunk))
+                ChunkHeader chunkHeader = new ChunkHeader();
+                chunkHeader.ChunkOffset = (int) stream.BaseStream.Position;
+                chunkHeader.Tag = pair.Value[0].ChunkName; //ToDo: We're in trouble if the chunk has no children.
+                chunkHeader.ElementCount = pair.Value.Count;
+
+                chunkHeaders.Add(chunkHeader);
+
+                //Write all of the chunk data into the stream
+                foreach (BaseChunk chunk in pair.Value)
                 {
-                    foreach (BaseChunk chunk in keyValuePair.Value)
-                    {
-                        chunk.WriteData(stream);
-                    }
+                    chunk.WriteData(stream);
                 }
+            }
+
+            //Now that we've created teh chunk headers and they have correct offsets set, lets go back
+            //and write them to the actual file.
+            stream.BaseStream.Position = chunkHeaderOffset;
+            foreach (ChunkHeader chunkHeader in chunkHeaders)
+            {
+                chunkHeader.WriteData(stream);
             }
         }
 
         #region File Formats
         class FileHeader
         {
+            public const int Size = 4;
             public int ChunkCount = 0;
 
             public void Load(byte[] data, ref int srcOffset)
@@ -153,6 +178,8 @@ namespace WindViewer.FileFormats
 
         class ChunkHeader
         {
+            public const int Size = 12;
+
             //ASCII Name for Chunk
             public string Tag;
             //How many of this Chunk type
@@ -176,7 +203,7 @@ namespace WindViewer.FileFormats
                 srcOffset += 12; //Header is 0xC/12 bytes in length
             }
 
-            public void Save(BinaryWriter stream)
+            public void WriteData(BinaryWriter stream)
             {
                 FSHelpers.WriteString(stream, Tag, 4);
                 FSHelpers.Write32(stream, ElementCount);
