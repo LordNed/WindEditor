@@ -668,38 +668,31 @@ namespace WindViewer.Forms
             workingDir = Path.Combine(workingDir, worldspaceName + ".wrkDir");
             foreach (string filePath in archiveFilePaths)
             {
-                //Not a huge fan of this RARC class but it does what I want for right now.
-                RARC arc = new RARC(filePath);
+                string arcExtractorFileName = Path.Combine(Application.StartupPath, "ExternalTools/arcExtract.exe");
+                string folderName = Path.Combine(workingDir, Path.GetFileNameWithoutExtension(filePath));
+                
+                //ArcExtractor can't seem to output to a specified location, so we're going to cheat
+                //here, and copy the arc over, then extract it, and then delete it. Yay!
+                string newFileName = Path.Combine(folderName, Path.GetFileName(filePath));
+                Directory.CreateDirectory(folderName);
+                File.Copy(filePath, newFileName);
 
-                //We're going to stick them inside a sub-folder (inside the .wrkDir) based on the Archive name (ie: "Room0.arc")
-                string arcName = arc.Filename.Substring(0, arc.Filename.IndexOf('.'));
-                string folderDir = Path.Combine(workingDir, arcName);
+              
+                Console.WriteLine("Invoking external tool arcExtract on {0}", filePath);
+                ProcessStartInfo arcExtract = new ProcessStartInfo(arcExtractorFileName);
+                //arcExtract.CreateNoWindow = true;
+                //arcExtract.RedirectStandardOutput = true;
+                arcExtract.WorkingDirectory = folderName;
+                //arcExtract.UseShellExecute = false;
+                arcExtract.WindowStyle = ProcessWindowStyle.Hidden;
+                arcExtract.Arguments = "\"" + newFileName + "\"";
+                Process.Start(arcExtract);
 
-                foreach (RARC.FileNode node in arc.Root.ChildNodes)
-                {
-                    //Create the folder on disk to represent teh folder in the Archive.
-                    DirectoryInfo outputDir = Directory.CreateDirectory(Path.Combine(folderDir, node.NodeName));
-
-                    //Now extract each of the files in the Archive into this folder.
-                    foreach (RARC.FileEntry fileEntry in node.Files)
-                    {
-                        try
-                        {
-                            //Write the bytes to disk as a binry file and we'll have succesfully unpacked ana rchive, sweet!
-                            FileStream fs = File.Create(Path.Combine(outputDir.FullName, fileEntry.FileName));
-                            BinaryWriter bw = new BinaryWriter(fs);
-
-                            bw.Write(fileEntry.GetFileData());
-                            bw.Flush();
-                            fs.Close();
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine("Error opening " + fileEntry.FileName + " for writing, error message: " +
-                                              ex);
-                        }
-                    }
-                }
+                //Wait for the process to exit and then delete the copied archive.
+                //HackHack: The process does funny things and if we delete the file
+                //immediately it doesn't extract + it never raises Exited events properly.
+                System.Threading.Thread.Sleep(100);
+                File.Delete(newFileName);
             }
 
             return workingDir;

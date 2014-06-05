@@ -67,8 +67,6 @@
     <Compile Include="src\Editor\Transform.cs" />
     <Compile Include="src\Editor\WorldspaceProject.cs" />
     <Compile Include="src\FileFormats\GenericArchiveData.cs" />
-    <Compile Include="src\FileFormats\RARC.cs" />
-    <Compile Include="src\FileFormats\RARCPacker.cs" />
     <Compile Include="src\FileFormats\StaticCollisionModel.cs" />
     <Compile Include="src\FileFormats\WindWakerEntityData.cs" />
     <Compile Include="src\Forms\Dialogs\AboutWindow.cs">
@@ -391,6 +389,15 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="ExternalTools\arcExtract.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="ExternalTools\arcPack.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="ExternalTools\yaz0enc.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <Content Include="Resources\aboutlogo.png" />
   </ItemGroup>
   <ItemGroup />
