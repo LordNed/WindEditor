@@ -687,11 +687,16 @@ namespace WindViewer.Forms
                 arcExtract.WindowStyle = ProcessWindowStyle.Hidden;
                 arcExtract.Arguments = "\"" + newFileName + "\"";
                 Process.Start(arcExtract);
+            }
 
-                //Wait for the process to exit and then delete the copied archive.
-                //HackHack: The process does funny things and if we delete the file
-                //immediately it doesn't extract + it never raises Exited events properly.
-                System.Threading.Thread.Sleep(100);
+            //HackHack: The process does funny things and if we delete the file
+            //immediately it doesn't extract + it never raises Exited events properly.
+            System.Threading.Thread.Sleep(100);
+
+            foreach (string filePath in archiveFilePaths)
+            {
+                string folderName = Path.Combine(workingDir, Path.GetFileNameWithoutExtension(filePath));
+                string newFileName = Path.Combine(folderName, Path.GetFileName(filePath));
                 File.Delete(newFileName);
             }
 
