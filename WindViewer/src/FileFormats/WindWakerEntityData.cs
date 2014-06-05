@@ -354,6 +354,7 @@ namespace WindViewer.FileFormats
         /// Colo (short for Color) contains indexes into the Pale section. Color specifies
         /// which color to use for the different times of day.
         /// </summary>
+        [EntEditorType(typeof(ColoEditor))]
         public class ColoChunk : BaseChunk
         {
             public byte DawnIndexA; //Index of the Pale entry to use for Dawn
