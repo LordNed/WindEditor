@@ -32,7 +32,16 @@ namespace WindViewer.Forms.EntityEditors
         private void UpdateEditorUiFromFile()
         {
             fieldChestName.Text = _curChunk.Name;
-
+            fieldParam1.Value = _curChunk.Param1;
+            fieldParam2.Value = _curChunk.Param2;
+            fieldParam3.Value = _curChunk.Param3;
+            fieldParam4.Value = _curChunk.Param4;
+            fieldPosition.SetValue(_curChunk.Transform.Position);
+            fieldRoomId.Value = _curChunk.RoomId;
+            fieldYRotation.Value = _curChunk.YRotation;
+            fieldChestItem.Value = _curChunk.ChestItem;
+            fieldUnknown1.Value = _curChunk.Unknown1;
+            fieldPadding.Value = _curChunk.Padding;
         }
 
         private void fieldChestName_TextChanged(object sender, EventArgs e)

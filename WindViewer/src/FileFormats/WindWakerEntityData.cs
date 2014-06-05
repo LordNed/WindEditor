@@ -306,6 +306,7 @@ namespace WindViewer.FileFormats
         /// The Envr (short for Environment) chunk contains indexes of different color pallets
         ///  to use in different weather situations. 
         /// </summary>
+        [EntEditorType(typeof(EnvREditor))]
         public class EnvrChunk : BaseChunk
         {
             public byte ClearColorIndexA; //Index of the Color entry to use for clear weather.
