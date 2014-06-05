@@ -35,7 +35,6 @@
             this.EntitiesProjectSplit = new System.Windows.Forms.SplitContainer();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.EntityTreeview = new System.Windows.Forms.TreeView();
-            this.contextEntityTreeRoot = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.ProjectTreeview = new System.Windows.Forms.TreeView();
             this.PropertiesLayerSplit = new System.Windows.Forms.SplitContainer();
@@ -45,6 +44,14 @@
             this.panel1 = new System.Windows.Forms.Panel();
             this.button4 = new System.Windows.Forms.Button();
             this.button3 = new System.Windows.Forms.Button();
+            this.contextEntityTreeRoot = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.toolStripMenuItem3 = new System.Windows.Forms.ToolStripMenuItem();
+            this.actorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.playerSpawnToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.shipSpawnToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
+            this.exportChunksOfTypeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.deleteAllChunksOfTypeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
@@ -70,13 +77,6 @@
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mainArea = new System.Windows.Forms.Panel();
-            this.toolStripMenuItem3 = new System.Windows.Forms.ToolStripMenuItem();
-            this.actorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.playerSpawnToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.shipSpawnToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
-            this.exportChunksOfTypeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.deleteAllChunksOfTypeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.MainSplitter)).BeginInit();
             this.MainSplitter.Panel1.SuspendLayout();
             this.MainSplitter.Panel2.SuspendLayout();
@@ -90,7 +90,6 @@
             this.EntitiesProjectSplit.Panel2.SuspendLayout();
             this.EntitiesProjectSplit.SuspendLayout();
             this.groupBox3.SuspendLayout();
-            this.contextEntityTreeRoot.SuspendLayout();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.PropertiesLayerSplit)).BeginInit();
             this.PropertiesLayerSplit.Panel1.SuspendLayout();
@@ -98,6 +97,7 @@
             this.PropertiesLayerSplit.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.panel1.SuspendLayout();
+            this.contextEntityTreeRoot.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.mainArea.SuspendLayout();
@@ -198,15 +198,6 @@
             this.EntityTreeview.Size = new System.Drawing.Size(207, 284);
             this.EntityTreeview.TabIndex = 0;
             this.EntityTreeview.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.EntityTreeview_AfterSelect);
-            // 
-            // contextEntityTreeRoot
-            // 
-            this.contextEntityTreeRoot.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripMenuItem3,
-            this.exportChunksOfTypeToolStripMenuItem,
-            this.deleteAllChunksOfTypeToolStripMenuItem});
-            this.contextEntityTreeRoot.Name = "contextMenuStrip1";
-            this.contextEntityTreeRoot.Size = new System.Drawing.Size(211, 92);
             // 
             // groupBox2
             // 
@@ -314,6 +305,63 @@
             this.button3.Text = "Add";
             this.button3.UseVisualStyleBackColor = true;
             // 
+            // contextEntityTreeRoot
+            // 
+            this.contextEntityTreeRoot.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripMenuItem3,
+            this.exportChunksOfTypeToolStripMenuItem,
+            this.deleteAllChunksOfTypeToolStripMenuItem});
+            this.contextEntityTreeRoot.Name = "contextMenuStrip1";
+            this.contextEntityTreeRoot.Size = new System.Drawing.Size(211, 70);
+            // 
+            // toolStripMenuItem3
+            // 
+            this.toolStripMenuItem3.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.actorToolStripMenuItem,
+            this.playerSpawnToolStripMenuItem,
+            this.shipSpawnToolStripMenuItem,
+            this.toolStripSeparator5});
+            this.toolStripMenuItem3.Enabled = false;
+            this.toolStripMenuItem3.Name = "toolStripMenuItem3";
+            this.toolStripMenuItem3.Size = new System.Drawing.Size(210, 22);
+            this.toolStripMenuItem3.Text = "&Add...";
+            // 
+            // actorToolStripMenuItem
+            // 
+            this.actorToolStripMenuItem.Name = "actorToolStripMenuItem";
+            this.actorToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
+            this.actorToolStripMenuItem.Text = "&Actor";
+            // 
+            // playerSpawnToolStripMenuItem
+            // 
+            this.playerSpawnToolStripMenuItem.Name = "playerSpawnToolStripMenuItem";
+            this.playerSpawnToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
+            this.playerSpawnToolStripMenuItem.Text = "&Player Spawn";
+            // 
+            // shipSpawnToolStripMenuItem
+            // 
+            this.shipSpawnToolStripMenuItem.Name = "shipSpawnToolStripMenuItem";
+            this.shipSpawnToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
+            this.shipSpawnToolStripMenuItem.Text = "&Ship Spawn";
+            // 
+            // toolStripSeparator5
+            // 
+            this.toolStripSeparator5.Name = "toolStripSeparator5";
+            this.toolStripSeparator5.Size = new System.Drawing.Size(141, 6);
+            // 
+            // exportChunksOfTypeToolStripMenuItem
+            // 
+            this.exportChunksOfTypeToolStripMenuItem.Name = "exportChunksOfTypeToolStripMenuItem";
+            this.exportChunksOfTypeToolStripMenuItem.Size = new System.Drawing.Size(210, 22);
+            this.exportChunksOfTypeToolStripMenuItem.Text = "&Export Chunks of Type...";
+            this.exportChunksOfTypeToolStripMenuItem.Click += new System.EventHandler(this.exportChunksOfTypeToolStripMenuItem_Click);
+            // 
+            // deleteAllChunksOfTypeToolStripMenuItem
+            // 
+            this.deleteAllChunksOfTypeToolStripMenuItem.Name = "deleteAllChunksOfTypeToolStripMenuItem";
+            this.deleteAllChunksOfTypeToolStripMenuItem.Size = new System.Drawing.Size(210, 22);
+            this.deleteAllChunksOfTypeToolStripMenuItem.Text = "&Delete All Chunks of Type";
+            // 
             // statusStrip1
             // 
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -370,10 +418,10 @@
             // 
             // newFromArchiveToolStripMenuItem
             // 
-            this.newFromArchiveToolStripMenuItem.Enabled = false;
             this.newFromArchiveToolStripMenuItem.Name = "newFromArchiveToolStripMenuItem";
             this.newFromArchiveToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
             this.newFromArchiveToolStripMenuItem.Text = "&New from &Archive...";
+            this.newFromArchiveToolStripMenuItem.Click += new System.EventHandler(this.newFromArchiveToolStripMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
@@ -510,54 +558,6 @@
             this.mainArea.Size = new System.Drawing.Size(1409, 656);
             this.mainArea.TabIndex = 0;
             // 
-            // toolStripMenuItem3
-            // 
-            this.toolStripMenuItem3.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.actorToolStripMenuItem,
-            this.playerSpawnToolStripMenuItem,
-            this.shipSpawnToolStripMenuItem,
-            this.toolStripSeparator5});
-            this.toolStripMenuItem3.Enabled = false;
-            this.toolStripMenuItem3.Name = "toolStripMenuItem3";
-            this.toolStripMenuItem3.Size = new System.Drawing.Size(210, 22);
-            this.toolStripMenuItem3.Text = "&Add...";
-            // 
-            // actorToolStripMenuItem
-            // 
-            this.actorToolStripMenuItem.Name = "actorToolStripMenuItem";
-            this.actorToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.actorToolStripMenuItem.Text = "&Actor";
-            // 
-            // playerSpawnToolStripMenuItem
-            // 
-            this.playerSpawnToolStripMenuItem.Name = "playerSpawnToolStripMenuItem";
-            this.playerSpawnToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.playerSpawnToolStripMenuItem.Text = "&Player Spawn";
-            // 
-            // shipSpawnToolStripMenuItem
-            // 
-            this.shipSpawnToolStripMenuItem.Name = "shipSpawnToolStripMenuItem";
-            this.shipSpawnToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.shipSpawnToolStripMenuItem.Text = "&Ship Spawn";
-            // 
-            // toolStripSeparator5
-            // 
-            this.toolStripSeparator5.Name = "toolStripSeparator5";
-            this.toolStripSeparator5.Size = new System.Drawing.Size(149, 6);
-            // 
-            // exportChunksOfTypeToolStripMenuItem
-            // 
-            this.exportChunksOfTypeToolStripMenuItem.Name = "exportChunksOfTypeToolStripMenuItem";
-            this.exportChunksOfTypeToolStripMenuItem.Size = new System.Drawing.Size(210, 22);
-            this.exportChunksOfTypeToolStripMenuItem.Text = "&Export Chunks of Type...";
-            this.exportChunksOfTypeToolStripMenuItem.Click += new System.EventHandler(this.exportChunksOfTypeToolStripMenuItem_Click);
-            // 
-            // deleteAllChunksOfTypeToolStripMenuItem
-            // 
-            this.deleteAllChunksOfTypeToolStripMenuItem.Name = "deleteAllChunksOfTypeToolStripMenuItem";
-            this.deleteAllChunksOfTypeToolStripMenuItem.Size = new System.Drawing.Size(210, 22);
-            this.deleteAllChunksOfTypeToolStripMenuItem.Text = "&Delete All Chunks of Type";
-            // 
             // MainEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -585,7 +585,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.EntitiesProjectSplit)).EndInit();
             this.EntitiesProjectSplit.ResumeLayout(false);
             this.groupBox3.ResumeLayout(false);
-            this.contextEntityTreeRoot.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
             this.PropertiesLayerSplit.Panel1.ResumeLayout(false);
             this.PropertiesLayerSplit.Panel1.PerformLayout();
@@ -595,6 +594,7 @@
             this.groupBox1.ResumeLayout(false);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
+            this.contextEntityTreeRoot.ResumeLayout(false);
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
             this.menuStrip1.ResumeLayout(false);

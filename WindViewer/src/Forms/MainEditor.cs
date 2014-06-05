@@ -14,6 +14,7 @@ using WindViewer.Editor;
 using WindViewer.Editor.Renderer;
 using WindViewer.Editor.Tools;
 using WindViewer.FileFormats;
+using WindViewer.Forms.Dialogs;
 using WindViewer.Forms.EntityEditors;
 using WindViewer.src.Forms;
 
@@ -626,6 +627,82 @@ namespace WindViewer.Forms
             }
         }
 
-        
+        private void newFromArchiveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string[] filePaths = EditorHelpers.ShowOpenFileDialog("Wind Waker Archives (*.arc; *.rarc)|*.arc; *.rarc|All Files (*.*)|*.*", true);
+
+            //A canceled OFD returns an empty array.
+            if(filePaths.Length == 0)
+                return;
+
+            //A canceled CWDRFA returns an empty string
+            string workDir = CreateWorkingDirFromArchive(filePaths);
+            if (workDir == string.Empty)
+                return;
+
+            OpenFileFromWorkingDir(workDir);
+        }
+
+        // <summary>
+        /// This creates a new "Working Dir" for a project (ie: "My Documents\Wind Viewer\MiniHyo.wrkDir"). It is the equivelent
+        /// of setting up a project directory for new files. 
+        /// </summary>
+        /// <param name="archiveFilePaths">Archive to use as the base content to place in the WrkDir.</param>
+        /// <returns></returns>
+        private string CreateWorkingDirFromArchive(string[] archiveFilePaths)
+        {
+            //We're going to extract each file to the working directory.
+            string workingDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                Application.ProductName);
+
+            //Instead of guessing at what map this was originally, we're going to just ask the user
+            //because the original names are in Romaji and they probably want their working folders
+            //to be in English.
+            NewWorldspaceDialog dialog = new NewWorldspaceDialog();
+            DialogResult result = dialog.ShowDialog();
+            if (result == DialogResult.Cancel)
+                return string.Empty;
+
+            string worldspaceName = dialog.dirName.Text;
+
+            workingDir = Path.Combine(workingDir, worldspaceName + ".wrkDir");
+            foreach (string filePath in archiveFilePaths)
+            {
+                //Not a huge fan of this RARC class but it does what I want for right now.
+                RARC arc = new RARC(filePath);
+
+                //We're going to stick them inside a sub-folder (inside the .wrkDir) based on the Archive name (ie: "Room0.arc")
+                string arcName = arc.Filename.Substring(0, arc.Filename.IndexOf('.'));
+                string folderDir = Path.Combine(workingDir, arcName);
+
+                foreach (RARC.FileNode node in arc.Root.ChildNodes)
+                {
+                    //Create the folder on disk to represent teh folder in the Archive.
+                    DirectoryInfo outputDir = Directory.CreateDirectory(Path.Combine(folderDir, node.NodeName));
+
+                    //Now extract each of the files in the Archive into this folder.
+                    foreach (RARC.FileEntry fileEntry in node.Files)
+                    {
+                        try
+                        {
+                            //Write the bytes to disk as a binry file and we'll have succesfully unpacked ana rchive, sweet!
+                            FileStream fs = File.Create(Path.Combine(outputDir.FullName, fileEntry.FileName));
+                            BinaryWriter bw = new BinaryWriter(fs);
+
+                            bw.Write(fileEntry.GetFileData());
+                            bw.Flush();
+                            fs.Close();
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine("Error opening " + fileEntry.FileName + " for writing, error message: " +
+                                              ex);
+                        }
+                    }
+                }
+            }
+
+            return workingDir;
+        }
     }
 }

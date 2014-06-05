@@ -67,13 +67,21 @@
     <Compile Include="src\Editor\Transform.cs" />
     <Compile Include="src\Editor\WorldspaceProject.cs" />
     <Compile Include="src\FileFormats\GenericArchiveData.cs" />
+    <Compile Include="src\FileFormats\RARC.cs" />
+    <Compile Include="src\FileFormats\RARCPacker.cs" />
     <Compile Include="src\FileFormats\StaticCollisionModel.cs" />
     <Compile Include="src\FileFormats\WindWakerEntityData.cs" />
-    <Compile Include="src\Forms\AboutWindow.cs">
+    <Compile Include="src\Forms\Dialogs\AboutWindow.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Forms\AboutWindow.Designer.cs">
+    <Compile Include="src\Forms\Dialogs\AboutWindow.Designer.cs">
       <DependentUpon>AboutWindow.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Forms\Dialogs\NewWorldspaceDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Forms\Dialogs\NewWorldspaceDialog.Designer.cs">
+      <DependentUpon>NewWorldspaceDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="src\Forms\EntityEditors\DungeonMapEditor.cs">
       <SubType>UserControl</SubType>
@@ -225,16 +233,16 @@
     <Compile Include="src\Forms\EntityEditors\UnsupportedEntity.Designer.cs">
       <DependentUpon>UnsupportedEntity.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Forms\FloatConverter.cs">
+    <Compile Include="src\Forms\Dialogs\FloatConverter.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Forms\FloatConverter.Designer.cs">
+    <Compile Include="src\Forms\Dialogs\FloatConverter.Designer.cs">
       <DependentUpon>FloatConverter.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Forms\InvalidRoomNumberPopup.cs">
+    <Compile Include="src\Forms\Dialogs\InvalidRoomNumberPopup.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="src\Forms\InvalidRoomNumberPopup.Designer.cs">
+    <Compile Include="src\Forms\Dialogs\InvalidRoomNumberPopup.Designer.cs">
       <DependentUpon>InvalidRoomNumberPopup.cs</DependentUpon>
     </Compile>
     <Compile Include="src\Forms\MainEditor.cs">
@@ -255,9 +263,12 @@
     <Compile Include="src\Editor\Util\MruStripMenu.cs" />
     <Compile Include="src\Editor\Util\ObjectExtensions.cs" />
     <Compile Include="src\Editor\Util\Reflector.cs" />
-    <EmbeddedResource Include="src\Forms\AboutWindow.resx">
+    <EmbeddedResource Include="src\Forms\Dialogs\AboutWindow.resx">
       <DependentUpon>AboutWindow.cs</DependentUpon>
       <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Forms\Dialogs\NewWorldspaceDialog.resx">
+      <DependentUpon>NewWorldspaceDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\EntityEditors\DungeonMapEditor.resx">
       <DependentUpon>DungeonMapEditor.cs</DependentUpon>
@@ -334,10 +345,10 @@
     <EmbeddedResource Include="src\Forms\EntityEditors\UnsupportedEntity.resx">
       <DependentUpon>UnsupportedEntity.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\FloatConverter.resx">
+    <EmbeddedResource Include="src\Forms\Dialogs\FloatConverter.resx">
       <DependentUpon>FloatConverter.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\InvalidRoomNumberPopup.resx">
+    <EmbeddedResource Include="src\Forms\Dialogs\InvalidRoomNumberPopup.resx">
       <DependentUpon>InvalidRoomNumberPopup.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\MainEditor.resx">
@@ -356,6 +367,7 @@
     <EmbeddedResource Include="src\Forms\TestUserControl.resx">
       <DependentUpon>TestUserControl.cs</DependentUpon>
     </EmbeddedResource>
+    <None Include="ClassDiagram1.cd" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

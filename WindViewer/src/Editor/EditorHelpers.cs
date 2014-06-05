@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Windows.Forms;
 using OpenTK;
 using OpenTK.Input;
 
@@ -99,6 +100,22 @@ namespace WindViewer.Editor
                     return EntityLayer.Invalid;
             }
         }
+
+        public static string[] ShowOpenFileDialog(string filter, bool allowMultiSelect = false)
+        {
+            string[] selectedFiles = new string[0];
+
+            OpenFileDialog ofd = new OpenFileDialog();
+            ofd.Filter = filter;
+            ofd.Multiselect = allowMultiSelect;
+            ofd.CheckFileExists = ofd.CheckPathExists = true;
+
+            if (ofd.ShowDialog() == DialogResult.OK)
+                selectedFiles = ofd.FileNames;
+
+            return selectedFiles;
+        }
+
 
         #region INPUT
 
