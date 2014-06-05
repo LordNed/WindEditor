@@ -81,6 +81,18 @@
     <Compile Include="src\Forms\Dialogs\NewWorldspaceDialog.Designer.cs">
       <DependentUpon>NewWorldspaceDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="src\Forms\EntityEditors\ColoEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="src\Forms\EntityEditors\ColoEditor.Designer.cs">
+      <DependentUpon>ColoEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Forms\EntityEditors\DoorEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="src\Forms\EntityEditors\DoorEditor.Designer.cs">
+      <DependentUpon>DoorEditor.cs</DependentUpon>
+    </Compile>
     <Compile Include="src\Forms\EntityEditors\DungeonMapEditor.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -273,6 +285,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\Dialogs\NewWorldspaceDialog.resx">
       <DependentUpon>NewWorldspaceDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Forms\EntityEditors\ColoEditor.resx">
+      <DependentUpon>ColoEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Forms\EntityEditors\DoorEditor.resx">
+      <DependentUpon>DoorEditor.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\EntityEditors\DungeonMapEditor.resx">
       <DependentUpon>DungeonMapEditor.cs</DependentUpon>

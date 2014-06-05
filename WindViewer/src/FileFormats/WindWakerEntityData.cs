@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Windows.Forms;
 using OpenTK;
 using WindViewer.Editor;
@@ -1620,34 +1622,48 @@ namespace WindViewer.FileFormats
             }
         }
 
+        [EntEditorType(typeof(DoorEditor))]
         public class TgdrChunk : BaseChunkSpatial
         {
             [DisplayName] public string Name;
-
-            public ushort Unknown0; //Usually 0F FF?
-            public ushort DoorType; //Unknown how it works.
+            public byte Param1;
+            public byte Param2;
+            public byte Param3;
+            public byte Param4;
             //public Vector3 Position;
             public ushort Unknown1;
-            public ushort yRot;
-            public ushort Unknown2;
-            public ushort Padding;
-            public int Unknown3;
+            public ushort YRotation;
+            public byte DoorModel;
+            public byte Const3F;
+            public byte ConstZero;
+            public byte Padding1;
+            public byte Unknown2;
+            public byte Unknown3;
+            public byte Unknown4;
+            public byte Padding2;
 
             public TgdrChunk():base("TGDR", "Doors"){}
 
             public override void LoadData(byte[] data, ref int srcOffset)
             {
                 Name = FSHelpers.ReadString(data, srcOffset, 8);
-                Unknown0 = (ushort)FSHelpers.Read16(data, srcOffset + 8);
-                DoorType = (ushort)FSHelpers.Read16(data, srcOffset + 10);
+                Param1 = FSHelpers.Read8(data, srcOffset + 8);
+                Param2 = FSHelpers.Read8(data, srcOffset + 9);
+                Param3 = FSHelpers.Read8(data, srcOffset + 10);
+                Param4 = FSHelpers.Read8(data, srcOffset + 11);
                 Transform.Position.X = FSHelpers.ConvertIEEE754Float((uint)FSHelpers.Read32(data, srcOffset + 12));
                 Transform.Position.Y = FSHelpers.ConvertIEEE754Float((uint)FSHelpers.Read32(data, srcOffset + 16));
                 Transform.Position.Z = FSHelpers.ConvertIEEE754Float((uint)FSHelpers.Read32(data, srcOffset + 20));
                 Unknown1 = (ushort)FSHelpers.Read16(data, srcOffset + 24);
-                yRot = (ushort)FSHelpers.Read16(data, srcOffset + 26);
-                Unknown2 = (ushort)FSHelpers.Read16(data, srcOffset + 28);
-                Padding = (ushort)FSHelpers.Read16(data, srcOffset + 30);
-                Unknown3 = (int)FSHelpers.Read32(data, srcOffset + 32);
+                YRotation = (ushort)FSHelpers.Read16(data, srcOffset + 26);
+                DoorModel = FSHelpers.Read8(data, srcOffset + 28);
+                Const3F = FSHelpers.Read8(data, srcOffset + 29);
+                ConstZero = FSHelpers.Read8(data, srcOffset + 30);
+                Padding1 = FSHelpers.Read8(data, srcOffset + 31);
+                Unknown2 = FSHelpers.Read8(data, srcOffset + 32);
+                Unknown3 = FSHelpers.Read8(data, srcOffset + 33);
+                Unknown4 = FSHelpers.Read8(data, srcOffset + 34);
+                Padding2 = FSHelpers.Read8(data, srcOffset + 35);
 
                 srcOffset += 36;
             }
@@ -1655,16 +1671,23 @@ namespace WindViewer.FileFormats
             public override void WriteData(BinaryWriter stream)
             {
                 FSHelpers.WriteString(stream, Name, 8);
-                FSHelpers.Write16(stream, Unknown0);
-                FSHelpers.Write16(stream, DoorType);
+                FSHelpers.Write8(stream, Param1);
+                FSHelpers.Write8(stream, Param2);
+                FSHelpers.Write8(stream, Param3);
+                FSHelpers.Write8(stream, Param4);
                 FSHelpers.WriteFloat(stream, Transform.Position.X);
                 FSHelpers.WriteFloat(stream, Transform.Position.Y);
                 FSHelpers.WriteFloat(stream, Transform.Position.Z);
                 FSHelpers.Write16(stream, Unknown1);
-                FSHelpers.Write16(stream, yRot);
-                FSHelpers.Write16(stream, Unknown2);
-                FSHelpers.Write16(stream, Padding);
-                FSHelpers.Write32(stream, Unknown3);
+                FSHelpers.Write16(stream, YRotation);
+                FSHelpers.Write8(stream, DoorModel);
+                FSHelpers.Write8(stream, Const3F);
+                FSHelpers.Write8(stream, ConstZero);
+                FSHelpers.Write8(stream, Padding1);
+                FSHelpers.Write8(stream, Unknown2);
+                FSHelpers.Write8(stream, Unknown3);
+                FSHelpers.Write8(stream, Unknown4);
+                FSHelpers.Write8(stream, Padding2);
             }
 
 
