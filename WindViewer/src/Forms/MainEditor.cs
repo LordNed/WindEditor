@@ -196,6 +196,7 @@ namespace WindViewer.Forms
             }
             toolStripStatusLabel1.Text = "Loading Worlspace Project...";
             saveAllToolStripMenuItem.Enabled = true;
+            exportArchivesToolStripMenuItem.Enabled = true;
 
             _loadedWorldspaceProject = new WorldspaceProject();
             _loadedWorldspaceProject.LoadFromDirectory(workDir);

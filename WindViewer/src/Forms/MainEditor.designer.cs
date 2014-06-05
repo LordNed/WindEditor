@@ -441,7 +441,7 @@
             this.mruList.Name = "mruList";
             this.mruList.Size = new System.Drawing.Size(199, 22);
             this.mruList.Tag = "";
-            this.mruList.Text = "&Recent Dirs...";
+            this.mruList.Text = "Open &Recent Dirs...";
             // 
             // toolStripSeparator2
             // 
@@ -458,9 +458,10 @@
             // 
             // exportArchivesToolStripMenuItem
             // 
+            this.exportArchivesToolStripMenuItem.Enabled = false;
             this.exportArchivesToolStripMenuItem.Name = "exportArchivesToolStripMenuItem";
-            this.exportArchivesToolStripMenuItem.Size = new System.Drawing.Size(199, 22);
-            this.exportArchivesToolStripMenuItem.Text = "&Export Archives (*.arc)...";
+            this.exportArchivesToolStripMenuItem.Size = new System.Drawing.Size(190, 22);
+            this.exportArchivesToolStripMenuItem.Text = "&Export Archives (*.arc)";
             this.exportArchivesToolStripMenuItem.Click += new System.EventHandler(this.exportArchivesToolStripMenuItem_Click);
             // 
             // toolStripSeparator3
