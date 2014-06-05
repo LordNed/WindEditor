@@ -55,7 +55,7 @@
             // okButton
             // 
             this.okButton.Enabled = false;
-            this.okButton.Location = new System.Drawing.Point(169, 63);
+            this.okButton.Location = new System.Drawing.Point(257, 63);
             this.okButton.Name = "okButton";
             this.okButton.Size = new System.Drawing.Size(75, 23);
             this.okButton.TabIndex = 2;
@@ -66,7 +66,7 @@
             // cancelButton
             // 
             this.cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.cancelButton.Location = new System.Drawing.Point(257, 63);
+            this.cancelButton.Location = new System.Drawing.Point(176, 63);
             this.cancelButton.Name = "cancelButton";
             this.cancelButton.Size = new System.Drawing.Size(75, 23);
             this.cancelButton.TabIndex = 3;
@@ -85,7 +85,7 @@
             this.linkLabel1.Text = "Worldspace Wiki Entry [Help]";
             this.linkLabel1.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked);
             // 
-            // NewWorldspaceDialogue
+            // NewWorldspaceDialog
             // 
             this.AcceptButton = this.okButton;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);

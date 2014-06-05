@@ -680,10 +680,7 @@ namespace WindViewer.Forms
               
                 Console.WriteLine("Invoking external tool arcExtract on {0}", filePath);
                 ProcessStartInfo arcExtract = new ProcessStartInfo(arcExtractorFileName);
-                //arcExtract.CreateNoWindow = true;
-                //arcExtract.RedirectStandardOutput = true;
                 arcExtract.WorkingDirectory = folderName;
-                //arcExtract.UseShellExecute = false;
                 arcExtract.WindowStyle = ProcessWindowStyle.Hidden;
                 arcExtract.Arguments = "\"" + newFileName + "\"";
                 Process.Start(arcExtract);
@@ -693,6 +690,8 @@ namespace WindViewer.Forms
             //immediately it doesn't extract + it never raises Exited events properly.
             System.Threading.Thread.Sleep(100);
 
+
+            //Delete the falsely copied archives
             foreach (string filePath in archiveFilePaths)
             {
                 string folderName = Path.Combine(workingDir, Path.GetFileNameWithoutExtension(filePath));
@@ -701,6 +700,56 @@ namespace WindViewer.Forms
             }
 
             return workingDir;
+        }
+
+        private void exportArchivesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ExportArchivesForWorldspaceProject();
+        }
+
+
+        private void ExportArchivesForWorldspaceProject()
+        {
+            string[] archiveFilePaths = Directory.GetDirectories(_loadedWorldspaceProject.ProjectFilePath);
+            foreach (string filePath in archiveFilePaths)
+            {
+                string arcPackerFileName = Path.Combine(Application.StartupPath, "ExternalTools/arcPack.exe");
+                string yazCompressFileName = Path.Combine(Application.StartupPath, "ExternalTools/yaz0enc.exe");
+
+                //We're going to archive all of the folders in the project dir, under the assumption that people
+                //haven't been fucking around with them manually. >:|
+                Console.WriteLine("Invoking external tool arcPack on {0}", filePath);
+                ProcessStartInfo arcPack = new ProcessStartInfo(arcPackerFileName);
+                arcPack.WindowStyle = ProcessWindowStyle.Hidden;
+                arcPack.Arguments = "\"" + filePath + "\"";
+                Process.Start(arcPack);
+
+
+                string fileName = Path.GetFileNameWithoutExtension(filePath);
+                if (fileName.ToLower() == "stage")
+                {
+                    Console.WriteLine("Invoking external tool yaz0enc on {0}", filePath);
+                    ProcessStartInfo yazCompress = new ProcessStartInfo(yazCompressFileName);
+                    yazCompress.WindowStyle = ProcessWindowStyle.Hidden;
+                    yazCompress.Arguments = "\"" + filePath + ".arc\"";
+                    Process.Start(yazCompress);
+                }
+            }
+
+            //HackHack: The process does funny things and if we move the file
+            //immediately it doesn't extract + it never raises Exited events properly.
+            System.Threading.Thread.Sleep(100);
+
+            //We're going to delete the old Stage.arc and rename the Yaz0 compressed one for easier/less confusing inclusion.
+            string stageFilePath = Path.Combine(_loadedWorldspaceProject.ProjectFilePath, "Stage.arc");
+            string compressedStageFilePath = stageFilePath + ".yaz0";
+            if (File.Exists(stageFilePath) && File.Exists(compressedStageFilePath))
+            {
+                File.Delete(stageFilePath);
+                File.Move(compressedStageFilePath, stageFilePath);
+            }
+
+            Console.WriteLine("Project Export completed.");
         }
     }
 }
