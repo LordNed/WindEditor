@@ -660,6 +660,7 @@ namespace WindViewer.Forms
             //because the original names are in Romaji and they probably want their working folders
             //to be in English.
             NewWorldspaceDialog dialog = new NewWorldspaceDialog();
+            
             DialogResult result = dialog.ShowDialog();
             if (result == DialogResult.Cancel)
                 return string.Empty;
