@@ -4,7 +4,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace WindViewer.Editor
 {
-    public abstract class IRenderable
+    public abstract class IRenderable : IDisposable
     {
         private int _vboPosition;
         private int _iboIndexes;
@@ -27,6 +27,12 @@ namespace WindViewer.Editor
             GL.GenBuffers(1, out _iboIndexes);
 
             transform = new Transform();
+        }
+
+        public void Dispose()
+        {
+            GL.DeleteBuffer(_vboPosition);
+            GL.DeleteBuffer(_iboIndexes);
         }
 
         public virtual void UpdateBuffers()
@@ -56,5 +62,7 @@ namespace WindViewer.Editor
             ModelMatrix = Matrix4.CreateScale(transform.Scale)*Matrix4.CreateFromQuaternion(transform.Rotation)*
                           Matrix4.CreateTranslation(transform.Position);
         }
+
+       
     }
 }

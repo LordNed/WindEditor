@@ -65,7 +65,7 @@
             this.saveAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exportArchivesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
-            this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
+            this.unloadWorldspaceProjectToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.preferencesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -403,7 +403,7 @@
             this.saveAllToolStripMenuItem,
             this.exportArchivesToolStripMenuItem,
             this.toolStripSeparator3,
-            this.toolStripMenuItem2,
+            this.unloadWorldspaceProjectToolStripMenuItem,
             this.exitToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
@@ -413,25 +413,25 @@
             // 
             this.newToolStripMenuItem.Enabled = false;
             this.newToolStripMenuItem.Name = "newToolStripMenuItem";
-            this.newToolStripMenuItem.Size = new System.Drawing.Size(199, 22);
+            this.newToolStripMenuItem.Size = new System.Drawing.Size(190, 22);
             this.newToolStripMenuItem.Text = "&New...";
             // 
             // newFromArchiveToolStripMenuItem
             // 
             this.newFromArchiveToolStripMenuItem.Name = "newFromArchiveToolStripMenuItem";
-            this.newFromArchiveToolStripMenuItem.Size = new System.Drawing.Size(199, 22);
+            this.newFromArchiveToolStripMenuItem.Size = new System.Drawing.Size(190, 22);
             this.newFromArchiveToolStripMenuItem.Text = "&New from &Archive...";
             this.newFromArchiveToolStripMenuItem.Click += new System.EventHandler(this.newFromArchiveToolStripMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(196, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(187, 6);
             // 
             // openWorldspaceDirToolStripMenuItem
             // 
             this.openWorldspaceDirToolStripMenuItem.Name = "openWorldspaceDirToolStripMenuItem";
-            this.openWorldspaceDirToolStripMenuItem.Size = new System.Drawing.Size(199, 22);
+            this.openWorldspaceDirToolStripMenuItem.Size = new System.Drawing.Size(190, 22);
             this.openWorldspaceDirToolStripMenuItem.Text = "&Open Worldspace Dir";
             this.openWorldspaceDirToolStripMenuItem.Click += new System.EventHandler(this.openWorldspaceDirToolStripMenuItem_Click);
             // 
@@ -439,20 +439,20 @@
             // 
             this.mruList.Filename = "";
             this.mruList.Name = "mruList";
-            this.mruList.Size = new System.Drawing.Size(199, 22);
+            this.mruList.Size = new System.Drawing.Size(190, 22);
             this.mruList.Tag = "";
             this.mruList.Text = "Open &Recent Dirs...";
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(196, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(187, 6);
             // 
             // saveAllToolStripMenuItem
             // 
             this.saveAllToolStripMenuItem.Enabled = false;
             this.saveAllToolStripMenuItem.Name = "saveAllToolStripMenuItem";
-            this.saveAllToolStripMenuItem.Size = new System.Drawing.Size(199, 22);
+            this.saveAllToolStripMenuItem.Size = new System.Drawing.Size(190, 22);
             this.saveAllToolStripMenuItem.Text = "&Save All";
             this.saveAllToolStripMenuItem.Click += new System.EventHandler(this.saveAllToolStripMenuItem_Click);
             // 
@@ -467,19 +467,20 @@
             // toolStripSeparator3
             // 
             this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(196, 6);
+            this.toolStripSeparator3.Size = new System.Drawing.Size(187, 6);
             // 
             // toolStripMenuItem2
             // 
-            this.toolStripMenuItem2.Enabled = false;
-            this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(199, 22);
-            this.toolStripMenuItem2.Text = "&Unload All";
+            this.unloadWorldspaceProjectToolStripMenuItem.Enabled = false;
+            this.unloadWorldspaceProjectToolStripMenuItem.Name = "unloadWorldspaceProjectToolStripMenuItem";
+            this.unloadWorldspaceProjectToolStripMenuItem.Size = new System.Drawing.Size(190, 22);
+            this.unloadWorldspaceProjectToolStripMenuItem.Text = "&Unload All";
+            this.unloadWorldspaceProjectToolStripMenuItem.Click += new System.EventHandler(this.toolStripMenuItem2_Click);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(199, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(190, 22);
             this.exitToolStripMenuItem.Text = "E&xit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
@@ -639,7 +640,7 @@
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
         private JWC.MruStripMenu.MruMenuItem mruList;
         private System.Windows.Forms.ToolStripMenuItem exportArchivesToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem2;
+        private System.Windows.Forms.ToolStripMenuItem unloadWorldspaceProjectToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem optionsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem preferencesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem toolsToolStripMenuItem;

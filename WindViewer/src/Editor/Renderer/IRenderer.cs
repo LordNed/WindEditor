@@ -66,6 +66,8 @@ namespace WindViewer.Editor.Renderer
 
         }
 
+        public abstract void ClearRenderableList();
+
         public abstract void Render(Camera camera, float aspectRatio);
     }
 }

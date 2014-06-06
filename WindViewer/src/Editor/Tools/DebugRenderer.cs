@@ -60,6 +60,11 @@ namespace WindViewer.Editor.Tools
             _singleton._renderList[_singleton._cubeShape].Add(new Instance(position, rotation, scale));
         }
 
+        public override void ClearRenderableList()
+        {
+            _renderList.Clear();
+        }
+
         public override void Render(Camera camera, float aspectRatio)
         {
             GL.UseProgram(_programId);

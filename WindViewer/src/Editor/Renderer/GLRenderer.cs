@@ -37,6 +37,11 @@ namespace WindViewer.Editor.Renderer
             _renderableObjects.Remove(renderable);
         }
 
+        public override void ClearRenderableList()
+        {
+            _renderableObjects.Clear();
+        }
+
         override public void Render(Camera camera, float aspectRatio)
         {
             GL.UseProgram(_programId);

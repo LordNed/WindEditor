@@ -197,6 +197,7 @@ namespace WindViewer.Forms
             toolStripStatusLabel1.Text = "Loading Worlspace Project...";
             saveAllToolStripMenuItem.Enabled = true;
             exportArchivesToolStripMenuItem.Enabled = true;
+            unloadWorldspaceProjectToolStripMenuItem.Enabled = true;
 
             _loadedWorldspaceProject = new WorldspaceProject();
             _loadedWorldspaceProject.LoadFromDirectory(workDir);
@@ -383,6 +384,7 @@ namespace WindViewer.Forms
             EntityTreeview.BeginUpdate();
             EntityTreeview.Nodes.Clear();
 
+            //Early out in case we just unloaded a project.
             if (_loadedWorldspaceProject == null || _selectedEntityFile == null)
             {
                 EntityTreeview.ResumeLayout();
@@ -459,6 +461,7 @@ namespace WindViewer.Forms
             ProjectTreeview.SuspendLayout();
             ProjectTreeview.Nodes.Clear();
 
+            //Early out if the worldspace project is null (ie: We just unloaded the project)
             if (_loadedWorldspaceProject == null)
             {
                 ProjectTreeview.EndUpdate();
@@ -515,6 +518,15 @@ namespace WindViewer.Forms
             LayersListBox.SuspendLayout();
             LayersListBox.BeginUpdate();
             LayersListBox.Items.Clear();
+
+            //Early out if the worldspace project is null (ie: We just unloaded the project)
+            if (_loadedWorldspaceProject == null)
+            {
+                LayersListBox.EndUpdate();
+                LayersListBox.ResumeLayout();
+
+                return;
+            }
 
             WindWakerEntityData entData = _selectedEntityFile;
             List<EditorHelpers.EntityLayer> validLayers = new List<EditorHelpers.EntityLayer>();
@@ -710,6 +722,24 @@ namespace WindViewer.Forms
         }
 
 
+        private void UnloadLoadedWorldspaceProject()
+        {
+            //Clear our Renderers
+            foreach (var renderer in _renderers)
+            {
+                renderer.ClearRenderableList();
+            }
+
+            //Then unload the worldspace project
+            _loadedWorldspaceProject = null;
+            _selectedEntityFile = null;
+            _selectedEntityLayer = EditorHelpers.EntityLayer.DefaultLayer;
+            UpdateProjectFolderTreeview();
+            UpdateEntityTreeview();
+            UpdateLayersView();
+        }
+
+
         private void ExportArchivesForWorldspaceProject()
         {
             string[] archiveFilePaths = Directory.GetDirectories(_loadedWorldspaceProject.ProjectFilePath);
@@ -752,6 +782,13 @@ namespace WindViewer.Forms
             }
 
             Console.WriteLine("Project Export completed.");
+        }
+
+        private void toolStripMenuItem2_Click(object sender, EventArgs e)
+        {
+            UnloadLoadedWorldspaceProject();
+
+            unloadWorldspaceProjectToolStripMenuItem.Enabled = false;
         }
     }
 }
