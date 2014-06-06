@@ -75,6 +75,12 @@
     <Compile Include="src\Forms\Dialogs\AboutWindow.Designer.cs">
       <DependentUpon>AboutWindow.cs</DependentUpon>
     </Compile>
+    <Compile Include="src\Forms\Dialogs\AutomatedTestingSuite.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Forms\Dialogs\AutomatedTestingSuite.Designer.cs">
+      <DependentUpon>AutomatedTestingSuite.cs</DependentUpon>
+    </Compile>
     <Compile Include="src\Forms\Dialogs\NewWorldspaceDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -294,6 +300,9 @@
     <EmbeddedResource Include="src\Forms\Dialogs\AboutWindow.resx">
       <DependentUpon>AboutWindow.cs</DependentUpon>
       <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Forms\Dialogs\AutomatedTestingSuite.resx">
+      <DependentUpon>AutomatedTestingSuite.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\Dialogs\NewWorldspaceDialog.resx">
       <DependentUpon>NewWorldspaceDialog.cs</DependentUpon>
