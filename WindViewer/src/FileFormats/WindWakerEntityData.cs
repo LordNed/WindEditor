@@ -420,6 +420,7 @@ namespace WindViewer.FileFormats
         /// The Pale (short for Palette) chunk contains the actual RGB colors for different
         /// types of lighting. 
         /// </summary>
+        [EntEditorType(typeof(PaleEditor))]
         public class PaleChunk : BaseChunk
         {
             public ByteColor ActorAmbient;
@@ -435,6 +436,8 @@ namespace WindViewer.FileFormats
             public ByteColor FogColor;
 
             public byte VirtIndex; //Index of the Virt entry to use for Skybox Colors
+            public byte Padding1;
+            public byte Padding2;
 
             public ByteColorAlpha OceanFadeInto;
             public ByteColorAlpha ShoreFadeInto;
@@ -475,6 +478,8 @@ namespace WindViewer.FileFormats
                 FogColor = new ByteColor(data, ref srcOffset);
 
                 VirtIndex = FSHelpers.Read8(data, srcOffset);
+                Padding1 = FSHelpers.Read8(data, srcOffset + 1);
+                Padding2 = FSHelpers.Read8(data, srcOffset + 2);
                 srcOffset += 3; //Read8 + 2 Padding
 
                 OceanFadeInto = new ByteColorAlpha(data, ref srcOffset);
@@ -496,7 +501,8 @@ namespace WindViewer.FileFormats
 
                 FSHelpers.WriteArray(stream, FogColor.GetBytes());
                 FSHelpers.Write8(stream, VirtIndex);
-                FSHelpers.WriteArray(stream, FSHelpers.ToBytes(0x0000, 2));//Two bytes padding on Virt Index
+                FSHelpers.Write8(stream, Padding1);
+                FSHelpers.Write8(stream, Padding2);
 
                 FSHelpers.WriteArray(stream, OceanFadeInto.GetBytes());
                 FSHelpers.WriteArray(stream, ShoreFadeInto.GetBytes());
@@ -507,8 +513,13 @@ namespace WindViewer.FileFormats
         /// The Virt (short for uh.. Virtual? I dunno) chunk contains color data for the skybox. Indexed by a Pale
         /// chunk.
         /// </summary>
+        [EntEditorType(typeof(VirtEditor))]
         public class VirtChunk : BaseChunk
         {
+            public uint Unknown1;
+            public uint Unknown2;
+            public uint Unknown3;
+            public uint Unknown4;
             public ByteColorAlpha HorizonCloudColor; //The Horizon
             public ByteColorAlpha CenterCloudColor;  //Directly above you
             public ByteColor CenterSkyColor;
@@ -532,6 +543,10 @@ namespace WindViewer.FileFormats
             public override void LoadData(byte[] data, ref int srcOffset)
             {
                 //First 16 bytes are 80 00 00 00 (repeated 4 times). Unknown why.
+                Unknown1 = (uint)FSHelpers.Read32(data, srcOffset);
+                Unknown2 = (uint)FSHelpers.Read32(data, srcOffset + 4);
+                Unknown3 = (uint)FSHelpers.Read32(data, srcOffset + 8);
+                Unknown4 = (uint)FSHelpers.Read32(data, srcOffset + 12);
                 srcOffset += 16;
 
                 HorizonCloudColor = new ByteColorAlpha(data, ref srcOffset);
@@ -550,10 +565,10 @@ namespace WindViewer.FileFormats
             public override void WriteData(BinaryWriter stream)
             {
                 //Fixed values that doesn't seem to change.
-                FSHelpers.WriteArray(stream, FSHelpers.ToBytes(0x80000000, 4));
-                FSHelpers.WriteArray(stream, FSHelpers.ToBytes(0x80000000, 4));
-                FSHelpers.WriteArray(stream, FSHelpers.ToBytes(0x80000000, 4));
-                FSHelpers.WriteArray(stream, FSHelpers.ToBytes(0x80000000, 4));
+                FSHelpers.Write32(stream, (int)Unknown1);
+                FSHelpers.Write32(stream, (int)Unknown2);
+                FSHelpers.Write32(stream, (int)Unknown3);
+                FSHelpers.Write32(stream, (int)Unknown4);
 
                 FSHelpers.WriteArray(stream, HorizonCloudColor.GetBytes());
                 FSHelpers.WriteArray(stream, CenterCloudColor.GetBytes());

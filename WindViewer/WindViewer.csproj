@@ -177,6 +177,12 @@
     <Compile Include="src\Forms\EntityEditors\MEMAEditor.Designer.cs">
       <DependentUpon>MEMAEditor.cs</DependentUpon>
     </Compile>
+    <Compile Include="src\Forms\EntityEditors\PaleEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="src\Forms\EntityEditors\PaleEditor.Designer.cs">
+      <DependentUpon>PaleEditor.cs</DependentUpon>
+    </Compile>
     <Compile Include="src\Forms\EntityEditors\PathEditor.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -261,6 +267,12 @@
     <Compile Include="src\Forms\Dialogs\InvalidRoomNumberPopup.Designer.cs">
       <DependentUpon>InvalidRoomNumberPopup.cs</DependentUpon>
     </Compile>
+    <Compile Include="src\Forms\EntityEditors\VirtEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="src\Forms\EntityEditors\VirtEditor.Designer.cs">
+      <DependentUpon>VirtEditor.cs</DependentUpon>
+    </Compile>
     <Compile Include="src\Forms\MainEditor.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -334,6 +346,9 @@
     <EmbeddedResource Include="src\Forms\EntityEditors\MEMAEditor.resx">
       <DependentUpon>MEMAEditor.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="src\Forms\EntityEditors\PaleEditor.resx">
+      <DependentUpon>PaleEditor.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\EntityEditors\PathEditor.resx">
       <DependentUpon>PathEditor.cs</DependentUpon>
     </EmbeddedResource>
@@ -375,6 +390,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\Dialogs\InvalidRoomNumberPopup.resx">
       <DependentUpon>InvalidRoomNumberPopup.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Forms\EntityEditors\VirtEditor.resx">
+      <DependentUpon>VirtEditor.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\MainEditor.resx">
       <DependentUpon>MainEditor.cs</DependentUpon>
