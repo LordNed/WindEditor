@@ -71,13 +71,13 @@
             this.preferencesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.floatConverterToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.automatedTestSuiteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.wikiToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.issueTrackerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mainArea = new System.Windows.Forms.Panel();
-            this.automatedTestSuiteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.MainSplitter)).BeginInit();
             this.MainSplitter.Panel1.SuspendLayout();
             this.MainSplitter.Panel2.SuspendLayout();
@@ -113,7 +113,7 @@
             this.glControl.Dock = System.Windows.Forms.DockStyle.Fill;
             this.glControl.Location = new System.Drawing.Point(0, 0);
             this.glControl.Name = "glControl";
-            this.glControl.Size = new System.Drawing.Size(973, 629);
+            this.glControl.Size = new System.Drawing.Size(965, 629);
             this.glControl.TabIndex = 1;
             this.glControl.VSync = true;
             this.glControl.Load += new System.EventHandler(this.glControl_Load);
@@ -139,8 +139,8 @@
             // 
             this.MainSplitter.Panel2.Controls.Add(this.PropertiesLayerSplit);
             this.MainSplitter.Panel2MinSize = 170;
-            this.MainSplitter.Size = new System.Drawing.Size(1364, 629);
-            this.MainSplitter.SplitterDistance = 1190;
+            this.MainSplitter.Size = new System.Drawing.Size(1356, 629);
+            this.MainSplitter.SplitterDistance = 1182;
             this.MainSplitter.TabIndex = 2;
             // 
             // leftColumGameSplit
@@ -157,7 +157,7 @@
             // leftColumGameSplit.Panel2
             // 
             this.leftColumGameSplit.Panel2.Controls.Add(this.glControl);
-            this.leftColumGameSplit.Size = new System.Drawing.Size(1190, 629);
+            this.leftColumGameSplit.Size = new System.Drawing.Size(1182, 629);
             this.leftColumGameSplit.SplitterDistance = 213;
             this.leftColumGameSplit.TabIndex = 2;
             // 
@@ -369,7 +369,7 @@
             this.toolStripStatusLabel1});
             this.statusStrip1.Location = new System.Drawing.Point(0, 658);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(1370, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(1362, 22);
             this.statusStrip1.TabIndex = 2;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -388,7 +388,7 @@
             this.helpToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(1370, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(1362, 24);
             this.menuStrip1.TabIndex = 3;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -512,9 +512,16 @@
             // floatConverterToolStripMenuItem
             // 
             this.floatConverterToolStripMenuItem.Name = "floatConverterToolStripMenuItem";
-            this.floatConverterToolStripMenuItem.Size = new System.Drawing.Size(164, 22);
+            this.floatConverterToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
             this.floatConverterToolStripMenuItem.Text = "&Float Converter...";
             this.floatConverterToolStripMenuItem.Click += new System.EventHandler(this.floatConverterToolStripMenuItem_Click);
+            // 
+            // automatedTestSuiteToolStripMenuItem
+            // 
+            this.automatedTestSuiteToolStripMenuItem.Name = "automatedTestSuiteToolStripMenuItem";
+            this.automatedTestSuiteToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
+            this.automatedTestSuiteToolStripMenuItem.Text = "&Automated Test Suite...";
+            this.automatedTestSuiteToolStripMenuItem.Click += new System.EventHandler(this.automatedTestSuiteToolStripMenuItem_Click);
             // 
             // helpToolStripMenuItem
             // 
@@ -560,21 +567,14 @@
             this.mainArea.Location = new System.Drawing.Point(0, 24);
             this.mainArea.Name = "mainArea";
             this.mainArea.Padding = new System.Windows.Forms.Padding(3, 3, 3, 24);
-            this.mainArea.Size = new System.Drawing.Size(1370, 656);
+            this.mainArea.Size = new System.Drawing.Size(1362, 656);
             this.mainArea.TabIndex = 0;
-            // 
-            // automatedTestSuiteToolStripMenuItem
-            // 
-            this.automatedTestSuiteToolStripMenuItem.Name = "automatedTestSuiteToolStripMenuItem";
-            this.automatedTestSuiteToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
-            this.automatedTestSuiteToolStripMenuItem.Text = "&Automated Test Suite...";
-            this.automatedTestSuiteToolStripMenuItem.Click += new System.EventHandler(this.automatedTestSuiteToolStripMenuItem_Click);
             // 
             // MainEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1370, 680);
+            this.ClientSize = new System.Drawing.Size(1362, 680);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.mainArea);
             this.Controls.Add(this.menuStrip1);

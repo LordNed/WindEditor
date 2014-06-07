@@ -161,6 +161,8 @@
             this.Controls.Add(this.label1);
             this.Name = "AutomatedTestingSuite";
             this.Text = "AutomatedTestingSuite";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.AutomatedTestingSuite_FormClosing);
+            this.Load += new System.EventHandler(this.AutomatedTestingSuite_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

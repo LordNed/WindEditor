@@ -41,6 +41,7 @@ namespace WindViewer.Forms
         //Events
         public static event Action<WindWakerEntityData> SelectedEntityFileChanged;
         public static event Action<WindWakerEntityData.BaseChunk> SelectedEntityChanged;
+        public static event Action<WorldspaceProject> WorldspaceProjectLoaded;
 
         //Misc
         private MruStripMenu _mruMenu;
@@ -181,7 +182,7 @@ namespace WindViewer.Forms
         #endregion
 
         #region Toolstrip Callbacks
-        private void OpenFileFromWorkingDir(string workDir)
+        public void OpenFileFromWorkingDir(string workDir)
         {
             //Iterate through the sub folders (dzb, dzr, bdl, etc.) and construct an appropriate data
             //structure for each one out of it. Then stick them all in a WorldspaceProject and save that
@@ -194,7 +195,7 @@ namespace WindViewer.Forms
                 throw new Exception(
                     "Tried to load second WorldspaceProject. Unloading of the first one isn't implemented yet!");
             }
-            toolStripStatusLabel1.Text = "Loading Worlspace Project...";
+            toolStripStatusLabel1.Text = "Loading Worldspace Project...";
             saveAllToolStripMenuItem.Enabled = true;
             exportArchivesToolStripMenuItem.Enabled = true;
             unloadWorldspaceProjectToolStripMenuItem.Enabled = true;
@@ -213,6 +214,9 @@ namespace WindViewer.Forms
                 if(scm!=null)
                     _collisionRenderer.AddRenderable(scm.Renderable);
             }
+
+            if (WorldspaceProjectLoaded != null)
+                WorldspaceProjectLoaded(_loadedWorldspaceProject);
         }
 
         /// <summary>
@@ -282,7 +286,7 @@ namespace WindViewer.Forms
         }
 
         /// <summary>
-        /// Opens a Utility for converting Big-Endian floats from Hexidecimal to Float and back.
+        /// Opens a Utility for converting Big-Endian floats from Hexadecimal to Float and back.
         /// </summary>
         private void floatConverterToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -733,7 +737,7 @@ namespace WindViewer.Forms
         }
 
 
-        private void UnloadLoadedWorldspaceProject()
+        public void UnloadLoadedWorldspaceProject()
         {
             //Clear our Renderers
             foreach (var renderer in _renderers)
@@ -804,7 +808,7 @@ namespace WindViewer.Forms
 
         private void automatedTestSuiteToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            AutomatedTestingSuite ats = new AutomatedTestingSuite();
+            AutomatedTestingSuite ats = new AutomatedTestingSuite(this);
             ats.Show();
         }
     }

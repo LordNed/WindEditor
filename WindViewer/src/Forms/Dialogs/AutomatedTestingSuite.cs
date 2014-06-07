@@ -8,9 +8,11 @@ namespace WindViewer.Forms.Dialogs
 {
     public partial class AutomatedTestingSuite : Form
     {
-        public AutomatedTestingSuite()
+        private MainEditor _mainEditor;
+        public AutomatedTestingSuite(MainEditor editor)
         {
             InitializeComponent();
+            _mainEditor = editor;
 
             //ToDo: We should really use a BackgroundWorker class/thread and do the
             //work there, then push progress updates to the UI via the ReportProgress
@@ -59,7 +61,7 @@ namespace WindViewer.Forms.Dialogs
                 string folderName = new System.IO.DirectoryInfo(subFolder).Name;
 
                 string folderFilepath = textDestinationDir.Text;
-                if (Directory.Exists(folderFilepath + ".wrkDir"))
+                if (Directory.Exists(folderFilepath + "\\\\" +  folderName + ".wrkDir"))
                 {
                     Console.WriteLine("Folder {0} already unpacked, skipping...", subFolder);
                     continue;
@@ -85,15 +87,13 @@ namespace WindViewer.Forms.Dialogs
 
             foreach (string projDir in extractedProjects)
             {
-                //ToDo: Invoke load
-                //Have event handler for load, get grab of all ZArchives upon load.
-                //Look for testing attributes in entity chunk fields, test, write.
-                //Unload. Move on.
+                _mainEditor.OpenFileFromWorkingDir(projDir);
 
                 progressBar.Value++;
                 progressBar.Refresh(); //Hack
             }
 
+            Console.WriteLine("Automated tests completed.");
             statusLabel.Text = "Completed.";
             progressBar.Value = 0;
         }
@@ -130,5 +130,29 @@ namespace WindViewer.Forms.Dialogs
         {
             Close();
         }
+
+        private void AutomatedTestingSuite_Load(object sender, EventArgs e)
+        {
+            MainEditor.WorldspaceProjectLoaded += OnWorldspaceProjectLoaded;
+        }
+
+        private void AutomatedTestingSuite_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            MainEditor.WorldspaceProjectLoaded -= OnWorldspaceProjectLoaded;
+        }
+
+        private void OnWorldspaceProjectLoaded(WorldspaceProject project)
+        {
+            PerformTestsForWorldspaceProject(project);
+
+            _mainEditor.UnloadLoadedWorldspaceProject();
+        }
+
+        private void PerformTestsForWorldspaceProject(WorldspaceProject project)
+        {
+            Console.WriteLine("Performing tests on {0}", project.Name);
+        }
+
+        
     }
 }

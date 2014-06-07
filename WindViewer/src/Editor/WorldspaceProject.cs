@@ -13,7 +13,7 @@ namespace WindViewer.Editor
     /// it allows us to easily ekep track of which stages/rooms the user has open and their associated file
     /// structure.
     /// </summary>
-    class WorldspaceProject
+    public class WorldspaceProject
     {
         //This refers to the Stage these files belong too. NULL if no stage exists.
         public ZArchive Stage { get; private set; }
