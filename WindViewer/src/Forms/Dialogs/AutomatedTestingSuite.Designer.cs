@@ -63,7 +63,7 @@
             this.btnSourceDirBrowse.Location = new System.Drawing.Point(385, 22);
             this.btnSourceDirBrowse.Name = "btnSourceDirBrowse";
             this.btnSourceDirBrowse.Size = new System.Drawing.Size(75, 23);
-            this.btnSourceDirBrowse.TabIndex = 2;
+            this.btnSourceDirBrowse.TabIndex = 5;
             this.btnSourceDirBrowse.Text = "Browse...";
             this.btnSourceDirBrowse.UseVisualStyleBackColor = true;
             this.btnSourceDirBrowse.Click += new System.EventHandler(this.btnSourceDirBrowse_Click);
@@ -73,7 +73,7 @@
             this.btnDestinationDirBrowse.Location = new System.Drawing.Point(385, 61);
             this.btnDestinationDirBrowse.Name = "btnDestinationDirBrowse";
             this.btnDestinationDirBrowse.Size = new System.Drawing.Size(75, 23);
-            this.btnDestinationDirBrowse.TabIndex = 5;
+            this.btnDestinationDirBrowse.TabIndex = 6;
             this.btnDestinationDirBrowse.Text = "Browse...";
             this.btnDestinationDirBrowse.UseVisualStyleBackColor = true;
             this.btnDestinationDirBrowse.Click += new System.EventHandler(this.btnDestinationDirBrowse_Click);
@@ -83,7 +83,7 @@
             this.textDestinationDir.Location = new System.Drawing.Point(12, 64);
             this.textDestinationDir.Name = "textDestinationDir";
             this.textDestinationDir.Size = new System.Drawing.Size(367, 20);
-            this.textDestinationDir.TabIndex = 4;
+            this.textDestinationDir.TabIndex = 2;
             this.textDestinationDir.TextChanged += new System.EventHandler(this.textDestinationDir_TextChanged);
             // 
             // label2
@@ -101,7 +101,7 @@
             this.btnCancel.Location = new System.Drawing.Point(304, 123);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(75, 23);
-            this.btnCancel.TabIndex = 6;
+            this.btnCancel.TabIndex = 4;
             this.btnCancel.Text = "Cancel";
             this.btnCancel.UseVisualStyleBackColor = true;
             this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
@@ -113,7 +113,7 @@
             this.btnStart.Location = new System.Drawing.Point(385, 123);
             this.btnStart.Name = "btnStart";
             this.btnStart.Size = new System.Drawing.Size(75, 23);
-            this.btnStart.TabIndex = 7;
+            this.btnStart.TabIndex = 3;
             this.btnStart.Text = "Start";
             this.btnStart.UseVisualStyleBackColor = true;
             this.btnStart.Click += new System.EventHandler(this.btnStart_Click);
@@ -145,8 +145,10 @@
             // 
             // AutomatedTestingSuite
             // 
+            this.AcceptButton = this.btnStart;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.CancelButton = this.btnCancel;
             this.ClientSize = new System.Drawing.Size(472, 158);
             this.Controls.Add(this.statusLabel);
             this.Controls.Add(this.label3);

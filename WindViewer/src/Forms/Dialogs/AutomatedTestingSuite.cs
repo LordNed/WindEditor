@@ -39,14 +39,14 @@ namespace WindViewer.Forms.Dialogs
 
         private void UpdateStartButton()
         {
-            if (Directory.Exists(textSourceDir.Text))
-            {
-                btnStart.Enabled = true;
-            }
+            btnStart.Enabled = Directory.Exists(textSourceDir.Text);
         }
 
         private void btnStart_Click(object sender, System.EventArgs e)
         {
+            btnCancel.Enabled = false;
+            btnCancel.Refresh(); //Hack
+
             //Create the directory if it doesn't exist already.
             Directory.CreateDirectory(textDestinationDir.Text);
 
@@ -107,6 +107,7 @@ namespace WindViewer.Forms.Dialogs
             Console.WriteLine("Automated tests completed.");
             statusLabel.Text = "Completed.";
             progressBar.Value = 0;
+            btnCancel.Enabled = true;
         }
 
         private void btnSourceDirBrowse_Click(object sender, System.EventArgs e)
