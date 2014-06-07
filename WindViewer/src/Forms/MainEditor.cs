@@ -662,24 +662,35 @@ namespace WindViewer.Forms
         /// </summary>
         /// <param name="archiveFilePaths">Archive to use as the base content to place in the WrkDir.</param>
         /// <returns></returns>
-        private string CreateWorkingDirFromArchive(string[] archiveFilePaths)
+        public static string CreateWorkingDirFromArchive(string[] archiveFilePaths, string workDirName = "", string outputFolder = "")
         {
             //We're going to extract each file to the working directory.
-            string workingDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                Application.ProductName);
+            string workingDir = outputFolder;
+            if (outputFolder == "")
+            {
+                outputFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                 Application.ProductName);
+            }
 
             //Instead of guessing at what map this was originally, we're going to just ask the user
             //because the original names are in Romaji and they probably want their working folders
             //to be in English.
-            NewWorldspaceDialog dialog = new NewWorldspaceDialog();
+            string worldspaceName = workDirName;
+            if (workDirName == "")
+            {
+                NewWorldspaceDialog dialog = new NewWorldspaceDialog();
             
-            DialogResult result = dialog.ShowDialog();
-            if (result == DialogResult.Cancel)
-                return string.Empty;
+                DialogResult result = dialog.ShowDialog();
+                if (result == DialogResult.Cancel)
+                    return string.Empty;
 
-            string worldspaceName = dialog.dirName.Text;
+                worldspaceName = dialog.dirName.Text;
+            }
 
-            workingDir = Path.Combine(workingDir, worldspaceName + ".wrkDir");
+
+            
+
+            workingDir = Path.Combine(outputFolder, worldspaceName + ".wrkDir");
             foreach (string filePath in archiveFilePaths)
             {
                 string arcExtractorFileName = Path.Combine(Application.StartupPath, "ExternalTools/arcExtract.exe");
@@ -702,7 +713,7 @@ namespace WindViewer.Forms
 
             //HackHack: The process does funny things and if we delete the file
             //immediately it doesn't extract + it never raises Exited events properly.
-            System.Threading.Thread.Sleep(100);
+            System.Threading.Thread.Sleep(1000);
 
 
             //Delete the falsely copied archives
@@ -789,6 +800,12 @@ namespace WindViewer.Forms
             UnloadLoadedWorldspaceProject();
 
             unloadWorldspaceProjectToolStripMenuItem.Enabled = false;
+        }
+
+        private void automatedTestSuiteToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            AutomatedTestingSuite ats = new AutomatedTestingSuite();
+            ats.Show();
         }
     }
 }

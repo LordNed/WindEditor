@@ -66,6 +66,7 @@
             this.btnSourceDirBrowse.TabIndex = 2;
             this.btnSourceDirBrowse.Text = "Browse...";
             this.btnSourceDirBrowse.UseVisualStyleBackColor = true;
+            this.btnSourceDirBrowse.Click += new System.EventHandler(this.btnSourceDirBrowse_Click);
             // 
             // btnDestinationDirBrowse
             // 
@@ -75,6 +76,7 @@
             this.btnDestinationDirBrowse.TabIndex = 5;
             this.btnDestinationDirBrowse.Text = "Browse...";
             this.btnDestinationDirBrowse.UseVisualStyleBackColor = true;
+            this.btnDestinationDirBrowse.Click += new System.EventHandler(this.btnDestinationDirBrowse_Click);
             // 
             // textDestinationDir
             // 
@@ -102,6 +104,7 @@
             this.btnCancel.TabIndex = 6;
             this.btnCancel.Text = "Cancel";
             this.btnCancel.UseVisualStyleBackColor = true;
+            this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
             // 
             // btnStart
             // 
