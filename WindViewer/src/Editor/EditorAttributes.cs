@@ -25,4 +25,16 @@ namespace WindViewer.Editor
             return _editorType;
         }
     }
+
+    [AttributeUsage(AttributeTargets.Field)]
+    public class UnitTestValue : Attribute
+    {
+        public object Value { get; private set; }
+
+        public UnitTestValue(object val)
+        {
+            Value = val;
+        }
+    }
+    
 }

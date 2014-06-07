@@ -1367,10 +1367,10 @@ namespace WindViewer.FileFormats
             public float ZoomedMapXCoord;
             public float ZoomedMapYCoord;
             public float ZoomedMapScale; //That's what it appeared to affect, anyway
-            public byte Unknown1; //Always 0x80?
+            [UnitTestValue(0x80)]public byte Unknown1; //Always 0x80?
             public byte MapIndex; //number of the map image to use. For instance, using the first image would be 80, the second 81, and so on.
             public byte Unknown2; //variable, but changing it has no immediate result
-            public byte Padding;
+            [UnitTestValue(0)]public byte Padding;
 
             public TwoDMAChunk():base("2DMA", "Minimap"){}
             public TwoDMAChunk(string chunkName, string chunkDescription) : base(chunkName, chunkDescription) { }

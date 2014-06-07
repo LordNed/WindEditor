@@ -3,12 +3,20 @@ using System.Windows.Forms;
 using WindViewer.Editor;
 using FolderSelect;
 using System;
+using WindViewer.FileFormats;
+using System.Collections.Generic;
+using System.Reflection;
 
 namespace WindViewer.Forms.Dialogs
 {
     public partial class AutomatedTestingSuite : Form
     {
         private MainEditor _mainEditor;
+
+        //For testing
+        private string _outputDir;
+        private int _numDifferences;
+
         public AutomatedTestingSuite(MainEditor editor)
         {
             InitializeComponent();
@@ -85,6 +93,9 @@ namespace WindViewer.Forms.Dialogs
             progressBar.Maximum = extractedProjects.Length;
             progressBar.Value = 0;
 
+            _outputDir = textDestinationDir.Text;
+            File.Delete(_outputDir + "//results.txt");
+
             foreach (string projDir in extractedProjects)
             {
                 _mainEditor.OpenFileFromWorkingDir(projDir);
@@ -151,6 +162,50 @@ namespace WindViewer.Forms.Dialogs
         private void PerformTestsForWorldspaceProject(WorldspaceProject project)
         {
             Console.WriteLine("Performing tests on {0}", project.Name);
+
+            foreach (ZArchive archive in project.GetAllArchives())
+            {
+                WindWakerEntityData data = archive.GetFileByType<WindWakerEntityData>();
+                if (data == null)
+                    continue;
+
+                foreach (List<WindWakerEntityData.BaseChunk> chunkList in data.GetAllChunks().Values)
+                {
+                    int chunkId = 0;
+                    foreach (WindWakerEntityData.BaseChunk chunk in chunkList)
+                    {
+                        foreach (FieldInfo field in chunk.GetType().GetFields())
+                        {
+                            UnitTestValue attribute = (UnitTestValue)Attribute.GetCustomAttribute(field, typeof(UnitTestValue));
+                            if (attribute != null)
+                            {
+                                object testValue = field.GetValue(chunk);
+                                object attribValue = attribute.Value;
+
+                                //HackHack:
+                                //Both (testValue == attribValue) and (testValue.Equals(attribValue)) are returning false for
+                                //identical values. This has to do with the fact that they need to be unboxed, but short of
+                                //making a giant switch statement to unbox them there doesn't seem to be a way to let me
+                                //do that. Instead, we're going to cheat here and comparing their string values (since those
+                                //print correctly regardless of boxing). Kinda ugly but should work.
+                                Console.WriteLine("Known: {0} Test: {1} Equals {2}", attribValue, testValue, attribValue.ToString() == testValue.ToString());
+
+                                bool bEquals = attribValue.ToString() == testValue.ToString();
+                                if (bEquals)
+                                    continue;
+
+                                //If they're not equals, we're going to want to print them to disk.
+                                string failureText = string.Format("{0}|{1} #{2} failed. Field \"{5}\" Expected: {3} Got: {4}", project.Name, chunk.ChunkName, chunkId, testValue, attribValue, field.Name);
+                                File.AppendAllText(_outputDir + "//results.txt", failureText + Environment.NewLine);
+                            }
+                        }
+
+                        chunkId++;
+                    }
+                    
+                }
+
+            }
         }
 
         
