@@ -182,15 +182,7 @@ namespace WindViewer.Forms.Dialogs
                                 object testValue = field.GetValue(chunk);
                                 object attribValue = attribute.Value;
 
-                                //HackHack:
-                                //Both (testValue == attribValue) and (testValue.Equals(attribValue)) are returning false for
-                                //identical values. This has to do with the fact that they need to be unboxed, but short of
-                                //making a giant switch statement to unbox them there doesn't seem to be a way to let me
-                                //do that. Instead, we're going to cheat here and comparing their string values (since those
-                                //print correctly regardless of boxing). Kinda ugly but should work.
-                                Console.WriteLine("Known: {0} Test: {1} Equals {2}", attribValue, testValue, attribValue.ToString() == testValue.ToString());
-
-                                bool bEquals = attribValue.ToString() == testValue.ToString();
+                                bool bEquals = attribValue.Equals(testValue);
                                 if (bEquals)
                                     continue;
 
