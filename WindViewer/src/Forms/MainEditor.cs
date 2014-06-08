@@ -192,8 +192,8 @@ namespace WindViewer.Forms
             //Scan loaded projects to make sure we haven't already loaded it.
             if (_loadedWorldspaceProject != null)
             {
-                throw new Exception(
-                    "Tried to load second WorldspaceProject. Unloading of the first one isn't implemented yet!");
+                Console.WriteLine("Trying to open new worldspacedir while one is open. Unloading!");
+                UnloadLoadedWorldspaceProject();
             }
             toolStripStatusLabel1.Text = "Loading Worldspace Project...";
             saveAllToolStripMenuItem.Enabled = true;

@@ -83,7 +83,7 @@ namespace WindViewer.Editor
                     Stage = arc;
                     arc.RoomNumber = -1;
                 }
-                else
+                else if(folderName.ToLower().StartsWith("room"))
                 {
                     Console.WriteLine("Loading \"" + folderName + "\" as Room for " + Name);
                     Rooms.Add(arc);
@@ -104,7 +104,7 @@ namespace WindViewer.Editor
 
                         roomNumber = int.Parse(trimmedNumbers);
                     }
-                    //If it starts with R ("Rxx_00, xx being Room Number"), it's Twlight Princess
+                    //If it starts with R ("Rxx_00, xx being Room Number"), it's Twilight Princess
                     else if (folderName.Substring(0, 1).ToLower() == "r")
                     {
                         //I *think* these follow the Rxx_00 pattern, where xx is the room number. _00 can change, xx might be 1 or 3, who knows!
@@ -126,6 +126,10 @@ namespace WindViewer.Editor
                     }
 
                     arc.RoomNumber = roomNumber;
+                }
+                else
+                {
+                    Console.WriteLine("Found non-stage and non-room archive \"{0}\" in WorldspaceProject {1}!", folderName, Name);
                 }
             }
 
