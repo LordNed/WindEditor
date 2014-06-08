@@ -182,7 +182,7 @@ namespace WindViewer.Forms
         #endregion
 
         #region Toolstrip Callbacks
-        public void OpenFileFromWorkingDir(string workDir)
+        public void OpenFileFromWorkingDir(string workDir, bool surpressMRU = false)
         {
             //Iterate through the sub folders (dzb, dzr, bdl, etc.) and construct an appropriate data
             //structure for each one out of it. Then stick them all in a WorldspaceProject and save that
@@ -205,7 +205,8 @@ namespace WindViewer.Forms
             
             UpdateProjectFolderTreeview();
 
-            _mruMenu.AddFile(_loadedWorldspaceProject.ProjectFilePath);
+            if(!surpressMRU)
+                _mruMenu.AddFile(_loadedWorldspaceProject.ProjectFilePath);
 
             //Temp
             foreach (ZArchive archive in _loadedWorldspaceProject.GetAllArchives())

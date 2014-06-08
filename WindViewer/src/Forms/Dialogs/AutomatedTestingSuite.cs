@@ -98,7 +98,7 @@ namespace WindViewer.Forms.Dialogs
 
             foreach (string projDir in extractedProjects)
             {
-                _mainEditor.OpenFileFromWorkingDir(projDir);
+                _mainEditor.OpenFileFromWorkingDir(projDir, true);
 
                 progressBar.Value++;
                 progressBar.Refresh(); //Hack
