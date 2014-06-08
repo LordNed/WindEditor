@@ -77,7 +77,7 @@ namespace WindViewer.Forms.EntityEditors
 
         private void fieldPadding_ValueChanged(object sender, EventArgs e)
         {
-            _curChunk.Padding = (short) fieldPadding.Value;
+            _curChunk.Padding = (ushort) fieldPadding.Value;
         }
     }
 }

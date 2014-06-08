@@ -188,7 +188,7 @@ namespace WindViewer.Forms.Dialogs
                                     continue;
 
                                 //If they're not equals, we're going to want to print them to disk.
-                                string failureText = string.Format("{0}|{1} #{2} failed. Field \"{5}\" Expected: {3} Got: {4}", project.Name, chunk.ChunkName, chunkId, testValue, attribValue, field.Name);
+                                string failureText = string.Format("{0}|{1} #{2} failed. Field \"{5}\" Expected: {3} Got: {4}", project.Name, chunk.ChunkName, chunkId, attribValue, testValue, field.Name);
                                 File.AppendAllText(_outputDir + "//results.txt", failureText + Environment.NewLine);
                             }
                         }

@@ -436,8 +436,8 @@ namespace WindViewer.FileFormats
             public ByteColor FogColor;
 
             public byte VirtIndex; //Index of the Virt entry to use for Skybox Colors
-            public byte Padding1;
-            public byte Padding2;
+            [UnitTestValue((byte)0xFF)]public byte Padding1;
+            [UnitTestValue((byte)0xFF)]public byte Padding2;
 
             public ByteColorAlpha OceanFadeInto;
             public ByteColorAlpha ShoreFadeInto;
@@ -526,9 +526,9 @@ namespace WindViewer.FileFormats
             public ByteColor HorizonColor;
             public ByteColor SkyFadeTo; //Color to fade to from CenterSky. 
 
-            public byte Padding1;
-            public byte Padding2;
-            public byte Padding3;
+            [UnitTestValue((byte)0xFF)] public byte Padding1;
+            [UnitTestValue((byte)0xFF)]public byte Padding2;
+            [UnitTestValue((byte)0xFF)]public byte Padding3;
 
             public VirtChunk()
                 : base("VIRT", "Skybox Lighting")
@@ -594,7 +594,7 @@ namespace WindViewer.FileFormats
             public byte SpawnNumber;
             public byte DestinationRoomNumber;
             public byte ExitType;
-            public byte UnknownPadding;
+            [UnitTestValue((byte)0xFF)] public byte UnknownPadding;
 
             public SclsChunk()
                 : base("SCLS", "Exits")
@@ -633,7 +633,7 @@ namespace WindViewer.FileFormats
             [DisplayName]
             public string Name; //"Link"
             public byte EventIndex; //Spcifies an event from the DZS file to play upon spawn. FF = no event.
-            public byte Unknown1; //Padding?
+            [UnitTestValue((byte)0xFF)] public byte Unknown1; //Padding?
             public byte SpawnType; //How Link enters the room.
             public byte RoomNumber; //Room number the spawn is in.
             //public Vector3 Position;
@@ -692,10 +692,10 @@ namespace WindViewer.FileFormats
         public class RPATChunk : BaseChunk
         {
             public ushort NumPoints;
-            public ushort Unknown1; //Probably padding
-            public byte Unknown2; //More padding?
-            public byte Unknown3; //Possibly not padding
-            public ushort Padding; //ACTUAL PADDING!?
+            [UnitTestValue((ushort)0xFFFF)] public ushort Unknown1; //Probably padding
+            [UnitTestValue((byte)0xFF)] public byte Unknown2; //More padding?
+            [UnitTestValue((byte)0xFF)] public byte Unknown3; //Possibly not padding
+            [UnitTestValue((ushort)0xFFFF)] public ushort Padding; //ACTUAL PADDING!?
             public int FirstPointOffset; //Offset in the DZx file of the first waypoint in the group
 
             public RPATChunk():base("RPAT", "RPAT Paths")
@@ -755,13 +755,13 @@ namespace WindViewer.FileFormats
             public string Name; //Seems to always be "sndpath"
             //public Vector3 SourcePos; //Position the sound plays from
             public byte Unknown1; //Typically 00, one example had 08.
-            public byte Padding;
+            [UnitTestValue((byte)0xFF)] public byte Padding;
             public byte Unknown2; //Typically FF, but Outset's entries have the room number (0x2C) here
             public byte SoundId;
             public byte SoundRadius;
-            public byte Padding2;
-            public byte Padding3;
-            public byte Padding4;
+            [UnitTestValue((byte)0xFF)] public byte Padding2;
+            [UnitTestValue((byte)0xFF)] public byte Padding3;
+            [UnitTestValue((byte)0xFF)] public byte Padding4;
 
             public SondChunk():base("SOND", "Sound") {}
 
@@ -964,7 +964,7 @@ namespace WindViewer.FileFormats
             public ushort YRotation;
             public byte ChestItem;
             public byte Unknown1;
-            public ushort Padding; //Rupees, Hookshot, etc.
+            [UnitTestValue((ushort)0xFFFF)]public ushort Padding; //Rupees, Hookshot, etc.
 
 
             public TresChunk():base("TRES", "Treasure Chests (Non-Ocean)"){}
@@ -1079,7 +1079,7 @@ namespace WindViewer.FileFormats
             public float TranslationY;
             public short YRotation;
             public byte RoomNumber;
-            public byte Unknown;
+            [UnitTestValue((byte)0xFF)] public byte Unknown;
 
             public MultChunk():base("MULT", "Room Position"){}
 
@@ -1153,7 +1153,7 @@ namespace WindViewer.FileFormats
         {
             //public Vector3 Position;
             public HalfRotation Rotation;
-            public short Padding;
+            [UnitTestValue((ushort)0xFFFF)] public ushort Padding;
 
             public RaroChunk():base("RARO", "Camera Ref Data"){}
             public RaroChunk(string chunkName, string chunkDescription):base(chunkName, chunkDescription){}
@@ -1166,7 +1166,7 @@ namespace WindViewer.FileFormats
                 srcOffset += 12;
                 
                 Rotation = new HalfRotation(data, ref srcOffset);
-                Padding = FSHelpers.Read16(data, srcOffset);
+                Padding = (ushort)FSHelpers.Read16(data, srcOffset);
                 srcOffset += 2;
             }
 
@@ -1200,9 +1200,9 @@ namespace WindViewer.FileFormats
             public byte Unknown4;
             public byte Unknown5;
             public byte RoomNumber;
-            public byte Padding1;
-            public byte Padding2;
-            public byte Padding3;
+            [UnitTestValue((byte)0xFF)]public byte Padding1;
+            [UnitTestValue((byte)0xFF)]public byte Padding2;
+            [UnitTestValue((byte)0xFF)]public byte Padding3;
 
 
             public EvntChunk():base("EVNT", "Event"){}
@@ -1370,7 +1370,7 @@ namespace WindViewer.FileFormats
             [UnitTestValue((byte)0x80)]public byte Unknown1; //Always 0x80?
             public byte MapIndex; //number of the map image to use. For instance, using the first image would be 80, the second 81, and so on.
             public byte Unknown2; //variable, but changing it has no immediate result
-            [UnitTestValue((byte)0)]public byte Padding;
+            [UnitTestValue((byte)0xFF)]public byte Padding;
 
             public TwoDMAChunk():base("2DMA", "Minimap"){}
             public TwoDMAChunk(string chunkName, string chunkDescription) : base(chunkName, chunkDescription) { }
@@ -1558,7 +1558,7 @@ namespace WindViewer.FileFormats
         [EntEditorType(typeof(LBlankEditor))]
         public class LbnkChunk : BaseChunk
         {
-            public byte Data;
+            [UnitTestValue((byte)0xFF)]public byte Data;
 
             public LbnkChunk():base("LBNK", "Left Blank"){}
             public override void LoadData(byte[] data, ref int srcOffset)
@@ -1590,7 +1590,7 @@ namespace WindViewer.FileFormats
             public byte ScaleX;
             public byte ScaleY;
             public byte ScaleZ;
-            public byte Padding;
+            [UnitTestValue((byte)0xFF)]public byte Padding;
 
             public ScobChunk():base("SCOB", "Scaleable Objects"){}
 
@@ -1649,13 +1649,13 @@ namespace WindViewer.FileFormats
             public ushort Unknown1;
             public ushort YRotation;
             public byte DoorModel;
-            public byte Const3F;
-            public byte ConstZero;
-            public byte Padding1;
+            [UnitTestValue((byte)0x3F)]public byte Const3F;
+            [UnitTestValue((byte)0x00)]public byte ConstZero;
+            [UnitTestValue((byte)0xFF)]public byte Padding1;
             public byte Unknown2;
             public byte Unknown3;
             public byte Unknown4;
-            public byte Padding2;
+            [UnitTestValue((byte)0xFF)]public byte Padding2;
 
             public TgdrChunk():base("TGDR", "Doors"){}
 
