@@ -776,6 +776,7 @@ namespace WindViewer.Forms
                 string fileName = Path.GetFileNameWithoutExtension(filePath);
                 if (fileName.ToLower() == "stage")
                 {
+                    System.Threading.Thread.Sleep(100);
                     Console.WriteLine("Invoking external tool yaz0enc on {0}", filePath);
                     ProcessStartInfo yazCompress = new ProcessStartInfo(yazCompressFileName);
                     yazCompress.WindowStyle = ProcessWindowStyle.Hidden;
@@ -784,17 +785,38 @@ namespace WindViewer.Forms
                 }
             }
 
-            //HackHack: The process does funny things and if we move the file
-            //immediately it doesn't extract + it never raises Exited events properly.
-            System.Threading.Thread.Sleep(100);
+            //Wait for all of the archiving processes to finish.
+            Process[] archiveProcesses = Process.GetProcessesByName("arcPack");
+            if (archiveProcesses.Length > 0)
+            {
+                Console.WriteLine("Archives still being created, waiting...");
+                while (archiveProcesses.Length > 0)
+                {
+                    System.Threading.Thread.Sleep(100);
+                    archiveProcesses = Process.GetProcessesByName("arcPack");
+                }
+                Console.WriteLine("arcPack processes complete.");
+            }
+            
 
             //We're going to delete the old Stage.arc and rename the Yaz0 compressed one for easier/less confusing inclusion.
             string stageFilePath = Path.Combine(_loadedWorldspaceProject.ProjectFilePath, "Stage.arc");
             string compressedStageFilePath = stageFilePath + ".yaz0";
             if (File.Exists(stageFilePath) && File.Exists(compressedStageFilePath))
             {
-                File.Delete(stageFilePath);
-                File.Move(compressedStageFilePath, stageFilePath);
+                Process[] processes = Process.GetProcessesByName("yaz0enc");
+                if (processes.Length > 0)
+                {
+                    Console.WriteLine("Stage.arc is still being compressed, waiting...");
+                    while (!processes[0].HasExited)
+                    {
+                        System.Threading.Thread.Sleep(100);
+                    }
+                    Console.WriteLine("yaz0enc compression complete. Replacing Stage.arc with compressed file.");
+                }
+                
+                FileInfo fInfo = new FileInfo(stageFilePath);
+                fInfo.Replace(compressedStageFilePath, null);
             }
 
             Console.WriteLine("Project Export completed.");
