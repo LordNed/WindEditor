@@ -67,6 +67,7 @@
     <Compile Include="src\Editor\Transform.cs" />
     <Compile Include="src\Editor\WorldspaceProject.cs" />
     <Compile Include="src\FileFormats\GenericArchiveData.cs" />
+    <Compile Include="src\FileFormats\JStudioModel.cs" />
     <Compile Include="src\FileFormats\StaticCollisionModel.cs" />
     <Compile Include="src\FileFormats\WindWakerEntityData.cs" />
     <Compile Include="src\Forms\Dialogs\AboutWindow.cs">

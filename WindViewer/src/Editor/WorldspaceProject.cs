@@ -252,8 +252,8 @@ namespace WindViewer.Editor
                             case "bck":
                             case "brk":
                             case "btk":
-                            //file = new J3Dx();
-                            //break;
+                                file = new JStudioModel();
+                                break;
 
                             default:
                                 Console.WriteLine("Unknown folder " + folder +
