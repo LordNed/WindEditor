@@ -186,7 +186,7 @@ namespace WindViewer.FileFormats
         private class VTX1Chunk : ChunkHeader
         {
             public int DataOffset;
-            public int[] VertexDataOffsets; //14 of 'em!
+            public int[] VertexDataOffsets; //13 of 'em!
 
             //Not part of the header
             public List<VertexFormat> VertexFormats = new List<VertexFormat>();
@@ -209,11 +209,11 @@ namespace WindViewer.FileFormats
                 }
 
                 dataOffsetCpy = 4;
-                //There's a hard-coded array of 14 offsets 
-                VertexDataOffsets = new int[14];
+                //There's a hard-coded array of 13 offsets 
+                VertexDataOffsets = new int[13];
                 int curVertexFormat = 0;
 
-                for (int i = 0; i < 14; i++)
+                for (int i = 0; i < 13; i++)
                 {
                     VertexDataOffsets[i] = FSHelpers.Read32(ChunkData, dataOffsetCpy);
                     dataOffsetCpy += 4;
@@ -281,7 +281,12 @@ namespace WindViewer.FileFormats
 
         private class EVP1Chunk : ChunkHeader
         {
-            
+            public override void Load(byte[] data, ref int offset)
+            {
+                base.Load(data, ref offset);
+
+
+            }
         }
         #endregion
     }
