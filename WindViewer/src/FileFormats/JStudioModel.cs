@@ -23,7 +23,7 @@ namespace WindViewer.FileFormats
             //Load all of the chunks
             for (int i = 0; i < header.ChunkCount; i++)
             {
-                BaseChunk baseBaseChunk = null;
+                BaseChunk baseChunk = null;
                 
                 //Read the first four bytes to get the tag.
                 string tagName = FSHelpers.ReadString(data, dataOffset, 4);
@@ -31,15 +31,17 @@ namespace WindViewer.FileFormats
                 switch (tagName)
                 {
                     case "INF1":
-                        baseBaseChunk = new Inf1BaseChunk();
+                        baseChunk = new Inf1Chunk();
                         break;
                     case "VTX1":
-                        baseBaseChunk = new Vtx1BaseChunk();
+                        baseChunk = new Vtx1Chunk();
                         break;
                     case "EVP1":
-                        baseBaseChunk = new Evp1BaseChunk();
+                        baseChunk = new Evp1Chunk();
                         break;
                     case "DRW1":
+                        baseChunk = new Drw1Chunk();
+                        break;
                     case "JNT1":
                     case "SHP1":
                     case "TEX1":
@@ -48,11 +50,11 @@ namespace WindViewer.FileFormats
                         break;
                     default:
                         Console.WriteLine("Found unknown chunk {0}!", tagName);
-                        baseBaseChunk = new BaseChunk();
+                        baseChunk = new BaseChunk();
                         break;
                 }
 
-                baseBaseChunk.Load(data, ref dataOffset);
+                baseChunk.Load(data, ref dataOffset);
             }
 
         }
@@ -115,7 +117,7 @@ namespace WindViewer.FileFormats
             }
         }
 
-        private class Inf1BaseChunk : BaseChunk
+        private class Inf1Chunk : BaseChunk
         {
             public short Unknown1;
             public int Unknown2;
@@ -175,7 +177,7 @@ namespace WindViewer.FileFormats
             }
         }
 
-        private class Vtx1BaseChunk : BaseChunk
+        private class Vtx1Chunk : BaseChunk
         {
             public int DataOffset;
             public int[] VertexDataOffsets; //13 of 'em!
@@ -273,13 +275,57 @@ namespace WindViewer.FileFormats
             }
         }
 
-        private class Evp1BaseChunk : BaseChunk
+        private class Evp1Chunk : BaseChunk
         {
+            public ushort SectionCount;
+            public uint CountsArrayOffset;
+            public uint IndicesOffset;
+            public uint WeightsOffset;
+            public uint MatrixDataOffset;
+
             public override void Load(byte[] data, ref int offset)
             {
                 base.Load(data, ref offset);
 
+                SectionCount = (ushort) FSHelpers.Read16(data, offset + 0x8);
+                CountsArrayOffset = (uint)FSHelpers.Read32(data, offset + 0xC);
+                IndicesOffset = (uint)FSHelpers.Read32(data, offset + 0x10);
+                WeightsOffset = (uint)FSHelpers.Read32(data, offset + 0x14);
+                MatrixDataOffset = (uint) FSHelpers.Read32(data, offset + 0x18);
 
+
+                offset += ChunkSize;
+            }
+        }
+
+        private class Drw1Chunk : BaseChunk
+        {
+            public ushort SectionCount;
+            public uint IsWeightedOffset;
+            public uint DataOffset;
+
+            //Not part of header
+            public bool[] IsWeighted;
+            public ushort[] Data; //Related to that thing in collision perhaps?
+
+            public override void Load(byte[] data, ref int offset)
+            {
+                base.Load(data, ref offset);
+
+                SectionCount = (ushort) FSHelpers.Read16(data, 0x8);
+                IsWeightedOffset = (uint) FSHelpers.Read32(data, 0xC);
+                DataOffset = (uint) FSHelpers.Read32(data, 0x10);
+
+                IsWeighted = new bool[SectionCount];
+                Data = new ushort[SectionCount];
+
+                for (int i = 0; i < SectionCount; i++)
+                {
+                    IsWeighted[i] = Convert.ToBoolean(FSHelpers.Read8(data, (int)(offset + IsWeightedOffset + i)));
+                    Data[i] = (ushort) FSHelpers.Read16(data, (int) (offset + DataOffset + (i * 2)));
+                }
+
+                offset += ChunkSize;
             }
         }
         #endregion
