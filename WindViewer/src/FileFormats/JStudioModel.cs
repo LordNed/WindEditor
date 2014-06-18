@@ -1,12 +1,42 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using OpenTK;
 using WindViewer.Editor;
 
 namespace WindViewer.FileFormats
 {
     public class JStudioModel : BaseArchiveFile
     {
+        public enum ArrayTypes
+        {
+            PositionMatrixIndex, Tex0MatrixIndex, Tex1MatrixIndex, Tex2MatrixIndex, Tex3MatrixIndex,
+            Tex4MatrixIndex, Tex5MatrixIndex, Tex6MatrixIndex, Tex7MatrixIndex,
+            Position, Normal, Color0, Color1, Tex0, Tex1, Tex2, Tex3, Tex4, Tex5, Tex6,Tex7,
+            PositionMatrixArray, NormalMatrixArray, TextureMatrixArray, LitMatrixArray, NormalBinormalTangent,
+            MaxAttr, NullAttr = 0xFF,
+        }
+
+        public enum DataTypes
+        {
+            Unsigned8 = 0x0,
+            Signed8 = 0x1, 
+            Unsigned16 = 0x2,
+            Signed16 = 0x3,
+            Float32 = 0x4,
+            RGBA8 = 0x5,
+        }
+
+        public enum TextureFormats
+        {
+            RGB565 = 0x0,
+            RGB888  = 0x1,
+            RGBX8 = 0x2,
+            RGBA4 = 0x3,
+            RGBA6 = 0x4,
+            RGBA8 = 0x5,
+        }
+
         //Temp in case I fuck up
         private byte[] _origDataCache;
 
@@ -43,7 +73,11 @@ namespace WindViewer.FileFormats
                         baseChunk = new Drw1Chunk();
                         break;
                     case "JNT1":
+                        baseChunk = new Jnt1Chunk();
+                        break;
                     case "SHP1":
+                        baseChunk = new Shp1Chunk();
+                        break;
                     case "TEX1":
                     case "MAT3":
                     case "ANK1":
@@ -198,7 +232,7 @@ namespace WindViewer.FileFormats
                     vFormat.Load(data, ref dataOffsetCpy);
                     VertexFormats.Add(vFormat);
 
-                    if (vFormat.ArrayType == VertexFormat.ArrayTypes.NullAttr)
+                    if (vFormat.ArrayType == ArrayTypes.NullAttr)
                         break;
                 }
 
@@ -226,35 +260,6 @@ namespace WindViewer.FileFormats
 
             public class VertexFormat
             {
-                public enum ArrayTypes
-                {
-                    PositionMatrixIndex, Tex0MatrixIndex, Tex1MatrixIndex, Tex2MatrixIndex, Tex3MatrixIndex,
-                    Tex4MatrixIndex, Tex5MatrixIndex, Tex6MatrixIndex, Tex7MatrixIndex,
-                    Position, Normal, Color0, Color1, Tex0, Tex1, Tex2, Tex3, Tex4, Tex5, Tex6,Tex7,
-                    PositionMatrixArray, NormalMatrixArray, TextureMatrixArray, LitMatrixArray, NormalBinormalTangent,
-                    MaxAttr, NullAttr = 0xFF,
-                }
-
-                public enum DataTypes
-                {
-                    Unsigned8 = 0x0,
-                    Signed8 = 0x1, 
-                    Unsigned16 = 0x2,
-                    Signed16 = 0x3,
-                    Float32 = 0x4,
-                    RGBA8 = 0x5,
-                }
-
-                public enum TextureFormats
-                {
-                    RGB565 = 0x0,
-                    RGB888  = 0x1,
-                    RGBX8 = 0x2,
-                    RGBA4 = 0x3,
-                    RGBA6 = 0x4,
-                    RGBA8 = 0x5,
-                }
-
                 public ArrayTypes ArrayType;
                 public uint ArrayCount;
                 public DataTypes DataType;
@@ -312,9 +317,9 @@ namespace WindViewer.FileFormats
             {
                 base.Load(data, ref offset);
 
-                SectionCount = (ushort) FSHelpers.Read16(data, 0x8);
-                IsWeightedOffset = (uint) FSHelpers.Read32(data, 0xC);
-                DataOffset = (uint) FSHelpers.Read32(data, 0x10);
+                SectionCount = (ushort) FSHelpers.Read16(data, offset+ 0x8);
+                IsWeightedOffset = (uint) FSHelpers.Read32(data, offset + 0xC);
+                DataOffset = (uint) FSHelpers.Read32(data, offset + 0x10);
 
                 IsWeighted = new bool[SectionCount];
                 Data = new ushort[SectionCount];
@@ -323,6 +328,186 @@ namespace WindViewer.FileFormats
                 {
                     IsWeighted[i] = Convert.ToBoolean(FSHelpers.Read8(data, (int)(offset + IsWeightedOffset + i)));
                     Data[i] = (ushort) FSHelpers.Read16(data, (int) (offset + DataOffset + (i * 2)));
+                }
+
+                offset += ChunkSize;
+            }
+        }
+
+        private class Jnt1Chunk : BaseChunk
+        {
+            public ushort SectionCount;
+            public uint EntryOffset;
+            public uint UnknownOffset;
+            public uint StringTableOffset;
+
+            public override void Load(byte[] data, ref int offset)
+            {
+                base.Load(data, ref offset);
+
+                SectionCount = (ushort) FSHelpers.Read16(data, offset + 0x8);
+                EntryOffset = (uint) FSHelpers.Read32(data, offset + 0xC);
+                UnknownOffset = (uint) FSHelpers.Read32(data, offset + 0x10);
+                StringTableOffset = (uint) FSHelpers.Read32(data, offset + 0x14);
+
+                offset += ChunkSize;
+            }
+
+        }
+
+        /// <summary>
+        /// Since primitives have differenta ttributes (ie: some have position, some have normals, some have texcoords)
+        /// each different primitive is placed into a "batch", and each batch ahs a fixed set of vertex attributes. Each 
+        /// batch can then have several "packets", which are used for animations. A packet is a collection of primitives.
+        /// </summary>
+        private class Shp1Chunk : BaseChunk
+        {
+            public class Batch
+            {
+                public byte MatrixType;
+                public ushort PacketCount;
+                public ushort AttribOffset;
+                public ushort FirstMatrixIndex;
+                public ushort FirstPacketIndex;
+
+                public float Unknown;
+                public Vector3 BoundingBoxMin;
+                public Vector3 BoundingBoxMax;
+
+                public void Load(byte[] data, ref int offset)
+                {
+                    MatrixType = FSHelpers.Read8(data, offset);
+                    PacketCount = (ushort)FSHelpers.Read16(data, offset + 0x2);
+                    AttribOffset = (ushort)FSHelpers.Read16(data, offset + 0x4);
+                    FirstMatrixIndex = (ushort)FSHelpers.Read16(data, offset + 0x6);
+                    FirstPacketIndex = (ushort)FSHelpers.Read16(data, offset + 0x8);
+
+                    Unknown = FSHelpers.ReadFloat(data, offset + 0xC);
+                    BoundingBoxMin = FSHelpers.ReadVector3(data, offset + 0x10);
+                    BoundingBoxMax = FSHelpers.ReadVector3(data, offset + 0x1C);
+
+                    offset += 40;
+                }
+            }
+
+            public class BatchAttribute
+            {
+                public ArrayTypes AttribType;
+                public DataTypes DataType;
+
+                public void Load(byte[] data, ref int offset)
+                {
+                    AttribType = (ArrayTypes) FSHelpers.Read32(data, offset);
+                    DataType = (DataTypes) FSHelpers.Read32(data, offset + 0x4);
+
+                    offset += 0x8;
+                }
+            }
+
+            public class BatchPrimitive
+            {
+                public enum PrimitiveType : byte
+                {
+                    Points = 0xB8, Lines = 0xA8, LineStrip = 0xB0,
+                    Triangles = 0x90, TriangleStrip = 0x98, TriangleFan = 0xA0,
+                    Quads = 0x80
+                }
+
+                public class IndexSet
+                {
+                    public short MatrixIndex = -1;
+                    public short PositionIndex = -1;
+                    public short NormalIndex = -1;
+                    public short[] ColorIndex = {-1, -1};
+                    public short[] TexCoordIndex = {-1, -1, -1, -1, -1, -1, -1, -1};
+                }
+
+                public PrimitiveType Type;
+                public IndexSet[] Indexes;
+
+                public void Load(byte[] data, ref int offset)
+                {
+                    Type = (PrimitiveType) FSHelpers.Read8(data, offset);
+
+                    ushort count = (ushort) FSHelpers.Read16(data, offset + 0x1);
+                    Indexes = new IndexSet[count];
+
+                    for (int i = 0; i < count; i++)
+                    {
+                        
+                    }
+                }
+            }
+
+            public ushort SectionCount;
+            public uint BatchOffset;
+            public uint Unknown1Offset;
+            public uint UnknownPadding;
+            public uint AttributeOffset;
+            public uint MatrixTableOffset;
+            public uint DataOffset;
+            public uint MatrixDataOffset;
+            public uint PacketOffset;
+
+            public override void Load(byte[] data, ref int offset)
+            {
+                base.Load(data, ref offset);
+
+                SectionCount = (ushort) FSHelpers.Read16(data, offset + 0x8);
+                BatchOffset = (uint) FSHelpers.Read32(data, offset + 0xC);
+                Unknown1Offset = (uint) FSHelpers.Read32(data, offset + 0x10);
+                UnknownPadding = (uint) FSHelpers.Read32(data, offset + 0x14);
+                AttributeOffset = (uint) FSHelpers.Read32(data, offset + 0x18);
+                MatrixTableOffset = (uint) FSHelpers.Read32(data, offset + 0x1C);
+                DataOffset = (uint) FSHelpers.Read32(data, offset + 0x20);
+                MatrixDataOffset = (uint) FSHelpers.Read32(data, offset + 0x24);
+                PacketOffset = (uint) FSHelpers.Read32(data, offset + 0x28);
+
+                //Load Batches
+                var loadedBatches = new List<Batch>();
+                int dataOffset = (int) (offset + BatchOffset);
+                for (int i = 0; i < SectionCount; i++)
+                {
+                    Batch batch = new Batch();
+                    batch.Load(data, ref dataOffset);
+
+                    loadedBatches.Add(batch);
+                }
+
+                //Load Attributes - Hack hack, this doesn't look good.
+                var loadedAttribs = new List<BatchAttribute>();
+                for (int i = 0; i < SectionCount; i++)
+                {
+                    int attribOffset = (int) (offset + AttributeOffset + loadedBatches[i].AttribOffset);
+                    for (int k = 0; k < data.Length; k++)
+                    {
+                        BatchAttribute attrib = new BatchAttribute();
+                        attrib.Load(data, ref attribOffset);
+
+                        loadedAttribs.Add(attrib);
+                        if (attrib.AttribType == ArrayTypes.NullAttr)
+                            break;
+                    }
+
+                }
+
+                //Load Packets
+                var loadedPackets = new List<BatchPrimitive>();
+                for (int i = 0; i < SectionCount; i++)
+                {
+                    Batch curBatch = loadedBatches[i];
+                    for (int packetIndex = 0; packetIndex < curBatch.PacketCount; packetIndex++)
+                    {
+                        BatchPrimitive primitive = new BatchPrimitive();
+
+                        int batchPacketOffset =
+                            (int) (offset + PacketOffset + ((curBatch.FirstPacketIndex + packetIndex)*4));
+
+                        int packetSize = FSHelpers.Read32(data, batchPacketOffset);
+                        int packetOffset = FSHelpers.Read32(data, batchPacketOffset + 0x4);
+
+                        loadedPackets.Add(primitive);
+                    }
                 }
 
                 offset += ChunkSize;

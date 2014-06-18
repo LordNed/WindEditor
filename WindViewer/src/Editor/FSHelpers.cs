@@ -65,6 +65,21 @@ namespace WindViewer.Editor
             return ret;
         }
 
+        public static float ReadFloat(byte[] data, int offset)
+        {
+            return ConvertIEEE754Float((uint) Read32(data, offset));
+        }
+
+        public static Vector3 ReadVector3(byte[] data, int offset)
+        {
+            Vector3 result = new Vector3();
+            result.X = ReadFloat(data, offset);
+            result.Y = ReadFloat(data, offset + 4);
+            result.Z = ReadFloat(data, offset + 8);
+
+            return result;
+        }
+
         public static float ConvertIEEE754Float(UInt32 Raw)
         {
             byte[] data = new byte[4];
