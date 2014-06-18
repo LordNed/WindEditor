@@ -23,7 +23,7 @@ namespace WindViewer.FileFormats
             //Load all of the chunks
             for (int i = 0; i < header.ChunkCount; i++)
             {
-                ChunkHeader baseChunk = null;
+                BaseChunk baseBaseChunk = null;
                 
                 //Read the first four bytes to get the tag.
                 string tagName = FSHelpers.ReadString(data, dataOffset, 4);
@@ -31,13 +31,13 @@ namespace WindViewer.FileFormats
                 switch (tagName)
                 {
                     case "INF1":
-                        baseChunk = new INF1Chunk();
+                        baseBaseChunk = new Inf1BaseChunk();
                         break;
                     case "VTX1":
-                        baseChunk = new VTX1Chunk();
+                        baseBaseChunk = new Vtx1BaseChunk();
                         break;
                     case "EVP1":
-                        baseChunk = new EVP1Chunk();
+                        baseBaseChunk = new Evp1BaseChunk();
                         break;
                     case "DRW1":
                     case "JNT1":
@@ -48,11 +48,11 @@ namespace WindViewer.FileFormats
                         break;
                     default:
                         Console.WriteLine("Found unknown chunk {0}!", tagName);
-                        baseChunk = new ChunkHeader();
+                        baseBaseChunk = new BaseChunk();
                         break;
                 }
 
-                baseChunk.Load(data, ref dataOffset);
+                baseBaseChunk.Load(data, ref dataOffset);
             }
 
         }
@@ -97,34 +97,25 @@ namespace WindViewer.FileFormats
             }
         }
 
-        private class ChunkHeader
+        private class BaseChunk
         {
             public string Type;
             public int ChunkSize;
 
-            public byte[] ChunkData;
-
-            virtual public void Load(byte[] data, ref int offset)
+            public virtual void Load(byte[] data, ref int offset)
             {
                 Type = FSHelpers.ReadString(data, offset, 4);
                 ChunkSize = FSHelpers.Read32(data, offset + 4);
-
-                ChunkData = new byte[ChunkSize - 8];
-                Buffer.BlockCopy(data, offset + 8, ChunkData, 0, ChunkSize - 8);
-
-                offset += ChunkSize;
             }
 
-            virtual public void Save(BinaryWriter stream)
+            public virtual void Save(BinaryWriter stream)
             {
                 FSHelpers.WriteString(stream, Type, 4);
                 FSHelpers.Write32(stream, ChunkSize);
-
-                FSHelpers.WriteArray(stream, ChunkData);
             }
         }
 
-        private class INF1Chunk : ChunkHeader
+        private class Inf1BaseChunk : BaseChunk
         {
             public short Unknown1;
             public int Unknown2;
@@ -135,14 +126,13 @@ namespace WindViewer.FileFormats
             {
                 base.Load(data, ref offset);
 
-                Unknown1 = FSHelpers.Read16(ChunkData, 0);
-                Unknown2 = FSHelpers.Read32(ChunkData, 4); //2 bytes padding after Unknown1
-                VertexCount = FSHelpers.Read32(ChunkData, 8);
-                DataOffset = FSHelpers.Read32(ChunkData, 12);
+                Unknown1 = FSHelpers.Read16(data, offset+8);
+                Unknown2 = FSHelpers.Read32(data, offset+12); //2 bytes padding after Unknown1
+                VertexCount = FSHelpers.Read32(data, offset+16);
+                DataOffset = FSHelpers.Read32(data, offset+20);
 
                 var hierarchyDataList = new List<HierarchyData>();
-                int dataOffsetCpy = DataOffset - 8; //Subtract 8 because DataOffset takes the 8 bytes of ChunkHeader
-                                                    //into account, but our ChunkData byte[] does not.
+                int dataOffsetCpy = DataOffset;
 
                 //Nintendo doesn't seem to define how many of these there are anywhere,
                 //so we're going to have to sort of guess at the maximum (since the struct
@@ -151,7 +141,7 @@ namespace WindViewer.FileFormats
                 for (int i = 0; i < maxHierarchyData; i++)
                 {
                     HierarchyData hData = new HierarchyData();
-                    hData.Load(ChunkData, ref dataOffsetCpy);
+                    hData.Load(data, ref dataOffsetCpy);
 
                     hierarchyDataList.Add(hData);
 
@@ -159,6 +149,8 @@ namespace WindViewer.FileFormats
                     if (hData.Type == HierarchyData.HierarchyDataTypes.Finish)
                         break;
                 }
+
+                offset += ChunkSize;
             }
 
             //"SceneGraphRaw"
@@ -183,7 +175,7 @@ namespace WindViewer.FileFormats
             }
         }
 
-        private class VTX1Chunk : ChunkHeader
+        private class Vtx1BaseChunk : BaseChunk
         {
             public int DataOffset;
             public int[] VertexDataOffsets; //13 of 'em!
@@ -195,28 +187,29 @@ namespace WindViewer.FileFormats
             {
                 base.Load(data, ref offset);
 
-                DataOffset = FSHelpers.Read32(ChunkData, 0);
+                DataOffset = FSHelpers.Read32(data, offset + 0x8);
 
-                int dataOffsetCpy = DataOffset - 8; //This seems like I made a hack D:
+                int dataOffsetCpy = DataOffset;
                 for (int i = 0; i < ChunkSize; i++)
                 {
                     VertexFormat vFormat = new VertexFormat();
-                    vFormat.Load(ChunkData, ref dataOffsetCpy);
+                    vFormat.Load(data, ref dataOffsetCpy);
                     VertexFormats.Add(vFormat);
 
                     if (vFormat.ArrayType == VertexFormat.ArrayTypes.NullAttr)
                         break;
                 }
 
-                dataOffsetCpy = 4;
-                //There's a hard-coded array of 13 offsets 
+                //Jump back to the vertex data offsets in the header.
+                dataOffsetCpy = 0xC;
+                
                 VertexDataOffsets = new int[13];
                 int curVertexFormat = 0;
 
-                for (int i = 0; i < 13; i++)
+                for (int i = 0; i < VertexDataOffsets.Length; i++)
                 {
-                    VertexDataOffsets[i] = FSHelpers.Read32(ChunkData, dataOffsetCpy);
-                    dataOffsetCpy += 4;
+                    VertexDataOffsets[i] = FSHelpers.Read32(data, dataOffsetCpy);
+                    dataOffsetCpy += 0x4;
 
                     if(VertexDataOffsets[i] == 0)
                         continue;
@@ -225,6 +218,7 @@ namespace WindViewer.FileFormats
                     curVertexFormat++;
                 }
 
+                offset += ChunkSize;
             }
 
 
@@ -279,7 +273,7 @@ namespace WindViewer.FileFormats
             }
         }
 
-        private class EVP1Chunk : ChunkHeader
+        private class Evp1BaseChunk : BaseChunk
         {
             public override void Load(byte[] data, ref int offset)
             {
