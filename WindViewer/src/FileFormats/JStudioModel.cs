@@ -416,36 +416,15 @@ namespace WindViewer.FileFormats
 
             public class BatchPrimitive
             {
-                public enum PrimitiveType : byte
-                {
-                    Points = 0xB8, Lines = 0xA8, LineStrip = 0xB0,
-                    Triangles = 0x90, TriangleStrip = 0x98, TriangleFan = 0xA0,
-                    Quads = 0x80
-                }
-
-                public class IndexSet
-                {
-                    public short MatrixIndex = -1;
-                    public short PositionIndex = -1;
-                    public short NormalIndex = -1;
-                    public short[] ColorIndex = {-1, -1};
-                    public short[] TexCoordIndex = {-1, -1, -1, -1, -1, -1, -1, -1};
-                }
-
-                public PrimitiveType Type;
-                public IndexSet[] Indexes;
+                public PrimitiveTypes Type;
+                public ushort VertexCount;
 
                 public void Load(byte[] data, ref int offset)
                 {
-                    Type = (PrimitiveType) FSHelpers.Read8(data, offset);
+                    Type = (PrimitiveTypes)FSHelpers.Read8(data, offset);
 
-                    ushort count = (ushort) FSHelpers.Read16(data, offset + 0x1);
-                    Indexes = new IndexSet[count];
-
-                    for (int i = 0; i < count; i++)
-                    {
-                        
-                    }
+                    VertexCount = (ushort)FSHelpers.Read16(data, offset + 0x1);
+                    offset += 3;
                 }
             }
 
@@ -482,43 +461,20 @@ namespace WindViewer.FileFormats
                     batch.Load(data, ref dataOffset);
 
                     loadedBatches.Add(batch);
-                }
 
-                //Load Attributes - Hack hack, this doesn't look good.
-                var loadedAttribs = new List<BatchAttribute>();
-                for (int i = 0; i < SectionCount; i++)
-                {
-                    int attribOffset = (int) (offset + AttributeOffset + loadedBatches[i].AttribOffset);
-                    for (int k = 0; k < data.Length; k++)
+                    int batchPacketOffset = 0;
+                    //Load packets from each batch
+                    for (int k = 0; k < batch.PacketCount; k++)
                     {
-                        BatchAttribute attrib = new BatchAttribute();
-                        attrib.Load(data, ref attribOffset);
+                        //Let's get the packet location
+                        int packetSize = FSHelpers.Read32(data, (int)(offset + PacketOffset + batch.FirstPacketIndex + batchPacketOffset ));
+                        int packetOffset = FSHelpers.Read32(data, (int)(offset + PacketOffset + batch.FirstPacketIndex + batchPacketOffset + 4));
 
-                        loadedAttribs.Add(attrib);
-                        if (attrib.AttribType == ArrayTypes.NullAttr)
-                            break;
-                    }
-
-                }
-
-                //Load Packets
-                var loadedPackets = new List<BatchPrimitive>();
-                for (int i = 0; i < SectionCount; i++)
-                {
-                    Batch curBatch = loadedBatches[i];
-                    for (int packetIndex = 0; packetIndex < curBatch.PacketCount; packetIndex++)
-                    {
-                        BatchPrimitive primitive = new BatchPrimitive();
-
-                        int batchPacketOffset =
-                            (int) (offset + PacketOffset + ((curBatch.FirstPacketIndex + packetIndex)*4));
-
-                        int packetSize = FSHelpers.Read32(data, batchPacketOffset);
-                        int packetOffset = FSHelpers.Read32(data, batchPacketOffset + 0x4);
-
-                        loadedPackets.Add(primitive);
+                        batchPacketOffset += 8;
                     }
                 }
+
+                
 
                 offset += ChunkSize;
             }
