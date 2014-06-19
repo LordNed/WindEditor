@@ -61,7 +61,9 @@ namespace WindViewer.FileFormats
             Header header = new Header();
             header.Load(data, ref dataOffset);
 
-            //Load all of the chunks
+            //STEP 1: We're going to load all of the data out of memory straight into the chunks that
+            //hold them. These should be relatively close to accurate copies of the file format, but
+            //the Wiki is probably a better place to draw that information from.
             for (int i = 0; i < header.ChunkCount; i++)
             {
                 BaseChunk baseChunk = null;
@@ -101,6 +103,8 @@ namespace WindViewer.FileFormats
                 baseChunk.Load(data, ref dataOffset);
             }
 
+            //STEP 2: Once all of the data is loaded, we're going to pull different data from
+            //different chunks to transform the data into something 
         }
 
         public override void Save(BinaryWriter stream)
@@ -223,8 +227,33 @@ namespace WindViewer.FileFormats
 
         private class Vtx1Chunk : BaseChunk
         {
+            public class VertexFormat
+            {
+                public ArrayTypes ArrayType;
+                public uint ArrayCount;
+                public DataTypes DataType;
+                public byte DecimalPoint;
+
+                public void Load(byte[] data, ref int offset)
+                {
+                    ArrayType = (ArrayTypes)FSHelpers.Read32(data, offset);
+                    ArrayCount = (uint)FSHelpers.Read32(data, offset + 4);
+                    DataType = (DataTypes)FSHelpers.Read32(data, offset + 8);
+                    DecimalPoint = FSHelpers.Read8(data, offset + 12);
+
+                    offset += 16; //3 bytes padding after DecimalPoint
+                }
+            }
+
+            enum VertexDataTypes
+            {
+                Position = 0,
+                Color0 = 3,
+                Tex0 = 5,
+            }
+
             public int DataOffset;
-            public int[] VertexDataOffsets; //13 of 'em!
+            public int[] VertexDataOffsets = new int[13];
 
             //Not part of the header
             public List<VertexFormat> VertexFormats = new List<VertexFormat>();
@@ -234,59 +263,21 @@ namespace WindViewer.FileFormats
                 base.Load(data, ref offset);
 
                 DataOffset = FSHelpers.Read32(data, offset + 0x8);
+                for (int i = 0; i < 13; i++)
+                    VertexDataOffsets[i] = FSHelpers.Read32(data, (offset + 0x8) + (i*0x4));
 
+                //Load the VertexFormats 
                 int dataOffsetCpy = DataOffset;
-                for (int i = 0; i < ChunkSize; i++)
+                VertexFormat vFormat;
+                do
                 {
-                    VertexFormat vFormat = new VertexFormat();
+                    vFormat = new VertexFormat();
                     vFormat.Load(data, ref dataOffsetCpy);
                     VertexFormats.Add(vFormat);
-
-                    if (vFormat.ArrayType == ArrayTypes.NullAttr)
-                        break;
-                }
-
-                //Jump back to the vertex data offsets in the header.
-                dataOffsetCpy = 0xC;
-                
-                VertexDataOffsets = new int[13];
-                int curVertexFormat = 0;
-
-                for (int i = 0; i < VertexDataOffsets.Length; i++)
-                {
-                    VertexDataOffsets[i] = FSHelpers.Read32(data, dataOffsetCpy);
-                    dataOffsetCpy += 0x4;
-
-                    if(VertexDataOffsets[i] == 0)
-                        continue;
-
-                    VertexFormats[curVertexFormat].VTX1OffsetToVertexData = VertexDataOffsets[i];
-                    curVertexFormat++;
-                }
+                } while (vFormat.ArrayType != ArrayTypes.NullAttr);
 
                 offset += ChunkSize;
-            }
 
-
-            public class VertexFormat
-            {
-                public ArrayTypes ArrayType;
-                public uint ArrayCount;
-                public DataTypes DataType;
-                public byte DecimalPoint;
-
-                //Not part of data
-                public int VTX1OffsetToVertexData;
-
-                public void Load(byte[] data, ref int offset)
-                {
-                    ArrayType = (ArrayTypes)FSHelpers.Read32(data, offset);
-                    ArrayCount = (uint)FSHelpers.Read32(data, offset+4);
-                    DataType = (DataTypes)FSHelpers.Read32(data, offset+8);
-                    DecimalPoint = FSHelpers.Read8(data, offset+12);
-
-                    offset += 16; //3 bytes padding after DecimalPoint
-                }
             }
         }
 
@@ -378,11 +369,14 @@ namespace WindViewer.FileFormats
                 public ushort PacketCount;
                 public ushort AttribOffset;
                 public ushort FirstMatrixIndex;
-                public ushort FirstPacketIndex;
+                public ushort PacketIndex;
 
                 public float Unknown;
                 public Vector3 BoundingBoxMin;
                 public Vector3 BoundingBoxMax;
+
+                //Bleh
+                public List<BatchAttribute> BatchAttributes = new List<BatchAttribute>(); 
 
                 public void Load(byte[] data, ref int offset)
                 {
@@ -390,7 +384,7 @@ namespace WindViewer.FileFormats
                     PacketCount = (ushort)FSHelpers.Read16(data, offset + 0x2);
                     AttribOffset = (ushort)FSHelpers.Read16(data, offset + 0x4);
                     FirstMatrixIndex = (ushort)FSHelpers.Read16(data, offset + 0x6);
-                    FirstPacketIndex = (ushort)FSHelpers.Read16(data, offset + 0x8);
+                    PacketIndex = (ushort)FSHelpers.Read16(data, offset + 0x8);
 
                     Unknown = FSHelpers.ReadFloat(data, offset + 0xC);
                     BoundingBoxMin = FSHelpers.ReadVector3(data, offset + 0x10);
@@ -414,17 +408,22 @@ namespace WindViewer.FileFormats
                 }
             }
 
+            public struct BatchPacketLocation
+            {
+                public uint Size;
+                public uint Offset;
+            }
+
             public class BatchPrimitive
             {
                 public PrimitiveTypes Type;
                 public ushort VertexCount;
 
-                public void Load(byte[] data, ref int offset)
+                public void Load(byte[] data, int offset)
                 {
                     Type = (PrimitiveTypes)FSHelpers.Read8(data, offset);
 
                     VertexCount = (ushort)FSHelpers.Read16(data, offset + 0x1);
-                    offset += 3;
                 }
             }
 
@@ -434,44 +433,74 @@ namespace WindViewer.FileFormats
             public uint UnknownPadding;
             public uint AttributeOffset;
             public uint MatrixTableOffset;
-            public uint DataOffset;
+            public uint PrimitiveDataOffset;
             public uint MatrixDataOffset;
             public uint PacketOffset;
+
+            //Bleh
+            public List<Batch> LoadedBatches = new List<Batch>();
 
             public override void Load(byte[] data, ref int offset)
             {
                 base.Load(data, ref offset);
 
+                //Load information from header
                 SectionCount = (ushort) FSHelpers.Read16(data, offset + 0x8);
                 BatchOffset = (uint) FSHelpers.Read32(data, offset + 0xC);
                 Unknown1Offset = (uint) FSHelpers.Read32(data, offset + 0x10);
                 UnknownPadding = (uint) FSHelpers.Read32(data, offset + 0x14);
                 AttributeOffset = (uint) FSHelpers.Read32(data, offset + 0x18);
                 MatrixTableOffset = (uint) FSHelpers.Read32(data, offset + 0x1C);
-                DataOffset = (uint) FSHelpers.Read32(data, offset + 0x20);
+                PrimitiveDataOffset = (uint) FSHelpers.Read32(data, offset + 0x20);
                 MatrixDataOffset = (uint) FSHelpers.Read32(data, offset + 0x24);
                 PacketOffset = (uint) FSHelpers.Read32(data, offset + 0x28);
 
                 //Load Batches
-                var loadedBatches = new List<Batch>();
                 int dataOffset = (int) (offset + BatchOffset);
                 for (int i = 0; i < SectionCount; i++)
                 {
                     Batch batch = new Batch();
                     batch.Load(data, ref dataOffset);
 
-                    loadedBatches.Add(batch);
-
-                    int batchPacketOffset = 0;
-                    //Load packets from each batch
+                    //Get the Batch Attribute
+                    BatchAttribute batchAttrib = new BatchAttribute();
+                    int batchAttribOffset = (int) (offset + AttributeOffset + batch.AttribOffset); //I think AttribOffset is an index...
+                    batchAttrib.Load(data, ref batchAttribOffset);
+                    
+                    //Now get the batch's packets.
                     for (int k = 0; k < batch.PacketCount; k++)
                     {
                         //Let's get the packet location
-                        int packetSize = FSHelpers.Read32(data, (int)(offset + PacketOffset + batch.FirstPacketIndex + batchPacketOffset ));
-                        int packetOffset = FSHelpers.Read32(data, (int)(offset + PacketOffset + batch.FirstPacketIndex + batchPacketOffset + 4));
+                        BatchPacketLocation packetLoc = new BatchPacketLocation();
+                        packetLoc.Size = (uint) FSHelpers.Read32(data, (int) (offset + PacketOffset + (batch.PacketIndex*4)));
+                        packetLoc.Offset = (uint) FSHelpers.Read32(data, (int) (offset + PacketOffset + (batch.PacketIndex*4)+4));
 
-                        batchPacketOffset += 8;
+                        //Now that we know where the packet is, we can finally get the data from it.
+                        int packetReadCount = 0;
+                        int primitiveOffset = 0;
+                        while (packetReadCount < packetLoc.Size)
+                        {
+                            BatchPrimitive primitive = new BatchPrimitive();
+                            primitive.Load(data, (int)(offset + PrimitiveDataOffset + packetLoc.Offset + primitiveOffset));
+
+                            List<ushort> primitiveIndexes = new List<ushort>();
+                            //Immediately following the primitive is BatchPrimitive.VertexCount * (numElements * elementSize) bytes
+                            int primitiveDataOffset = (int)(offset + PrimitiveDataOffset + packetLoc.Offset + 3); //3 bytes for the BatchPrimitive
+                            for (int v = 0; v < primitive.VertexCount; v++)
+                            {
+                                for (int u = 0; u < 3; u++)
+                                {
+                                    primitiveIndexes.Add((ushort)FSHelpers.Read16(data, primitiveDataOffset));
+                                    primitiveDataOffset += 2;
+                                }
+                            }
+
+                            packetReadCount += primitive.VertexCount*6;
+                            primitiveOffset += primitive.VertexCount*6 + 3;
+                        }
                     }
+
+                    LoadedBatches.Add(batch);
                 }
 
                 
