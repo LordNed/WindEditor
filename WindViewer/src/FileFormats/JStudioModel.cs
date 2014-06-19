@@ -37,6 +37,17 @@ namespace WindViewer.FileFormats
             RGBA8 = 0x5,
         }
 
+        public enum PrimitiveTypes
+        {
+            Points = 0xB8,
+            Lines = 0xA8,
+            LineStrip = 0xB0,
+            Triangles = 0x80,
+            TriangleStrip = 0x98,
+            TriangleFan = 0xA0,
+            Quads = 0x80,
+        }
+
         //Temp in case I fuck up
         private byte[] _origDataCache;
 
@@ -356,7 +367,7 @@ namespace WindViewer.FileFormats
         }
 
         /// <summary>
-        /// Since primitives have differenta ttributes (ie: some have position, some have normals, some have texcoords)
+        /// Since primitives have different attributes (ie: some have position, some have normals, some have texcoords)
         /// each different primitive is placed into a "batch", and each batch ahs a fixed set of vertex attributes. Each 
         /// batch can then have several "packets", which are used for animations. A packet is a collection of primitives.
         /// </summary>
