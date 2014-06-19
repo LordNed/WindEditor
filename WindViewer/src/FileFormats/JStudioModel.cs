@@ -92,7 +92,6 @@ namespace WindViewer.FileFormats
                     case "TEX1":
                     case "MAT3":
                     case "ANK1":
-                        break;
                     default:
                         Console.WriteLine("Found unknown chunk {0}!", tagName);
                         baseChunk = new BaseChunk();
