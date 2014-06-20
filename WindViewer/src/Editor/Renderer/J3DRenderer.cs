@@ -24,15 +24,14 @@ namespace WindViewer.Editor.Renderer
 
             //Deincriment the reference count on the shaders so that they 
             //don't exist until the context is destroyed.
-            GL.DeleteShader(vertShaderId);
-            GL.DeleteShader(fragShaderId);
+            //GL.DeleteShader(vertShaderId);
+            //GL.DeleteShader(fragShaderId);
 
-            _uniformMVP = GL.GetUniformLocation(_programId, "MVP");
             GL.BindAttribLocation(_programId, (int) ShaderAttributeIds.Position, "vertexPos");
-            GL.BindAttribLocation(_programId, (int) ShaderAttributeIds.TexCoord, "vertexTexCoord");
-            GL.BindAttribLocation(_programId, (int) ShaderAttributeIds.Color, "color");
+            GL.BindAttribLocation(_programId, (int)ShaderAttributeIds.Color, "inColor");
+            Console.WriteLine(GL.GetError());
 
-            if (GL.GetError() != ErrorCode.NoError)
+            //if (GL.GetError() != ErrorCode.NoError)
                 Console.WriteLine(GL.GetProgramInfoLog(_programId));
 
             //
@@ -67,11 +66,13 @@ namespace WindViewer.Editor.Renderer
             GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
 
             GL.EnableVertexAttribArray((int) ShaderAttributeIds.Position);
-            GL.EnableVertexAttribArray((int) ShaderAttributeIds.Color);
-
             GL.VertexAttribPointer((int)ShaderAttributeIds.Position, 3, VertexAttribPointerType.Float, false, 6*4 , 0);
+
+            GL.EnableVertexAttribArray((int)ShaderAttributeIds.Color);
             GL.VertexAttribPointer((int)ShaderAttributeIds.Color, 3, VertexAttribPointerType.Float, false, 6*4 , 3 * 4);
 
+
+            //FFS
             GL.DrawArrays(PrimitiveType.Triangles, 0, 3);
 
             GL.DisableVertexAttribArray((int) ShaderAttributeIds.Position);

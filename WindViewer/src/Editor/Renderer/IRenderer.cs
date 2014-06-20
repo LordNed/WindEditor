@@ -9,7 +9,7 @@ namespace WindViewer.Editor.Renderer
     {
         protected enum ShaderAttributeIds
         {
-            Position, TexCoord, Color
+            Color, Position, 
         }
 
         //Shader Identifier
@@ -28,9 +28,11 @@ namespace WindViewer.Editor.Renderer
             {
                 GL.ShaderSource(address, sr.ReadToEnd());
             }
+            Console.WriteLine(GL.GetError());
             GL.CompileShader(address);
+            Console.WriteLine(GL.GetError());
             GL.AttachShader(program, address);
-
+            
             //if(GL.GetError() != ErrorCode.NoError)
                 Console.WriteLine(GL.GetShaderInfoLog(address));
         }

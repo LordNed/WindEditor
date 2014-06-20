@@ -1,18 +1,13 @@
-﻿#version 330 core
+﻿#version 330 
 
 //Interpolated values from the vertex shaders
-//in vec3 Color;
-//in vec2 UV;
-
-
-
-//Texture Sampler
-//uniform sampler2D diffuseTextureSampler;
+in vec3 nColor;
 
 //Output Data
-out vec4 outColor;
+out vec4 finalColor;
 
 void main()
 {
-	outColor = vec4(1.0, 1.0, 1.0, 1.0);
+	finalColor = vec4(nColor,1.0);
+	//finalColor = vec4(1.0, 1.0, 1.0, 1.0);
 }
