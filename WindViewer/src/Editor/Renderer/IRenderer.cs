@@ -9,7 +9,7 @@ namespace WindViewer.Editor.Renderer
     {
         protected enum ShaderAttributeIds
         {
-            Position,
+            Position, TexCoord,
         }
         //Shader Identifier
         protected int _programId;
@@ -36,7 +36,8 @@ namespace WindViewer.Editor.Renderer
             _uniformMVP = GL.GetUniformLocation(_programId, "modelview");
             GL.BindAttribLocation(_programId, (int)ShaderAttributeIds.Position, "vPosition");
 
-            Console.WriteLine(GL.GetProgramInfoLog(_programId));
+            if(GL.GetError() != ErrorCode.NoError)
+                Console.WriteLine(GL.GetProgramInfoLog(_programId));
         }
 
         public void Dispose()
@@ -44,7 +45,7 @@ namespace WindViewer.Editor.Renderer
             GL.DeleteProgram(_programId);
         }
 
-        private void LoadShader(string fileName, ShaderType type, int program, out int address)
+        protected void LoadShader(string fileName, ShaderType type, int program, out int address)
         {
             address = GL.CreateShader(type);
             using (StreamReader sr = new StreamReader(fileName))
@@ -53,7 +54,9 @@ namespace WindViewer.Editor.Renderer
             }
             GL.CompileShader(address);
             GL.AttachShader(program, address);
-            Console.WriteLine(GL.GetShaderInfoLog(address));
+
+            if(GL.GetError() != ErrorCode.NoError)
+                Console.WriteLine(GL.GetShaderInfoLog(address));
         }
 
         public virtual void AddRenderable(IRenderable renderable)

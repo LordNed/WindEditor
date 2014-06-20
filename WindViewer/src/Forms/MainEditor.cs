@@ -78,7 +78,7 @@ namespace WindViewer.Forms
 
             //Add our renderers to the list 
             _collisionRenderer = new GLRenderer();
-            DebugRenderer dbgRender = new DebugRenderer();
+            IRenderer dbgRender = new J3DRenderer();
             _renderers.Add(_collisionRenderer);
             _renderers.Add(dbgRender);
 

@@ -2,7 +2,7 @@
 
 //Input Data
 in vec3 vertexPos;
-in vec2 vertexUV;
+in vec2 vertexTexCoord;
 
 //output data
 out vec2 UV;
@@ -15,5 +15,5 @@ void main()
 	//Output position of the vertex, in clip space : MVP * position
 	gl_Position = MVP * vec4(vertexPos, 1);
 
-	UV = vertexUV;
+	UV = vertexTexCoord;
 }

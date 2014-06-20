@@ -23,11 +23,6 @@ namespace WindViewer.Editor
 
         public static int Read32(byte[] data, int offset)
         {
-            if (offset + 4 > data.Length)
-            {
-                Console.WriteLine("WARNING: Read past end of data buffer!");
-                return 0;
-            }
             return ((Buffer.GetByte(data, offset) << 24) | (Buffer.GetByte(data, offset + 1) << 16) | (Buffer.GetByte(data, offset + 2) << 8) | Buffer.GetByte(data, offset + 3));
         }
 

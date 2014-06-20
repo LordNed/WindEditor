@@ -52,6 +52,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\Editor\Renderer\J3DRenderer.cs" />
     <Compile Include="src\Editor\Tools\DebugRenderer.cs" />
     <Compile Include="src\Editor\Tools\IEditorTool.cs" />
     <Compile Include="src\Editor\Renderer\Camera.cs" />
@@ -430,6 +431,12 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <None Include="Shaders\j3d_fs.glsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\j3d_vs.glsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Shaders\fs_solid.glsl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
