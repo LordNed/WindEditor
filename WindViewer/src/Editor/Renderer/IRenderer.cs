@@ -9,7 +9,7 @@ namespace WindViewer.Editor.Renderer
     {
         protected enum ShaderAttributeIds
         {
-            Color, Position, 
+            Position, Color,
         }
 
         //Shader Identifier
