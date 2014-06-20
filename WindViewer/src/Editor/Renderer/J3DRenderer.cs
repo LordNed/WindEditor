@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Drawing.Drawing2D;
+using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
 namespace WindViewer.Editor.Renderer
@@ -26,12 +28,15 @@ namespace WindViewer.Editor.Renderer
             GL.DeleteShader(vertShaderId);
             GL.DeleteShader(fragShaderId);
 
+            
             GL.BindAttribLocation(_programId, (int) ShaderAttributeIds.Position, "vertexPos");
             GL.BindAttribLocation(_programId, (int)ShaderAttributeIds.Color, "inColor");
             GL.BindAttribLocation(_programId, (int)ShaderAttributeIds.TexCoord, "vertexUV");
 
             //Link shaders 
             GL.LinkProgram(_programId);
+
+            _uniformMVP = GL.GetUniformLocation(_programId, "modelview");
 
             if (GL.GetError() != ErrorCode.NoError)
                 Console.WriteLine(GL.GetProgramInfoLog(_programId));
@@ -79,7 +84,6 @@ namespace WindViewer.Editor.Renderer
 
             GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb, 2, 2, 0, PixelFormat.Rgb, PixelType.Float,
                 pixels);
-
         }
 
         
@@ -107,6 +111,14 @@ namespace WindViewer.Editor.Renderer
             GL.VertexAttribPointer((int)ShaderAttributeIds.Color, 3, VertexAttribPointerType.Float, false, 8*4 , 3 *4);
             GL.VertexAttribPointer((int)ShaderAttributeIds.TexCoord, 2, VertexAttribPointerType.Float, false, 8*4, 6* 4);
 
+            Matrix4 projMatrix = Matrix4.CreatePerspectiveFieldOfView((float) Math.PI/4f, aspectRatio, 0.1f, 1000f);
+            Matrix4 modelMatrix = Matrix4.Identity;
+            Matrix4 viewMatrix = camera.GetViewMatrix();
+
+            Matrix4 finalMatrix = modelMatrix*viewMatrix*projMatrix;
+            
+            //Upload matrix to the GPU
+            GL.UniformMatrix4(_uniformMVP, false, ref finalMatrix);
 
             //FFS
             GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, 0);

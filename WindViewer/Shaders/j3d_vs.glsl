@@ -9,9 +9,13 @@ in vec2 vertexUV;
 out vec3 nColor;
 out vec2 nTexCoord;
 
+
+uniform mat4 modelview;
+
 void main()
 {
 	nTexCoord = vertexUV;
 	nColor = inColor;
-	gl_Position = vec4(vertexPos, 1.0);
+	gl_Position = modelview * vec4(vertexPos, 1.0);
+	//gl_Position = vec4(vertexPos, 1.0);
 }
