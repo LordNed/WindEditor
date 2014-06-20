@@ -9,41 +9,17 @@ namespace WindViewer.Editor.Renderer
     {
         protected enum ShaderAttributeIds
         {
-            Position, TexCoord,
+            Position, TexCoord, Color
         }
+
         //Shader Identifier
         protected int _programId;
 
         //OpenTK::Shader Attributes
         protected int _uniformMVP;
 
-        protected virtual void InitializeShader(string vertShader, string fragShader)
-        {
-            //Initialize program
-            _programId = GL.CreateProgram();
-
-            int vertShaderId, fragShaderId;
-            LoadShader(vertShader, ShaderType.VertexShader, _programId, out vertShaderId);
-            LoadShader(fragShader, ShaderType.FragmentShader, _programId, out fragShaderId);
-            
-            //Link & Debug Spew!
-            GL.LinkProgram(_programId);
-
-            //Remove references to the frag/vert shader, no longer needed.
-            GL.DeleteShader(vertShaderId);
-            GL.DeleteShader(fragShaderId);
-
-            _uniformMVP = GL.GetUniformLocation(_programId, "modelview");
-            GL.BindAttribLocation(_programId, (int)ShaderAttributeIds.Position, "vPosition");
-
-            if(GL.GetError() != ErrorCode.NoError)
-                Console.WriteLine(GL.GetProgramInfoLog(_programId));
-        }
-
-        public void Dispose()
-        {
-            GL.DeleteProgram(_programId);
-        }
+        protected abstract void InitializeShader(string vertShader, string fragShader);
+        public abstract void Render(Camera camera, float aspectRatio);
 
         protected void LoadShader(string fileName, ShaderType type, int program, out int address)
         {
@@ -55,22 +31,13 @@ namespace WindViewer.Editor.Renderer
             GL.CompileShader(address);
             GL.AttachShader(program, address);
 
-            if(GL.GetError() != ErrorCode.NoError)
+            //if(GL.GetError() != ErrorCode.NoError)
                 Console.WriteLine(GL.GetShaderInfoLog(address));
         }
 
-        public virtual void AddRenderable(IRenderable renderable)
+        public void Dispose()
         {
-            
+            GL.DeleteProgram(_programId);
         }
-
-        public virtual void RemoveRenderable(IRenderable renderable)
-        {
-
-        }
-
-        public abstract void ClearRenderableList();
-
-        public abstract void Render(Camera camera, float aspectRatio);
     }
 }

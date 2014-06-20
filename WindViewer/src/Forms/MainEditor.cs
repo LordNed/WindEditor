@@ -32,8 +32,7 @@ namespace WindViewer.Forms
         private Camera _camera;
 
         //Rendering stuffs
-        private List<IRenderer> _renderers;
-        private IRenderer _collisionRenderer;
+        private J3DRenderer _renderer;
 
         //Editor stuffs
         private List<IEditorTool> _editorTools; 
@@ -58,9 +57,6 @@ namespace WindViewer.Forms
 
             _mruMenu = new MruStripMenu(mruList, OnMruClickedHandler, _mruRegKey + "\\MRU", 6);
 
-            //Editor fails to auto-center on primary screen for some users.
-            //CenterToScreen();
-
             SelectedEntityFileChanged += delegate(WindWakerEntityData data)
             {
                 Console.WriteLine("Changing Ent file...");
@@ -72,19 +68,10 @@ namespace WindViewer.Forms
             _loadedWorldspaceProject = null;
 
             _camera = new Camera();
-            _renderers = new List<IRenderer>();
             _editorTools = new List<IEditorTool>();
 
-
             //Add our renderers to the list 
-            _collisionRenderer = new GLRenderer();
-            IRenderer dbgRender = new J3DRenderer();
-            _renderers.Add(_collisionRenderer);
-            _renderers.Add(dbgRender);
-
-            //Then add them to the tool list so they get updates
-            _editorTools.Add(dbgRender);
-            _editorTools.Add(_collisionRenderer);
+            _renderer = new J3DRenderer();
 
             _glControlInitalized = true;
         }
@@ -209,12 +196,12 @@ namespace WindViewer.Forms
                 _mruMenu.AddFile(_loadedWorldspaceProject.ProjectFilePath);
 
             //Temp
-            foreach (ZArchive archive in _loadedWorldspaceProject.GetAllArchives())
+            /*foreach (ZArchive archive in _loadedWorldspaceProject.GetAllArchives())
             {
                 StaticCollisionModel scm = archive.GetFileByType<StaticCollisionModel>();
                 if(scm!=null)
                     _collisionRenderer.AddRenderable(scm.Renderable);
-            }
+            }*/
 
             if (WorldspaceProjectLoaded != null)
                 WorldspaceProjectLoaded(_loadedWorldspaceProject);
@@ -315,7 +302,7 @@ namespace WindViewer.Forms
 
             DeltaTime = Program.DeltaTimeStopwatch.Elapsed.Milliseconds / 1000f;
             Program.DeltaTimeStopwatch.Restart();
-            toolStripStatusLabel1.Text = (1 / DeltaTime).ToString("00") + " fps.";
+            /*toolStripStatusLabel1.Text = (1 / DeltaTime).ToString("00") + " fps.";
 
             foreach (IEditorTool tool in _editorTools)
             {
@@ -323,7 +310,7 @@ namespace WindViewer.Forms
             }
 
             //Hack...
-            if (_loadedWorldspaceProject != null)
+            /*if (_loadedWorldspaceProject != null)
             {
                 
                 foreach (var archive in _loadedWorldspaceProject.GetAllArchives())
@@ -352,19 +339,16 @@ namespace WindViewer.Forms
             foreach (IEditorTool tool in _editorTools)
             {
                 tool.LateUpdate();
-            }
+            }*/
 
 
             //Actual render stuff
-            GL.ClearColor(Color.LightSeaGreen);
+            GL.ClearColor(Color.SteelBlue);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             GL.Viewport(0, 0, glControl.Width, glControl.Height);
 
-            foreach (IRenderer renderer in _renderers)
-            {
-                renderer.Render(_camera, (float)glControl.Width / (float)glControl.Height);
-            }
+            _renderer.Render(_camera, (float)glControl.Width / (float)glControl.Height);
 
 
             if (EditorHelpers.KeysDown[(int)Keys.W])
@@ -741,10 +725,10 @@ namespace WindViewer.Forms
         public void UnloadLoadedWorldspaceProject()
         {
             //Clear our Renderers
-            foreach (var renderer in _renderers)
+            /*foreach (var renderer in _renderers)
             {
                 renderer.ClearRenderableList();
-            }
+            }*/
 
             //Then unload the worldspace project
             _loadedWorldspaceProject = null;

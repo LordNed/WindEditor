@@ -30,20 +30,53 @@ namespace WindViewer.Editor.Renderer
             _uniformMVP = GL.GetUniformLocation(_programId, "MVP");
             GL.BindAttribLocation(_programId, (int) ShaderAttributeIds.Position, "vertexPos");
             GL.BindAttribLocation(_programId, (int) ShaderAttributeIds.TexCoord, "vertexTexCoord");
-
+            GL.BindAttribLocation(_programId, (int) ShaderAttributeIds.Color, "color");
 
             if (GL.GetError() != ErrorCode.NoError)
                 Console.WriteLine(GL.GetProgramInfoLog(_programId));
+
+            //
+            float[] vertices = new[]
+            {
+                0.0f,  0.5f, 0f, // Vertex 1: Red
+                0.5f, -0.5f,  0f, // Vertex 2: Green
+                -0.5f, -0.5f, 0f,// Vertex 3: Blue
+            };
+
+
+            GL.GenBuffers(1, out _glVbo);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
+            
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr) (vertices.Length*4), vertices, BufferUsageHint.StaticDraw);
+
+            Console.WriteLine(GL.GetError());
         }
 
-        public override void ClearRenderableList()
-        {
-            
-        }
+        
+
+        //Holy temporary batmans
+        private int _glVbo;
+        private int _glColor;
 
         public override void Render(Camera camera, float aspectRatio)
         {
-            
+            GL.UseProgram(_programId);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0); //Clear any previously bound buffer
+
+            //Enable Attributes for Shader
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
+
+            GL.EnableVertexAttribArray((int) ShaderAttributeIds.Position);
+            //GL.EnableVertexAttribArray((int) ShaderAttributeIds.Color);
+
+            GL.VertexAttribPointer((int)ShaderAttributeIds.Position, 3, VertexAttribPointerType.Float, false, 0, 0);
+            //GL.VertexAttribPointer((int)ShaderAttributeIds.Color, 3, VertexAttribPointerType.Float, false, 5 * 4, 2 * 4);
+
+            GL.DrawArrays(PrimitiveType.Triangles, 0, 3);
+
+            GL.DisableVertexAttribArray((int) ShaderAttributeIds.Position);
+            //GL.DisableVertexAttribArray((int)ShaderAttributeIds.Color);
+            GL.Flush();
         }
     }
 }
