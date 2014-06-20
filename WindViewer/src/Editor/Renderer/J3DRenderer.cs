@@ -38,9 +38,9 @@ namespace WindViewer.Editor.Renderer
             //
             float[] vertices = new[]
             {
-                0.0f,  0.5f, 0f, // Vertex 1: Red
-                0.5f, -0.5f,  0f, // Vertex 2: Green
-                -0.5f, -0.5f, 0f,// Vertex 3: Blue
+                0.0f,  0.5f, 0f, 1f, 0f, 0f, // Vertex 1: Red
+                0.5f, -0.5f,  0f, 0f, 1f, 0f, // Vertex 2: Green
+                -0.5f, -0.5f, 0f, 0f, 0f, 1f// Vertex 3: Blue
             };
 
 
@@ -67,15 +67,15 @@ namespace WindViewer.Editor.Renderer
             GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
 
             GL.EnableVertexAttribArray((int) ShaderAttributeIds.Position);
-            //GL.EnableVertexAttribArray((int) ShaderAttributeIds.Color);
+            GL.EnableVertexAttribArray((int) ShaderAttributeIds.Color);
 
-            GL.VertexAttribPointer((int)ShaderAttributeIds.Position, 3, VertexAttribPointerType.Float, false, 0, 0);
-            //GL.VertexAttribPointer((int)ShaderAttributeIds.Color, 3, VertexAttribPointerType.Float, false, 5 * 4, 2 * 4);
+            GL.VertexAttribPointer((int)ShaderAttributeIds.Position, 3, VertexAttribPointerType.Float, false, 6*4 , 0);
+            GL.VertexAttribPointer((int)ShaderAttributeIds.Color, 3, VertexAttribPointerType.Float, false, 6*4 , 3 * 4);
 
             GL.DrawArrays(PrimitiveType.Triangles, 0, 3);
 
             GL.DisableVertexAttribArray((int) ShaderAttributeIds.Position);
-            //GL.DisableVertexAttribArray((int)ShaderAttributeIds.Color);
+            GL.DisableVertexAttribArray((int)ShaderAttributeIds.Color);
             GL.Flush();
         }
     }
