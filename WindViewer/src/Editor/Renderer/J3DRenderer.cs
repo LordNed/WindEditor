@@ -28,6 +28,7 @@ namespace WindViewer.Editor.Renderer
 
             GL.BindAttribLocation(_programId, (int) ShaderAttributeIds.Position, "vertexPos");
             GL.BindAttribLocation(_programId, (int)ShaderAttributeIds.Color, "inColor");
+            GL.BindAttribLocation(_programId, (int)ShaderAttributeIds.TexCoord, "vertexUV");
 
             //Link shaders 
             GL.LinkProgram(_programId);
@@ -38,12 +39,14 @@ namespace WindViewer.Editor.Renderer
             //Temp
             float[] vertices = new[]
             {
-                0.0f,  0.5f, 0f, 1f, 0f, 0f, // Vertex 1: Red
-                0.5f, -0.5f,  0f, 0f, 1f, 0f, // Vertex 2: Green
-                -0.5f, -0.5f, 0f, 0f, 0f, 1f// Vertex 3: Blue
+                //  Position      Color             Texcoords
+                -0.5f,  0.5f, 0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // Top-left
+                 0.5f,  0.5f, 0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // Top-right
+                 0.5f, -0.5f, 0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, // Bottom-right
+                -0.5f, -0.5f, 0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f  // Bottom-left
             };
 
-            uint[] indexes = {0, 1, 2};
+            uint[] indexes = {0, 1, 2, 2, 3, 0};
 
 
             //Generate the VBO, Bind, and Upload Data
@@ -58,6 +61,25 @@ namespace WindViewer.Editor.Renderer
 
             GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr) (indexes.Length*4), indexes,
                 BufferUsageHint.StaticDraw);
+
+            //Generate the texture, Bind, and Upload Data
+            GL.GenTextures(1, out _glTex);
+            GL.BindTexture(TextureTarget.Texture2D, _glTex);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Nearest);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Nearest);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)All.Repeat);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)All.Repeat);
+
+            // Black/white checkerboard
+            float[] pixels =
+            {
+                0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+                1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f
+            };
+
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb, 2, 2, 0, PixelFormat.Rgb, PixelType.Float,
+                pixels);
+
         }
 
         
@@ -65,6 +87,7 @@ namespace WindViewer.Editor.Renderer
         //Holy temporary batmans
         private int _glVbo;
         private int _glEbo;
+        private int _glTex;
 
         public override void Render(Camera camera, float aspectRatio)
         {
@@ -74,19 +97,23 @@ namespace WindViewer.Editor.Renderer
             //Enable Attributes for Shader
             GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, _glEbo);
+            GL.BindTexture(TextureTarget.Texture2D, _glTex);
 
             GL.EnableVertexAttribArray((int) ShaderAttributeIds.Position);
             GL.EnableVertexAttribArray((int)ShaderAttributeIds.Color);
+            GL.EnableVertexAttribArray((int)ShaderAttributeIds.TexCoord);
 
-            GL.VertexAttribPointer((int)ShaderAttributeIds.Position, 3, VertexAttribPointerType.Float, false, 6*4 , 0);
-            GL.VertexAttribPointer((int)ShaderAttributeIds.Color, 3, VertexAttribPointerType.Float, false, 6*4 , 3 * 4);
+            GL.VertexAttribPointer((int)ShaderAttributeIds.Position, 3, VertexAttribPointerType.Float, false, 8*4 , 0);
+            GL.VertexAttribPointer((int)ShaderAttributeIds.Color, 3, VertexAttribPointerType.Float, false, 8*4 , 3 *4);
+            GL.VertexAttribPointer((int)ShaderAttributeIds.TexCoord, 2, VertexAttribPointerType.Float, false, 8*4, 6* 4);
 
 
             //FFS
-            GL.DrawElements(PrimitiveType.Triangles, 3, DrawElementsType.UnsignedInt, 0);
+            GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, 0);
 
             GL.DisableVertexAttribArray((int) ShaderAttributeIds.Position);
             GL.DisableVertexAttribArray((int)ShaderAttributeIds.Color);
+            GL.DisableVertexAttribArray((int)ShaderAttributeIds.TexCoord);
             GL.Flush();
         }
     }
