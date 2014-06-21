@@ -124,6 +124,14 @@ namespace WindViewer.FileFormats
             J3DRenderer.Bind += J3DRendererOnBind;
         }
 
+        private struct PrimitiveList
+        {
+            public int VertexStart;
+            public int VertexCount;
+        }
+
+        private List<PrimitiveList> _renderList = new List<PrimitiveList>();
+
         private void J3DRendererOnBind()
         {
             GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
@@ -133,7 +141,12 @@ namespace WindViewer.FileFormats
         private void J3DRendererOnDraw()
         {
             //GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
-            GL.DrawArrays(PrimitiveType.TriangleStrip, 0, 10);
+            //GL.DrawArrays(PrimitiveType.TriangleStrip, 0, 10);
+
+            foreach (PrimitiveList primitive in _renderList)
+            {
+                GL.DrawArrays(PrimitiveType.TriangleStrip, primitive.VertexStart, primitive.VertexCount);
+            }
         }
 
         private int _glVbo;
@@ -247,12 +260,13 @@ namespace WindViewer.FileFormats
 
             //For each batch
             int batchDataOffset = (int)shp1Chunk.BatchOffset;
+            
             for(int i = 0; i < shp1Chunk.SectionCount; i++)
             {
                 Shp1Chunk.Batch batch = new Shp1Chunk.Batch();
                 batch.Load(shp1Chunk._dataCopy, ref batchDataOffset);
-
-                int packetDataOffset = (int) shp1Chunk.PacketOffset;
+                int packetDataOffset = (int)shp1Chunk.PacketOffset;
+                
                 for (int p = 0; p < batch.PacketCount; p++)
                 {
                     Shp1Chunk.BatchPacketLocation bP = new Shp1Chunk.BatchPacketLocation();
@@ -268,16 +282,20 @@ namespace WindViewer.FileFormats
                         Shp1Chunk.BatchPrimitive primitive = new Shp1Chunk.BatchPrimitive();
                         primitive.Load(shp1Chunk._dataCopy, (int)(shp1Chunk.PrimitiveDataOffset + bP.Offset + primitiveOffset));
 
+                        PrimitiveList pmEntry = new PrimitiveList();
+                        pmEntry.VertexCount = primitive.VertexCount;
+                        pmEntry.VertexStart = finalData.Count;
+
                         List<ushort> primitiveIndexes = new List<ushort>();
                         //Immediately following the primitive is BatchPrimitive.VertexCount * (numElements * elementSize) bytes
-                        int primitiveDataOffset = (int)(shp1Chunk.PrimitiveDataOffset + bP.Offset + 3); //3 bytes for the BatchPrimitive
+                        int primitiveDataOffset = (int)(shp1Chunk.PrimitiveDataOffset + packetReadCount + bP.Offset + 3); //3 bytes for the BatchPrimitive
                         for (int v = 0; v < primitive.VertexCount; v++)
                         {
                             VertexFormatLayout newVert = new VertexFormatLayout();
                             for (int u = 0; u < 3; u++)
                             {
                                 ushort index = (ushort) FSHelpers.Read16(shp1Chunk._dataCopy, primitiveDataOffset);
-                                primitiveIndexes.Add(index);
+                                    primitiveIndexes.Add(index);
                                 primitiveDataOffset += 2;
 
 
@@ -303,8 +321,10 @@ namespace WindViewer.FileFormats
                             finalData.Add(newVert);
                         }
 
-                        packetReadCount += primitive.VertexCount * 6;
+                        packetReadCount += primitive.VertexCount * 6+3;
                         primitiveOffset += primitive.VertexCount * 6 + 3;
+
+                        _renderList.Add(pmEntry);
                     }
                 }
             }
