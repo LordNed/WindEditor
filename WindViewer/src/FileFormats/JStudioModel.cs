@@ -124,6 +124,11 @@ namespace WindViewer.FileFormats
             J3DRenderer.Bind += J3DRendererOnBind;
         }
 
+        public override void Save(BinaryWriter stream)
+        {
+            stream.Write(_origDataCache);
+        }
+
         private struct PrimitiveList
         {
             public int VertexStart;
@@ -189,6 +194,9 @@ namespace WindViewer.FileFormats
 
                 //Massive hack incoming... we're just going to read way behond what we should read
                 //because it's all indexed and fuck it I'm tired.
+
+                //PPS: This is now obsolete ^o^
+                //Now you can call vtxChunk.GetPosition(index);
 
                 switch (format.DataType)
                 {
@@ -409,11 +417,6 @@ namespace WindViewer.FileFormats
             return finalData;
         }
 
-        public override void Save(BinaryWriter stream)
-        {
-            stream.Write(_origDataCache);
-        }
-
         #region File Formats
 
         private class Header
@@ -529,6 +532,8 @@ namespace WindViewer.FileFormats
                     offset += 4;
                 }
             }
+
+            //public int GetVertex
         }
 
         private class Vtx1Chunk : BaseChunk
@@ -540,15 +545,17 @@ namespace WindViewer.FileFormats
                 public DataTypes DataType;
                 public byte DecimalPoint;
 
-                public void Load(byte[] data, ref int offset)
+                public void Load(byte[] data, int offset)
                 {
                     ArrayType = (ArrayTypes)FSHelpers.Read32(data, offset);
                     ArrayCount = (uint)FSHelpers.Read32(data, offset + 4);
                     DataType = (DataTypes)FSHelpers.Read32(data, offset + 8);
                     DecimalPoint = FSHelpers.Read8(data, offset + 12);
 
-                    offset += 16; //3 bytes padding after DecimalPoint
+                    //offset += 16; //3 bytes padding after DecimalPoint
                 }
+
+                public const int Size = 16;
             }
 
             public enum VertexDataTypes
@@ -558,7 +565,7 @@ namespace WindViewer.FileFormats
                 Tex0 = 5,
             }
 
-            public int DataOffset;
+            public int VertexFormatsOffset;
             public int[] VertexDataOffsets = new int[13];
 
             //Not part of the header
@@ -568,23 +575,69 @@ namespace WindViewer.FileFormats
             {
                 base.Load(data, ref offset);
 
-                DataOffset = FSHelpers.Read32(data, offset + 0x8);
+                VertexFormatsOffset = FSHelpers.Read32(data, offset + 0x8);
                 for (int i = 0; i < 13; i++)
                     VertexDataOffsets[i] = FSHelpers.Read32(data, (offset + 0xC) + (i * 0x4));
 
                 //Load the VertexFormats 
-                int dataOffsetCpy = offset + DataOffset;
+                int dataOffsetCpy = offset + VertexFormatsOffset;
                 VertexFormat vFormat;
                 do
                 {
                     vFormat = new VertexFormat();
-                    vFormat.Load(data, ref dataOffsetCpy);
+                    vFormat.Load(data, dataOffsetCpy);
                     VertexFormats.Add(vFormat);
+
+                    dataOffsetCpy += 16;
                 } while (vFormat.ArrayType != ArrayTypes.NullAttr);
 
                 offset += ChunkSize;
 
+                //Test Bed
+                for (int i = 0; i < 3; i++)
+                {
+                    var vtx = GetVertexFormat(i);
+                    Console.WriteLine(vtx);
+                }
             }
+            
+            public VertexFormat GetVertexFormat(int index)
+            {
+                VertexFormat vtxFmt = new VertexFormat();
+                vtxFmt.Load(_dataCopy, VertexFormatsOffset + (index * VertexFormat.Size));
+                return vtxFmt;
+            }
+
+            public Vector3 GetPosition(int index)
+            {
+                Vector3 newPos = new Vector3();
+                for(int i = 0; i < 3; i++)
+                    newPos[i] = FSHelpers.ReadFloat(_dataCopy, VertexDataOffsets[(int)VertexDataTypes.Position] + (index * Vector3.SizeInBytes) + (i*4));
+
+                return newPos;
+            }
+
+            public Vector4 GetColor0(int index)
+            {
+                Vector4 newColor = new Vector4();
+                for(int i = 0; i < 4; i++)
+                    newColor[i] = FSHelpers.Read8(_dataCopy, VertexDataOffsets[(int)VertexDataTypes.Color0] + (index * 4) + i)/255f;
+
+                return newColor;
+            }
+
+            public Vector2 GetTex0(int index, int decimalPlace)
+            {
+                Vector2 newTexCoord = new Vector2();
+                float scaleFactor = (float) Math.Pow(0.5, decimalPlace);
+
+                for (int i = 0; i < 2; i++)
+                    newTexCoord[i] = FSHelpers.Read16(_dataCopy,
+                        VertexDataOffsets[(int) VertexDataTypes.Tex0] + (index*4) + (i*0x2))*scaleFactor;
+
+                return newTexCoord;
+            }
+
         }
 
         private class Evp1Chunk : BaseChunk
