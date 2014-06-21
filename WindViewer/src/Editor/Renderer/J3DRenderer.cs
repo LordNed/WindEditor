@@ -8,6 +8,7 @@ namespace WindViewer.Editor.Renderer
     public sealed class J3DRenderer : IRenderer
     {
         public static event Action Draw;
+        public static event Action Bind;
 
         public J3DRenderer()
         {
@@ -124,6 +125,9 @@ namespace WindViewer.Editor.Renderer
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, _glEbo);
             GL.BindTexture(TextureTarget.Texture2D, _glTex);
 
+            if (Bind != null)
+                Bind();
+
             GL.EnableVertexAttribArray((int) ShaderAttributeIds.Position);
             GL.EnableVertexAttribArray((int)ShaderAttributeIds.Color);
             GL.EnableVertexAttribArray((int)ShaderAttributeIds.TexCoord);
@@ -132,7 +136,7 @@ namespace WindViewer.Editor.Renderer
             GL.VertexAttribPointer((int)ShaderAttributeIds.Color, 4, VertexAttribPointerType.Float, false, 9*4 , 3 *4);
             GL.VertexAttribPointer((int)ShaderAttributeIds.TexCoord, 2, VertexAttribPointerType.Float, false, 9*4, 7* 4);
 
-            Matrix4 projMatrix = Matrix4.CreatePerspectiveFieldOfView((float) Math.PI/4f, aspectRatio, 0.1f, 1000f);
+            Matrix4 projMatrix = Matrix4.CreatePerspectiveFieldOfView((float) Math.PI/4f, aspectRatio, 0.1f, 5000f);
             Matrix4 modelMatrix = Matrix4.Identity;
             Matrix4 viewMatrix = camera.GetViewMatrix();
 

@@ -120,13 +120,20 @@ namespace WindViewer.FileFormats
             GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
             GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(vertData.Count * 32), vertData.ToArray(), BufferUsageHint.StaticDraw);
 
-            J3DRenderer.Draw += J3DRendererOnDraw;
+                        J3DRenderer.Draw += J3DRendererOnDraw;
+            J3DRenderer.Bind += J3DRendererOnBind;
+        }
+
+        private void J3DRendererOnBind()
+        {
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
+
         }
 
         private void J3DRendererOnDraw()
         {
             //GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
-            //GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, 0);
+            GL.DrawArrays(PrimitiveType.TriangleStrip, 0, 10);
         }
 
         private int _glVbo;
@@ -274,7 +281,7 @@ namespace WindViewer.FileFormats
                                 primitiveDataOffset += 2;
 
 
-                                Console.WriteLine(index);
+                                //Console.WriteLine(index);
                                 switch (u)
                                 {
                                     case 0:
@@ -451,7 +458,7 @@ namespace WindViewer.FileFormats
             {
                 Position = 0,
                 Color0 = 3,
-                Tex0 = 6,
+                Tex0 = 5,
             }
 
             public int DataOffset;
@@ -466,7 +473,7 @@ namespace WindViewer.FileFormats
 
                 DataOffset = FSHelpers.Read32(data, offset + 0x8);
                 for (int i = 0; i < 13; i++)
-                    VertexDataOffsets[i] = FSHelpers.Read32(data, (offset + 0x8) + (i * 0x4));
+                    VertexDataOffsets[i] = FSHelpers.Read32(data, (offset + 0xC) + (i * 0x4));
 
                 //Load the VertexFormats 
                 int dataOffsetCpy = offset + DataOffset;
