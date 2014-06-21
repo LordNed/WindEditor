@@ -177,104 +177,22 @@ namespace WindViewer.FileFormats
 
         private List<VertexFormatLayout> BuildVertexArraysFromFile(byte[] data)
         {
-            List<Vector3> vertList = new List<Vector3>();
-            List<Vector4> colorList = new List<Vector4>();
-            List<Vector2> tcList = new List<Vector2>();
-
             Vtx1Chunk vtxChunk = GetChunkByType<Vtx1Chunk>();
-
-            foreach (Vtx1Chunk.VertexFormat format in vtxChunk.VertexFormats)
-            {
-                if (format.ArrayType == ArrayTypes.NullAttr)
-                    continue;
-
-                uint entryCount = format.ArrayCount;
-                uint dataLength = 0;
-                float[] formatData = null;
-
-                //Massive hack incoming... we're just going to read way behond what we should read
-                //because it's all indexed and fuck it I'm tired.
-
-                //PPS: This is now obsolete ^o^
-                //Now you can call vtxChunk.GetPosition(index);
-
-                switch (format.DataType)
-                {
-                    //Convert fixed precision to float
-                    case DataTypes.Signed16:
-                        dataLength = (uint)(vtxChunk.ChunkSize - vtxChunk.VertexDataOffsets[((int)Vtx1Chunk.VertexDataTypes.Tex0)]) / 2;
-                        formatData = new float[dataLength];
-
-                        float scale = (float)Math.Pow(0.5, format.DecimalPoint);
-                        for (int i = 0; i < dataLength; i++)
-                        {
-                            formatData[i] =
-                                FSHelpers.Read16(vtxChunk._dataCopy,
-                                    vtxChunk.VertexDataOffsets[((int)Vtx1Chunk.VertexDataTypes.Tex0)] + (i * 2)) * scale;
-                        }
-                        break;
-
-                    case DataTypes.Float32:
-                        dataLength = (uint)(vtxChunk.ChunkSize - vtxChunk.VertexDataOffsets[((int)Vtx1Chunk.VertexDataTypes.Position)]) / 4;
-                        formatData = new float[dataLength];
-
-                        for (int i = 0; i < dataLength; i++)
-                        {
-                            formatData[i] = FSHelpers.ReadFloat(vtxChunk._dataCopy,
-                                vtxChunk.VertexDataOffsets[((int)Vtx1Chunk.VertexDataTypes.Position)] + (i * 4));
-                        }
-                        break;
-
-                    case DataTypes.RGBA8:
-                        dataLength = (uint)(vtxChunk.ChunkSize - vtxChunk.VertexDataOffsets[((int)Vtx1Chunk.VertexDataTypes.Color0)]);
-                        formatData = new float[dataLength];
-
-                        for (int i = 0; i < dataLength; i++)
-                        {
-                            formatData[i] =
-                                FSHelpers.Read8(vtxChunk._dataCopy,
-                                    vtxChunk.VertexDataOffsets[((int)Vtx1Chunk.VertexDataTypes.Color0)] + i) / 255f;
-                        }
-                        break;
-                }
-
-
-                //Now that we've pulled the data and converted it to floats, we're going to turn it into something useful.
-                switch (format.ArrayType)
-                {
-                    case ArrayTypes.Position:
-                        for (int i = 0, j = 0; i < (formatData.Length / 3); i++, j += 3)
-                            vertList.Add(new Vector3(formatData[j], formatData[j + 1], formatData[j + 2]));
-                        break;
-
-                    case ArrayTypes.Color0:
-                        for (int i = 0, j = 0; i < (formatData.Length / 4); i++, j += 4)
-                            colorList.Add(new Vector4(formatData[j], formatData[j + 1], formatData[j + 2], formatData[j + 3]));
-                        break;
-
-                    case ArrayTypes.Tex0:
-                        for (int i = 0, j = 0; i < (formatData.Length / 2); i++, j += 2)
-                            tcList.Add(new Vector2(formatData[j], formatData[j + 1]));
-                        break;
-                }
-
-                Console.WriteLine("BLURRGRGH.");
-
-            }
-
             List<VertexFormatLayout> finalData = new List<VertexFormatLayout>();
+
             Shp1Chunk shp1Chunk = GetChunkByType<Shp1Chunk>();
 
 
-            Shp1Chunk.Batch[] batches = new Shp1Chunk.Batch[shp1Chunk.SectionCount];
-            Shp1Chunk.BatchPacketLocation[] packetLocations = new Shp1Chunk.BatchPacketLocation[shp1Chunk.SectionCount];
+            Shp1Chunk.Batch[] batches = new Shp1Chunk.Batch[shp1Chunk._batchCount];
+            Shp1Chunk.BatchPacketLocation[] packetLocations = new Shp1Chunk.BatchPacketLocation[shp1Chunk._batchCount];
 
             //Read the batches
-            int batchDataOffset = (int)shp1Chunk.BatchOffset;
+            int batchDataOffset = (int)shp1Chunk.BatchDataOffset;
             for (int i = 0; i < batches.Length; i++)
             {
                 batches[i] = new Shp1Chunk.Batch();
                 batches[i].Load(shp1Chunk._dataCopy, ref batchDataOffset);
+
             }
 
             //Read the Packet Locations
@@ -282,7 +200,7 @@ namespace WindViewer.FileFormats
             for (int i = 0; i < packetLocations.Length; i++)
             {
                 packetLocations[i] = new Shp1Chunk.BatchPacketLocation();
-                packetLocations[i].Size = (uint)FSHelpers.Read32(shp1Chunk._dataCopy, packetDataOffset + 0x0);
+                packetLocations[i].PacketSize = (uint)FSHelpers.Read32(shp1Chunk._dataCopy, packetDataOffset + 0x0);
                 packetLocations[i].Offset = (uint)FSHelpers.Read32(shp1Chunk._dataCopy, packetDataOffset + 0x4);
                 packetDataOffset += 0x8;
             }
@@ -297,7 +215,7 @@ namespace WindViewer.FileFormats
                 {
                     int packetBytesRead = 0;
 
-                    while (packetBytesRead < packetLoc.Size)
+                    while (packetBytesRead < packetLoc.PacketSize)
                     {
                         Shp1Chunk.BatchPrimitive primitive = new Shp1Chunk.BatchPrimitive();
                         primitive.Load(shp1Chunk._dataCopy, (int)(shp1Chunk.PrimitiveDataOffset + packetLoc.Offset + packetBytesRead));
@@ -476,22 +394,22 @@ namespace WindViewer.FileFormats
 
         private class Inf1Chunk : BaseChunk
         {
-            public short Unknown1;
-            public int Unknown2;
-            public int VertexCount;
-            public int DataOffset;
+            public short Unknown1; //? Anim related
+            private int _batchCount;
+            private int _vertexCount;
+            private int _dataOffset;
 
             public override void Load(byte[] data, ref int offset)
             {
                 base.Load(data, ref offset);
 
                 Unknown1 = FSHelpers.Read16(data, offset + 8);
-                Unknown2 = FSHelpers.Read32(data, offset + 12); //2 bytes padding after Unknown1
-                VertexCount = FSHelpers.Read32(data, offset + 16);
-                DataOffset = FSHelpers.Read32(data, offset + 20);
+                _batchCount = FSHelpers.Read32(data, offset + 12); //2 bytes padding after Unknown1
+                _vertexCount = FSHelpers.Read32(data, offset + 16);
+                _dataOffset = FSHelpers.Read32(data, offset + 20);
 
                 var hierarchyDataList = new List<HierarchyData>();
-                int dataOffsetCpy = DataOffset;
+                int dataOffsetCpy = _dataOffset;
 
                 //Nintendo doesn't seem to define how many of these there are anywhere,
                 //so we're going to have to sort of guess at the maximum (since the struct
@@ -533,7 +451,10 @@ namespace WindViewer.FileFormats
                 }
             }
 
-            //public int GetVertex
+            public int GetVertexCount()
+            {
+                return _vertexCount;
+            }
         }
 
         private class Vtx1Chunk : BaseChunk
@@ -551,8 +472,6 @@ namespace WindViewer.FileFormats
                     ArrayCount = (uint)FSHelpers.Read32(data, offset + 4);
                     DataType = (DataTypes)FSHelpers.Read32(data, offset + 8);
                     DecimalPoint = FSHelpers.Read8(data, offset + 12);
-
-                    //offset += 16; //3 bytes padding after DecimalPoint
                 }
 
                 public const int Size = 16;
@@ -561,12 +480,13 @@ namespace WindViewer.FileFormats
             public enum VertexDataTypes
             {
                 Position = 0,
+                Normal = 1,
                 Color0 = 3,
                 Tex0 = 5,
             }
 
-            public int VertexFormatsOffset;
-            public int[] VertexDataOffsets = new int[13];
+            private int _vertexFormatsOffset;
+            private int[] VertexDataOffsets = new int[13];
 
             //Not part of the header
             public List<VertexFormat> VertexFormats = new List<VertexFormat>();
@@ -575,12 +495,12 @@ namespace WindViewer.FileFormats
             {
                 base.Load(data, ref offset);
 
-                VertexFormatsOffset = FSHelpers.Read32(data, offset + 0x8);
+                _vertexFormatsOffset = FSHelpers.Read32(data, offset + 0x8);
                 for (int i = 0; i < 13; i++)
                     VertexDataOffsets[i] = FSHelpers.Read32(data, (offset + 0xC) + (i * 0x4));
 
                 //Load the VertexFormats 
-                int dataOffsetCpy = offset + VertexFormatsOffset;
+                int dataOffsetCpy = offset + _vertexFormatsOffset;
                 VertexFormat vFormat;
                 do
                 {
@@ -588,23 +508,16 @@ namespace WindViewer.FileFormats
                     vFormat.Load(data, dataOffsetCpy);
                     VertexFormats.Add(vFormat);
 
-                    dataOffsetCpy += 16;
+                    dataOffsetCpy += VertexFormat.Size;
                 } while (vFormat.ArrayType != ArrayTypes.NullAttr);
 
                 offset += ChunkSize;
-
-                //Test Bed
-                for (int i = 0; i < 3; i++)
-                {
-                    var vtx = GetVertexFormat(i);
-                    Console.WriteLine(vtx);
-                }
             }
             
             public VertexFormat GetVertexFormat(int index)
             {
                 VertexFormat vtxFmt = new VertexFormat();
-                vtxFmt.Load(_dataCopy, VertexFormatsOffset + (index * VertexFormat.Size));
+                vtxFmt.Load(_dataCopy, _vertexFormatsOffset + (index * VertexFormat.Size));
                 return vtxFmt;
             }
 
@@ -737,20 +650,20 @@ namespace WindViewer.FileFormats
                 //Bleh
                 public List<BatchAttribute> BatchAttributes = new List<BatchAttribute>();
 
-                public void Load(byte[] data, ref int offset)
+                public void Load(byte[] data, uint offset)
                 {
-                    MatrixType = FSHelpers.Read8(data, offset);
-                    PacketCount = (ushort)FSHelpers.Read16(data, offset + 0x2);
-                    AttribOffset = (ushort)FSHelpers.Read16(data, offset + 0x4);
-                    FirstMatrixIndex = (ushort)FSHelpers.Read16(data, offset + 0x6);
-                    PacketIndex = (ushort)FSHelpers.Read16(data, offset + 0x8);
+                    MatrixType = FSHelpers.Read8(data, (int)offset);
+                    PacketCount = (ushort)FSHelpers.Read16(data, (int)offset + 0x2);
+                    AttribOffset = (ushort)FSHelpers.Read16(data, (int)offset + 0x4);
+                    FirstMatrixIndex = (ushort)FSHelpers.Read16(data, (int)offset + 0x6);
+                    PacketIndex = (ushort)FSHelpers.Read16(data, (int)offset + 0x8);
 
-                    Unknown = FSHelpers.ReadFloat(data, offset + 0xC);
-                    BoundingBoxMin = FSHelpers.ReadVector3(data, offset + 0x10);
-                    BoundingBoxMax = FSHelpers.ReadVector3(data, offset + 0x1C);
-
-                    offset += 40;
+                    Unknown = FSHelpers.ReadFloat(data, (int)offset + 0xC);
+                    BoundingBoxMin = FSHelpers.ReadVector3(data, (int)offset + 0x10);
+                    BoundingBoxMax = FSHelpers.ReadVector3(data, (int)offset + 0x1C);
                 }
+
+                public const uint Size = 40;
             }
 
             public class BatchAttribute
@@ -769,8 +682,11 @@ namespace WindViewer.FileFormats
 
             public struct BatchPacketLocation
             {
-                public uint Size;
+                public uint PacketSize;
                 public uint Offset;
+
+                //Not part of the BPLocation header
+                public const uint Size = 8;
             }
 
             public class BatchPrimitive
@@ -780,38 +696,61 @@ namespace WindViewer.FileFormats
 
                 public void Load(byte[] data, int offset)
                 {
-                    Type = (PrimitiveTypes)FSHelpers.Read8(data, offset);
-
+                    Type = (PrimitiveTypes) FSHelpers.Read8(data, offset);
                     VertexCount = (ushort)FSHelpers.Read16(data, offset + 0x1);
                 }
+
+                public const uint Size = 3;
             }
 
-            public ushort SectionCount;
-            public uint BatchOffset;
-            public uint Unknown1Offset;
-            public uint UnknownPadding;
-            public uint AttributeOffset;
-            public uint MatrixTableOffset;
-            public uint PrimitiveDataOffset;
-            public uint MatrixDataOffset;
-            public uint PacketLocationOffset;
+            private ushort _batchCount;
+            private uint _batchDataOffset;
+            private uint _unknownTableOffset;
+            private uint _zero;
+            private uint _attributeOffset;
+            private uint _matrixTableOffset;
+            private uint _primitiveDataOffset;
+            private uint _matrixDataOffset;
+            private uint _packetLocationOffset;
 
             public override void Load(byte[] data, ref int offset)
             {
                 base.Load(data, ref offset);
 
                 //Load information from header
-                SectionCount = (ushort)FSHelpers.Read16(data, offset + 0x8);
-                BatchOffset = (uint)FSHelpers.Read32(data, offset + 0xC);
-                Unknown1Offset = (uint)FSHelpers.Read32(data, offset + 0x10);
-                UnknownPadding = (uint)FSHelpers.Read32(data, offset + 0x14);
-                AttributeOffset = (uint)FSHelpers.Read32(data, offset + 0x18);
-                MatrixTableOffset = (uint)FSHelpers.Read32(data, offset + 0x1C);
-                PrimitiveDataOffset = (uint)FSHelpers.Read32(data, offset + 0x20);
-                MatrixDataOffset = (uint)FSHelpers.Read32(data, offset + 0x24);
-                PacketLocationOffset = (uint)FSHelpers.Read32(data, offset + 0x28);
+                _batchCount = (ushort)FSHelpers.Read16(data, offset + 0x8);
+                _batchDataOffset = (uint)FSHelpers.Read32(data, offset + 0xC);
+                _unknownTableOffset = (uint)FSHelpers.Read32(data, offset + 0x10);
+                _zero = (uint)FSHelpers.Read32(data, offset + 0x14);
+                _attributeOffset = (uint)FSHelpers.Read32(data, offset + 0x18);
+                _matrixTableOffset = (uint)FSHelpers.Read32(data, offset + 0x1C);
+                _primitiveDataOffset = (uint)FSHelpers.Read32(data, offset + 0x20);
+                _matrixDataOffset = (uint)FSHelpers.Read32(data, offset + 0x24);
+                _packetLocationOffset = (uint)FSHelpers.Read32(data, offset + 0x28);
 
                 offset += ChunkSize;
+            }
+
+            public Batch GetBatch(uint index)
+            {
+                Batch newBatch = new Batch();
+                newBatch.Load(_dataCopy, _batchDataOffset + (index * Batch.Size));
+
+                return newBatch;
+            }
+
+            public ushort GetBatchCount()
+            {
+                return _batchCount;
+            }
+
+            public BatchPacketLocation GetBatchPacketLocation(uint index)
+            {
+                BatchPacketLocation newBp = new BatchPacketLocation();
+                newBp.PacketSize = (uint)FSHelpers.Read32(_dataCopy, (int)(_packetLocationOffset + (index*BatchPacketLocation.Size) + 0x0));
+                newBp.Offset = (uint)FSHelpers.Read32(_dataCopy, (int)(_packetLocationOffset + (index * BatchPacketLocation.Size) + 0x4));
+
+                return newBp;
             }
         }
         #endregion
