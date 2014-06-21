@@ -120,7 +120,7 @@ namespace WindViewer.FileFormats
             GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
             GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(vertData.Count * 32), vertData.ToArray(), BufferUsageHint.StaticDraw);
 
-                        J3DRenderer.Draw += J3DRendererOnDraw;
+            J3DRenderer.Draw += J3DRendererOnDraw;
             J3DRenderer.Bind += J3DRendererOnBind;
         }
 
@@ -180,7 +180,7 @@ namespace WindViewer.FileFormats
 
             foreach (Vtx1Chunk.VertexFormat format in vtxChunk.VertexFormats)
             {
-                if(format.ArrayType == ArrayTypes.NullAttr)
+                if (format.ArrayType == ArrayTypes.NullAttr)
                     continue;
 
                 uint entryCount = format.ArrayCount;
@@ -235,17 +235,17 @@ namespace WindViewer.FileFormats
                 switch (format.ArrayType)
                 {
                     case ArrayTypes.Position:
-                        for (int i = 0, j = 0; i < (formatData.Length/3); i++, j += 3)
+                        for (int i = 0, j = 0; i < (formatData.Length / 3); i++, j += 3)
                             vertList.Add(new Vector3(formatData[j], formatData[j + 1], formatData[j + 2]));
                         break;
 
                     case ArrayTypes.Color0:
-                        for(int i = 0, j = 0; i < (formatData.Length/4); i++, j+= 4)
-                            colorList.Add(new Vector4(formatData[j], formatData[j + 1], formatData[j + 2], formatData[j+3]));
+                        for (int i = 0, j = 0; i < (formatData.Length / 4); i++, j += 4)
+                            colorList.Add(new Vector4(formatData[j], formatData[j + 1], formatData[j + 2], formatData[j + 3]));
                         break;
 
                     case ArrayTypes.Tex0:
-                        for (int i = 0, j = 0; i < (formatData.Length/2); i++, j += 2)
+                        for (int i = 0, j = 0; i < (formatData.Length / 2); i++, j += 2)
                             tcList.Add(new Vector2(formatData[j], formatData[j + 1]));
                         break;
                 }
@@ -254,25 +254,102 @@ namespace WindViewer.FileFormats
 
             }
 
-
             List<VertexFormatLayout> finalData = new List<VertexFormatLayout>();
             Shp1Chunk shp1Chunk = GetChunkByType<Shp1Chunk>();
 
-            //For each batch
+
+            Shp1Chunk.Batch[] batches = new Shp1Chunk.Batch[shp1Chunk.SectionCount];
+            Shp1Chunk.BatchPacketLocation[] packetLocations = new Shp1Chunk.BatchPacketLocation[shp1Chunk.SectionCount];
+
+            //Read the batches
             int batchDataOffset = (int)shp1Chunk.BatchOffset;
-            
-            for(int i = 0; i < shp1Chunk.SectionCount; i++)
+            for (int i = 0; i < batches.Length; i++)
+            {
+                batches[i] = new Shp1Chunk.Batch();
+                batches[i].Load(shp1Chunk._dataCopy, ref batchDataOffset);
+            }
+
+            //Read the Packet Locations
+            int packetDataOffset = (int) shp1Chunk.PacketLocationOffset;
+            for (int i = 0; i < packetLocations.Length; i++)
+            {
+                packetLocations[i] = new Shp1Chunk.BatchPacketLocation();
+                packetLocations[i].Size = (uint)FSHelpers.Read32(shp1Chunk._dataCopy, packetDataOffset + 0x0);
+                packetLocations[i].Offset = (uint)FSHelpers.Read32(shp1Chunk._dataCopy, packetDataOffset + 0x4);
+                packetDataOffset += 0x8;
+            }
+
+            //Now, let's try to get our data.
+            for (int i = 0; i < batches.Length; i++)
+            {
+                Shp1Chunk.Batch batch = batches[i];
+                Shp1Chunk.BatchPacketLocation packetLoc = packetLocations[batch.PacketIndex];
+
+                for (int p = 0; p < batch.PacketCount; p++)
+                {
+                    int packetBytesRead = 0;
+
+                    while (packetBytesRead < packetLoc.Size)
+                    {
+                        Shp1Chunk.BatchPrimitive primitive = new Shp1Chunk.BatchPrimitive();
+                        primitive.Load(shp1Chunk._dataCopy, (int)(shp1Chunk.PrimitiveDataOffset + packetLoc.Offset + packetBytesRead));
+
+                        PrimitiveList pmEntry = new PrimitiveList();
+                        pmEntry.VertexCount = primitive.VertexCount;
+                        pmEntry.VertexStart = finalData.Count;
+
+                        //Immediately following the primitive is BatchPrimitive.VertexCount * (numElements * elementSize) bytes
+                        int primitiveDataOffset = (int)(shp1Chunk.PrimitiveDataOffset + packetLoc.Offset + 3); //3 bytes for the BatchPrimitive
+                        for (int v = 0; v < primitive.VertexCount; v++)
+                        {
+                            VertexFormatLayout newVert = new VertexFormatLayout();
+                            for (int u = 0; u < 3; u++)
+                            {
+                                //Hack Hack, this is overflowing... maybe off by one error? 
+                                if (primitiveDataOffset > shp1Chunk._dataCopy.Length - 2)
+                                    continue;
+
+                                ushort index = (ushort)FSHelpers.Read16(shp1Chunk._dataCopy, primitiveDataOffset);
+                                primitiveDataOffset += 2;
+
+                                switch (u)
+                                {
+                                    case 0:
+                                        if (index < vertList.Count)
+                                            newVert.Position = vertList[index];
+                                        break;
+                                    case 1:
+                                        if (index < colorList.Count)
+                                            newVert.Color = colorList[index];
+                                        break;
+                                    case 2:
+                                        if (index < tcList.Count)
+                                            newVert.TexCoord = tcList[index];
+                                        break;
+
+                                }
+                            }
+
+                            finalData.Add(newVert);
+                        }
+
+                        packetBytesRead += (primitive.VertexCount*6) + 3;
+                        _renderList.Add(pmEntry);
+                    }
+                }
+            }
+
+
+            /*for (int i = 0; i < shp1Chunk.SectionCount; i++)
             {
                 Shp1Chunk.Batch batch = new Shp1Chunk.Batch();
                 batch.Load(shp1Chunk._dataCopy, ref batchDataOffset);
-                int packetDataOffset = (int)shp1Chunk.PacketOffset;
-                
+                int packetDataOffset = (int)shp1Chunk.PacketLocationOffset;
+
                 for (int p = 0; p < batch.PacketCount; p++)
                 {
                     Shp1Chunk.BatchPacketLocation bP = new Shp1Chunk.BatchPacketLocation();
-                    bP.Size = (uint)FSHelpers.Read32(shp1Chunk._dataCopy, packetDataOffset +0x0);
-                    bP.Offset = (uint)FSHelpers.Read32(shp1Chunk._dataCopy, packetDataOffset +0x4);
-                    packetDataOffset += 8;
+                    
 
                     //And then get the data from it or something.
                     int packetReadCount = 0;
@@ -294,8 +371,8 @@ namespace WindViewer.FileFormats
                             VertexFormatLayout newVert = new VertexFormatLayout();
                             for (int u = 0; u < 3; u++)
                             {
-                                ushort index = (ushort) FSHelpers.Read16(shp1Chunk._dataCopy, primitiveDataOffset);
-                                    primitiveIndexes.Add(index);
+                                ushort index = (ushort)FSHelpers.Read16(shp1Chunk._dataCopy, primitiveDataOffset);
+                                primitiveIndexes.Add(index);
                                 primitiveDataOffset += 2;
 
 
@@ -303,7 +380,7 @@ namespace WindViewer.FileFormats
                                 switch (u)
                                 {
                                     case 0:
-                                        if(index < vertList.Count)
+                                        if (index < vertList.Count)
                                             newVert.Position = vertList[index];
                                         break;
                                     case 1:
@@ -321,13 +398,13 @@ namespace WindViewer.FileFormats
                             finalData.Add(newVert);
                         }
 
-                        packetReadCount += primitive.VertexCount * 6+3;
+                        packetReadCount += primitive.VertexCount * 6 + 3;
                         primitiveOffset += primitive.VertexCount * 6 + 3;
 
                         _renderList.Add(pmEntry);
                     }
                 }
-            }
+            }*/
 
             return finalData;
         }
@@ -664,7 +741,7 @@ namespace WindViewer.FileFormats
             public uint MatrixTableOffset;
             public uint PrimitiveDataOffset;
             public uint MatrixDataOffset;
-            public uint PacketOffset;
+            public uint PacketLocationOffset;
 
             public override void Load(byte[] data, ref int offset)
             {
@@ -679,7 +756,7 @@ namespace WindViewer.FileFormats
                 MatrixTableOffset = (uint)FSHelpers.Read32(data, offset + 0x1C);
                 PrimitiveDataOffset = (uint)FSHelpers.Read32(data, offset + 0x20);
                 MatrixDataOffset = (uint)FSHelpers.Read32(data, offset + 0x24);
-                PacketOffset = (uint)FSHelpers.Read32(data, offset + 0x28);
+                PacketLocationOffset = (uint)FSHelpers.Read32(data, offset + 0x28);
 
                 offset += ChunkSize;
             }
