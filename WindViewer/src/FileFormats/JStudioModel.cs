@@ -4,7 +4,9 @@ using System.Dynamic;
 using System.IO;
 using System.Windows.Forms;
 using OpenTK;
+using OpenTK.Graphics.OpenGL;
 using WindViewer.Editor;
+using WindViewer.Editor.Renderer;
 
 namespace WindViewer.FileFormats
 {
@@ -111,7 +113,22 @@ namespace WindViewer.FileFormats
             //STEP 2: Once all of the data is loaded, we're going to pull different data from
             //different chunks to transform the data into something
             var vertData = BuildVertexArraysFromFile(data);
+
+
+            //Haaaaaaaack there goes my lung. Generate a vbo, bind and upload data.
+            GL.GenBuffers(1, out _glVbo);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(vertData.Count * 32), vertData.ToArray(), BufferUsageHint.StaticDraw);
+
+            J3DRenderer.Draw += J3DRendererOnDraw;
         }
+
+        private void J3DRendererOnDraw()
+        {
+            //GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
+        }
+
+        private int _glVbo;
 
         public T GetChunkByType<T>() where T : class
         {
@@ -283,53 +300,6 @@ namespace WindViewer.FileFormats
                     }
                 }
             }
-
-            /*int dataOffset = (int)(offset + BatchOffset);
-            for (int i = 0; i < SectionCount; i++)
-            {
-                Batch batch = new Batch();
-                batch.Load(data, ref dataOffset);
-
-                //Get the Batch Attribute
-                BatchAttribute batchAttrib = new BatchAttribute();
-                int batchAttribOffset = (int)(offset + AttributeOffset + batch.AttribOffset); //I think AttribOffset is an index...
-                batchAttrib.Load(data, ref batchAttribOffset);
-
-                //Now get the batch's packets.
-                for (int k = 0; k < batch.PacketCount; k++)
-                {
-                    //Let's get the packet location
-                    BatchPacketLocation packetLoc = new BatchPacketLocation();
-                    packetLoc.Size = (uint)FSHelpers.Read32(data, (int)(offset + PacketOffset + (batch.PacketIndex * 4)));
-                    packetLoc.Offset = (uint)FSHelpers.Read32(data, (int)(offset + PacketOffset + (batch.PacketIndex * 4) + 4));
-
-                    //Now that we know where the packet is, we can finally get the data from it.
-                    int packetReadCount = 0;
-                    int primitiveOffset = 0;
-                    while (packetReadCount < packetLoc.Size)
-                    {
-                        BatchPrimitive primitive = new BatchPrimitive();
-                        primitive.Load(data, (int)(offset + PrimitiveDataOffset + packetLoc.Offset + primitiveOffset));
-
-                        List<ushort> primitiveIndexes = new List<ushort>();
-                        //Immediately following the primitive is BatchPrimitive.VertexCount * (numElements * elementSize) bytes
-                        int primitiveDataOffset = (int)(offset + PrimitiveDataOffset + packetLoc.Offset + 3); //3 bytes for the BatchPrimitive
-                        for (int v = 0; v < primitive.VertexCount; v++)
-                        {
-                            for (int u = 0; u < 3; u++)
-                            {
-                                primitiveIndexes.Add((ushort)FSHelpers.Read16(data, primitiveDataOffset));
-                                primitiveDataOffset += 2;
-                            }
-                        }
-
-                        packetReadCount += primitive.VertexCount * 6;
-                        primitiveOffset += primitive.VertexCount * 6 + 3;
-                    }
-                }
-
-                LoadedBatches.Add(batch);
-            }*/
 
             return finalData;
         }

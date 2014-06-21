@@ -7,9 +7,25 @@ namespace WindViewer.Editor.Renderer
 {
     public sealed class J3DRenderer : IRenderer
     {
+        public static event Action Draw;
+
         public J3DRenderer()
         {
             InitializeShader("shaders/j3d_vs.glsl", "shaders/j3d_fs.glsl");
+        }
+
+        public struct VertexFormatLayout
+        {
+            public Vector3 Position;
+            public Vector4 Color;
+            public Vector2 TexCoord;
+
+            public VertexFormatLayout(Vector3 pos, Vector4 color, Vector2 tex)
+            {
+                Position = pos;
+                Color = color;
+                TexCoord = tex;
+            }
         }
 
         protected override void InitializeShader(string vertShader, string fragShader)
@@ -43,16 +59,15 @@ namespace WindViewer.Editor.Renderer
 
             //Temp
 
-            float[] vertices = new[]
+            VertexFormatLayout[] vertices =
             {
-                //  Position      Color             Texcoords
-                -0.5f,  0.5f, 0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // Top-left
-                 0.5f,  0.5f, 0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // Top-right
-                 0.5f, -0.5f, 0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, // Bottom-right
-                -0.5f, -0.5f, 0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f  // Bottom-left
-
+                new VertexFormatLayout(new Vector3( -0.5f,  0.5f, 0f), new Vector4(1.0f, 0.0f, 0.0f, 1f), new Vector2(0.0f, 1.0f)),
+                new VertexFormatLayout(new Vector3( 0.5f,  0.5f, 0f), new Vector4(0.0f, 1.0f, 0.0f, 1f), new Vector2(1.0f, 1.0f)),
+                new VertexFormatLayout(new Vector3( 0.5f,  -0.5f, 0f), new Vector4(0.0f, 0.0f, 1.0f, 1f), new Vector2(1.0f, 0.0f)),
+                new VertexFormatLayout(new Vector3( -0.5f,  -0.5f, 0f), new Vector4(1.0f, 0.0f, 1.0f, 1f), new Vector2(0.0f, 0.0f)),
+                
             };
-            
+
             uint[] indexes = {0, 1, 2, 2, 3, 0};
 
 
@@ -60,7 +75,7 @@ namespace WindViewer.Editor.Renderer
             GL.GenBuffers(1, out _glVbo);
             GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
             
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr) (vertices.Length*4), vertices, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr) (vertices.Length*4*9), vertices, BufferUsageHint.StaticDraw);
 
             //Generate the EBO, Bind, and Upload Data
             GL.GenBuffers(1, out _glEbo);
@@ -113,9 +128,9 @@ namespace WindViewer.Editor.Renderer
             GL.EnableVertexAttribArray((int)ShaderAttributeIds.Color);
             GL.EnableVertexAttribArray((int)ShaderAttributeIds.TexCoord);
 
-            GL.VertexAttribPointer((int)ShaderAttributeIds.Position, 3, VertexAttribPointerType.Float, false, 8*4 , 0);
-            GL.VertexAttribPointer((int)ShaderAttributeIds.Color, 3, VertexAttribPointerType.Float, false, 8*4 , 3 *4);
-            GL.VertexAttribPointer((int)ShaderAttributeIds.TexCoord, 2, VertexAttribPointerType.Float, false, 8*4, 6* 4);
+            GL.VertexAttribPointer((int)ShaderAttributeIds.Position, 3, VertexAttribPointerType.Float, false, 9*4 , 0);
+            GL.VertexAttribPointer((int)ShaderAttributeIds.Color, 4, VertexAttribPointerType.Float, false, 9*4 , 3 *4);
+            GL.VertexAttribPointer((int)ShaderAttributeIds.TexCoord, 2, VertexAttribPointerType.Float, false, 9*4, 7* 4);
 
             Matrix4 projMatrix = Matrix4.CreatePerspectiveFieldOfView((float) Math.PI/4f, aspectRatio, 0.1f, 1000f);
             Matrix4 modelMatrix = Matrix4.Identity;
@@ -128,6 +143,9 @@ namespace WindViewer.Editor.Renderer
 
             //FFS
             GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, 0);
+
+            if (Draw != null)
+                Draw();
            
 
             GL.DisableVertexAttribArray((int) ShaderAttributeIds.Position);
