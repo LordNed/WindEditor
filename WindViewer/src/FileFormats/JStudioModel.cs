@@ -126,6 +126,7 @@ namespace WindViewer.FileFormats
         private void J3DRendererOnDraw()
         {
             //GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
+            //GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, 0);
         }
 
         private int _glVbo;

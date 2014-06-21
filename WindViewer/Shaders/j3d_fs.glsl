@@ -1,7 +1,7 @@
 ﻿#version 330 
 
 //Interpolated values from the vertex shaders
-in vec3 nColor;
+in vec4 nColor;
 in vec2 nTexCoord;
 
 
@@ -12,6 +12,6 @@ uniform sampler2D tex;
 
 void main()
 {
-	finalColor = texture(tex, nTexCoord) * vec4(nColor,1.0);
+	finalColor = texture(tex, nTexCoord) * nColor;
 	//finalColor = vec4(1.0, 1.0, 1.0, 1.0);
 }

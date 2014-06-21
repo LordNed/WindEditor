@@ -2,11 +2,11 @@
 
 //Input Data
 in vec3 vertexPos;
-in vec3 inColor;
+in vec4 inColor;
 in vec2 vertexUV;
 
 //output data
-out vec3 nColor;
+out vec4 nColor;
 out vec2 nTexCoord;
 
 
