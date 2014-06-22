@@ -661,7 +661,7 @@ namespace WindViewer.Forms
             OpenFileFromWorkingDir(workDir);
         }
 
-        // <summary>
+        /// <summary>
         /// This creates a new "Working Dir" for a project (ie: "My Documents\Wind Viewer\MiniHyo.wrkDir"). It is the equivelent
         /// of setting up a project directory for new files. 
         /// </summary>

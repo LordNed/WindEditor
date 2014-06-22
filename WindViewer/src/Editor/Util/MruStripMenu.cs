@@ -49,9 +49,9 @@ namespace JWC
 			/// <summary>
 			/// Initializes an MruMenuItem object.
 			/// </summary>
-			/// <param labelName="filename">The string to actually return in the <paramref labelName="eventHandler">eventHandler</paramref>.</param>
-			/// <param labelName="entryname">The string that will be displayed in the menu.</param>
-			/// <param labelName="eventHandler">The <see cref="EventHandler">EventHandler</see> that 
+			/// <param name="filename">The string to actually return in the <paramref labelName="eventHandler">eventHandler</paramref>.</param>
+			/// <param name="entryname">The string that will be displayed in the menu.</param>
+			/// <param name="eventHandler">The <see cref="EventHandler">EventHandler</see> that 
 			/// handles the <see cref="MenuItem.Click">Click</see> event for this menu item.</param>
 			public MruMenuItem(string filename, string entryname, EventHandler eventHandler)
 			{
@@ -85,8 +85,8 @@ namespace JWC
 		/// <summary>
 		/// Initializes a new instance of the MruMenu class.
 		/// </summary>
-		/// <param labelName="recentFileMenuItem">The temporary menu item which will be replaced with the MRU list.</param>
-		/// <param labelName="clickedHandler">The delegate to handle the item selection (click) event.</param>
+		/// <param name="recentFileMenuItem">The temporary menu item which will be replaced with the MRU list.</param>
+		/// <param name="clickedHandler">The delegate to handle the item selection (click) event.</param>
 		public MruStripMenu(ToolStripMenuItem recentFileMenuItem, ClickedHandler clickedHandler)
 			: this(recentFileMenuItem, clickedHandler, null, false, 4)
 		{
@@ -95,9 +95,9 @@ namespace JWC
 		/// <summary>
 		/// Initializes a new instance of the MruMenu class.
 		/// </summary>
-		/// <param labelName="recentFileMenuItem">The temporary menu item which will be replaced with the MRU list.</param>
-		/// <param labelName="clickedHandler">The delegate to handle the item selection (click) event.</param>
-		/// <param labelName="maxEntries"></param>
+		/// <param name="recentFileMenuItem">The temporary menu item which will be replaced with the MRU list.</param>
+		/// <param name="clickedHandler">The delegate to handle the item selection (click) event.</param>
+		/// <param name="maxEntries"></param>
 		public MruStripMenu(ToolStripMenuItem recentFileMenuItem, ClickedHandler clickedHandler, int maxEntries)
 			: this(recentFileMenuItem, clickedHandler, null, false, maxEntries)
 		{
@@ -107,9 +107,9 @@ namespace JWC
 		/// <summary>
 		/// Initializes a new instance of the MruMenu class.
 		/// </summary>
-		/// <param labelName="recentFileMenuItem">The temporary menu item which will be replaced with the MRU list.</param>
-		/// <param labelName="clickedHandler">The delegate to handle the item selection (click) event.</param>
-		/// <param labelName="registryKeyName"></param>
+		/// <param name="recentFileMenuItem">The temporary menu item which will be replaced with the MRU list.</param>
+		/// <param name="clickedHandler">The delegate to handle the item selection (click) event.</param>
+		/// <param name="registryKeyName"></param>
 		public MruStripMenu(ToolStripMenuItem recentFileMenuItem, ClickedHandler clickedHandler, string registryKeyName)
 			: this(recentFileMenuItem, clickedHandler, registryKeyName, true, 4)
 		{
@@ -118,10 +118,10 @@ namespace JWC
 		/// <summary>
 		/// Initializes a new instance of the MruMenu class.
 		/// </summary>
-		/// <param labelName="recentFileMenuItem">The temporary menu item which will be replaced with the MRU list.</param>
-		/// <param labelName="clickedHandler">The delegate to handle the item selection (click) event.</param>
-		/// <param labelName="registryKeyName">The name or path of the registry key to use to store the MRU list and settings.</param>
-		/// <param labelName="maxEntries">The maximum number of items on the MRU list.</param>
+		/// <param name="recentFileMenuItem">The temporary menu item which will be replaced with the MRU list.</param>
+		/// <param name="clickedHandler">The delegate to handle the item selection (click) event.</param>
+		/// <param name="registryKeyName">The name or path of the registry key to use to store the MRU list and settings.</param>
+		/// <param name="maxEntries">The maximum number of items on the MRU list.</param>
 		public MruStripMenu(ToolStripMenuItem recentFileMenuItem, ClickedHandler clickedHandler, string registryKeyName, int maxEntries)
 			: this(recentFileMenuItem, clickedHandler, registryKeyName, true, maxEntries)
 		{
@@ -130,23 +130,23 @@ namespace JWC
 		/// <summary>
 		/// Initializes a new instance of the MruMenu class.
 		/// </summary>
-		/// <param labelName="recentFileMenuItem">The temporary menu item which will be replaced with the MRU list.</param>
-		/// <param labelName="clickedHandler">The delegate to handle the item selection (click) event.</param>
-		/// <param labelName="registryKeyName">The name or path of the registry key to use to store the MRU list and settings.</param>
-		/// <param labelName="loadFromRegistry">Loads the MRU settings from the registry immediately.</param>
+		/// <param name="recentFileMenuItem">The temporary menu item which will be replaced with the MRU list.</param>
+		/// <param name="clickedHandler">The delegate to handle the item selection (click) event.</param>
+		/// <param name="registryKeyName">The name or path of the registry key to use to store the MRU list and settings.</param>
+		/// <param name="loadFromRegistry">Loads the MRU settings from the registry immediately.</param>
 		public MruStripMenu(ToolStripMenuItem recentFileMenuItem, ClickedHandler clickedHandler, string registryKeyName, bool loadFromRegistry)
 			: this(recentFileMenuItem, clickedHandler, registryKeyName, loadFromRegistry, 4)
-  		{
+		{
 		}
 
 		/// <summary>
 		/// Initializes a new instance of the MruMenu class.
 		/// </summary>
-		/// <param labelName="recentFileMenuItem">The temporary menu item which will be replaced with the MRU list.</param>
-		/// <param labelName="clickedHandler">The delegate to handle the item selection (click) event.</param>
-		/// <param labelName="registryKeyName">The name or path of the registry key to use to store the MRU list and settings.</param>
-		/// <param labelName="loadFromRegistry">Loads the MRU settings from the registry immediately.</param>
-		/// <param labelName="maxEntries">The maximum number of items on the MRU list.</param>
+		/// <param name="recentFileMenuItem">The temporary menu item which will be replaced with the MRU list.</param>
+		/// <param name="clickedHandler">The delegate to handle the item selection (click) event.</param>
+		/// <param name="registryKeyName">The name or path of the registry key to use to store the MRU list and settings.</param>
+		/// <param name="loadFromRegistry">Loads the MRU settings from the registry immediately.</param>
+		/// <param name="maxEntries">The maximum number of items on the MRU list.</param>
 		public MruStripMenu(ToolStripMenuItem recentFileMenuItem, ClickedHandler clickedHandler, string registryKeyName, bool loadFromRegistry, int maxEntries)
 		{
 			Init(recentFileMenuItem, clickedHandler, registryKeyName, loadFromRegistry, maxEntries);
@@ -329,8 +329,8 @@ namespace JWC
 		/// <summary>
 		/// Shortens a pathname for display purposes.
 		/// </summary>
-		/// <param labelName="pathname">The pathname to shorten.</param>
-		/// <param labelName="maxLength">The maximum number of characters to be displayed.</param>
+		/// <param name="pathname">The pathname to shorten.</param>
+		/// <param name="maxLength">The maximum number of characters to be displayed.</param>
 		/// <remarks>Shortens a pathname by either removing consecutive components of a path
 		/// and/or by removing characters from the end of the filename and replacing
 		/// then with three elipses (...)
