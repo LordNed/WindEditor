@@ -116,7 +116,6 @@ namespace WindViewer.Editor.Renderer
             //State Muckin'
             GL.Enable(EnableCap.DepthTest);
 
-
             GL.UseProgram(_programId);
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0); //Clear any previously bound buffer
 

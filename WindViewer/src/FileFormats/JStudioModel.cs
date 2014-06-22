@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
@@ -12,6 +13,13 @@ using WindViewer.Forms;
 
 namespace WindViewer.FileFormats
 {
+    /// <summary>
+    /// The behemoth of file formats, the JStudioModel. Well I think it's a JStudioModel, it's a J3D and their tools are called JStudio, 
+    /// so good enough. Anyways. It renders things.
+    /// 
+    /// Many thanks to @Drakonite, shuffle2, JMC47, and phire for helping me understand the various
+    /// bits and pieces of the format, and some debugging ideas!
+    /// </summary>
     public class JStudioModel : BaseArchiveFile
     {
         public enum ArrayTypes
@@ -114,17 +122,19 @@ namespace WindViewer.FileFormats
 
             //STEP 2: Once all of the data is loaded, we're going to pull different data from
             //different chunks to transform the data into something
-            var vertData = BuildVertexArraysFromFile(data);
+            vertData = BuildVertexArraysFromFile(data);
 
 
             //Haaaaaaaack there goes my lung. Generate a vbo, bind and upload data.
             GL.GenBuffers(1, out _glVbo);
             GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(vertData.Count * 32), vertData.ToArray(), BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(vertData.Count * 36), vertData.ToArray(), BufferUsageHint.StaticDraw);
 
             J3DRenderer.Draw += J3DRendererOnDraw;
             J3DRenderer.Bind += J3DRendererOnBind;
         }
+
+        private List<VertexFormatLayout> vertData; 
 
         public override void Save(BinaryWriter stream)
         {
@@ -167,6 +177,8 @@ namespace WindViewer.FileFormats
                 Console.WriteLine("Rendering: " + _numPrimRender);
                 _lastChange = MainEditor.Time;
             }
+            if (EditorHelpers.GetKey(Keys.I))
+                _numPrimRender = _renderList.Count - 1;
 
 
             for(int i = 0; i < Math.Min(_numPrimRender, _renderList.Count); i++)
@@ -224,17 +236,25 @@ namespace WindViewer.FileFormats
                         primitive.Load(shp1Chunk._dataCopy, shp1Chunk._primitiveDataOffset + numPrimitiveBytesRead);
                         numPrimitiveBytesRead += Shp1Chunk.BatchPrimitive.Size;
 
+                        if (primitive.Type == 0)
+                        {
+                            Console.WriteLine("Delta: " +
+                                              ((int)(packetLoc.Offset + packetLoc.PacketSize)-numPrimitiveBytesRead ).ToString());
+                            //I think we've hit the end and we should break here.
+                            break;
+                        }
+
                         var primList = new PrimitiveList();
                         primList.VertexCount = primitive.VertexCount;
                         primList.VertexStart = finalData.Count;
 
                         _renderList.Add(primList);
 
-                        if (primitive.Type == 0)
-                        {
-                            //I think we've hit the end and we should break here.
-                            break;
-                        }
+                        
+
+                        if (primitive.Type != PrimitiveTypes.TriangleStrip)
+                            Console.WriteLine("Well there you. go.");
+
 
                         //Now, for each Vertex we're going to read the right number of bytes... we're hacking it in this case
                         //to fixed amount of 8...
@@ -268,6 +288,8 @@ namespace WindViewer.FileFormats
                         }
                     }
                 }
+
+                Console.WriteLine("Finished batch {0}, triangleStrip count: {1}", i, _renderList.Count);
             }
 
             return finalData;
