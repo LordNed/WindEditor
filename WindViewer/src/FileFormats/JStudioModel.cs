@@ -72,6 +72,7 @@ namespace WindViewer.FileFormats
         public override void Load(byte[] data)
         {
             _origDataCache = data;
+            return; //TEMP
             _chunkList = new List<BaseChunk>();
 
             int dataOffset = 0;

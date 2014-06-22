@@ -255,6 +255,10 @@ namespace WindViewer.Editor
                                 file = new JStudioModel();
                                 break;
 
+                            case "tex":
+                                file = new BTI();
+                                break;
+
                             default:
                                 Console.WriteLine("Unknown folder " + folder +
                                                   " found. Creating GenericData holder for it!");

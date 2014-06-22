@@ -1,10 +1,16 @@
-﻿using System.Windows.Forms.VisualStyles;
+﻿using System;
+using System.Drawing;
+using System.IO;
+using System.Windows.Forms.VisualStyles;
 using WindViewer.Editor;
 
 namespace WindViewer.FileFormats
 {
-    public class BTI
+    public class BTI : BaseArchiveFile
     {
+
+
+
         public enum ImageFormat : byte
         {  
                             //Bits per Pixel | Block Width | Block Height | Block Size | Type / Description
@@ -46,7 +52,7 @@ namespace WindViewer.FileFormats
             private byte _imageCount; //(= numMipmaps + 1)
             private byte _padding2; //0 in MKWii //Padding
             private ushort _padding3; //0 in MKWii
-            private uint _imageDataOffset; //Relative to file header
+            public uint ImageDataOffset { get; private set; } //Relative to file header
 
             public void Load(byte[] data, uint offset)
             {
@@ -66,8 +72,85 @@ namespace WindViewer.FileFormats
                 _imageCount = FSHelpers.Read8(data, (int) offset + 0x18);
                 _padding2 = FSHelpers.Read8(data, (int) offset + 0x19);
                 _padding3 = (ushort)FSHelpers.Read16(data, (int) offset + 0x1A);
-                _imageDataOffset = (uint) FSHelpers.Read32(data, (int) offset + 0x1C);
+                ImageDataOffset = (uint) FSHelpers.Read32(data, (int) offset + 0x1C);
             }
+
+            public ImageFormat GetFormat()
+            {
+                return _format;
+            }
+
+            public uint GetWidth()
+            {
+                return _width;
+            }
+
+            public uint GetHeight()
+            {
+                return _height;
+            }
+        }
+
+        //Temp for saving
+        private byte[] _dataCache;
+
+        //temp
+        private class Block
+        {
+            public byte[] Data;
+        }
+
+
+        public override void Load(byte[] data)
+        {
+            _dataCache = data;
+
+            FileHeader header = new FileHeader();
+            header.Load(data, 0);
+
+            switch (header.GetFormat())
+            {
+                case ImageFormat.RGBA32:
+                    uint numBlocksW = header.GetWidth()/4; //4 byte block width
+                    uint numBlocksH = header.GetHeight()/4; //4 byte block height 
+
+                    Block[] blockList = new Block[numBlocksW*numBlocksH];
+                    for (uint i = 0; i < numBlocksW*numBlocksH; i++)
+                    {
+                        Block curBlock = new Block();
+                        curBlock.Data = FSHelpers.ReadN(data, (int)header.ImageDataOffset, 4 * 4 * 4); //Width * Height * Bpp
+
+                        blockList[i] = curBlock;
+                    }
+
+                    //Test? 
+                    Bitmap bmp = new Bitmap((int)header.GetWidth(), (int)header.GetHeight());
+                    for (int i = 0; i < 4; i++)
+                    {
+                        for (int k = 0; k < 4; k++)
+                        {
+                            byte[] argb = new byte[4];
+                            for(int p = 0; p < 4; p++)
+                                argb[p] = blockList[0].Data[(i*4) + k + p];
+
+                            Color pixelColor = Color.FromArgb(argb[0], argb[1], argb[2], argb[3]);
+                            bmp.SetPixel(i, k, pixelColor);
+                        }
+                    }
+
+                    bmp.Save("poked_with_stick.bmp");
+
+                    break;
+
+                default:
+                    Console.WriteLine("Unsupported image format {0}!", header.GetFormat());
+                    break;
+            }
+        }
+
+        public override void Save(BinaryWriter stream)
+        {
+            FSHelpers.WriteArray(stream, _dataCache);
         }
     }
 }

@@ -63,6 +63,7 @@
     <Compile Include="src\Editor\MathExtensions.cs" />
     <Compile Include="src\Editor\Transform.cs" />
     <Compile Include="src\Editor\WorldspaceProject.cs" />
+    <Compile Include="src\FileFormats\BTI.cs" />
     <Compile Include="src\FileFormats\GenericArchiveData.cs" />
     <Compile Include="src\FileFormats\JStudioModel.cs" />
     <Compile Include="src\FileFormats\StaticCollisionModel.cs" />
