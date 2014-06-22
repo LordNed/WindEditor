@@ -204,7 +204,7 @@ namespace WindViewer.Editor
         }
 
         /// <summary>
-        /// Pass this a Room<x> folder or a Stage folder directory! This will look for specific subfolders 
+        /// Pass this a Room&lt;x&gt; folder or a Stage folder directory! This will look for specific subfolders 
         /// (bdl, btk, dzb, dzr, dzs, dat, etc.) and load each file within them as appropriate.
         /// </summary>
         /// <param name="directory">Absolute file path to a folder containing a bdl/btk/etc. files(s)</param>
@@ -282,7 +282,7 @@ namespace WindViewer.Editor
 
         /// <summary>
         /// Returns the first file IArchiveFile derived class or null if no files of that exists.
-        /// Use GetAllFilesByType<T> if there may be multiple of a file (as is the case with models)
+        /// Use GetAllFilesByType&lt;T&gt; if there may be multiple of a file (as is the case with models)
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
