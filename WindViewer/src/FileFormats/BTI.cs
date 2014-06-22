@@ -7,18 +7,25 @@ namespace WindViewer.FileFormats
     {
         public enum ImageFormat : byte
         {  
-                    //Bits per Pixel | Block Width | Block Height | Block Size | Type / Description
-            I4 = 0x00,  // 4 | 8 | 8 | 32 | grey
-            I8 = 0x01,  // 8 | 8 | 8 | 32 | grey
-            IA4 = 0x02, // 8 | 8 | 4 | 32 | grey + alpha
-            IA8 = 0x03, //16 | 4 | 4 | 32 | grey + alpha
-            RGB565 = 0x04, //16 | 4 | 4 | 32 | color
-            RGB5A3 = 0x05, //16 | 4 | 4 | 32 | color + alpha
-            RGBA32 = 0x06, //32 | 4 | 4 | 64 | color + alpha
-            C4 = 0x08, //4 | 8 | 8 | 32 | palette (IA8, RGB565, RGB5A3)
-            C8 = 0x09, //8, 8, 4, 32 | palette (IA8, RGB565, RGB5A3)
-            C14X2 = 0x0a, //16 (14 used) | 4 | 4 | 32 | palette (IA8, RGB565, RGB5A3)
-            CMPR = 0x0e, //4 | 8 | 8 | 32 | mini palettes in each block, RGB565 or transparent.
+                            //Bits per Pixel | Block Width | Block Height | Block Size | Type / Description
+            I4 = 0x00,      // 4 | 8 | 8 | 32 | grey
+            I8 = 0x01,      // 8 | 8 | 8 | 32 | grey
+            IA4 = 0x02,     // 8 | 8 | 4 | 32 | grey + alpha
+            IA8 = 0x03,     //16 | 4 | 4 | 32 | grey + alpha
+            RGB565 = 0x04,  //16 | 4 | 4 | 32 | color
+            RGB5A3 = 0x05,  //16 | 4 | 4 | 32 | color + alpha
+            RGBA32 = 0x06,  //32 | 4 | 4 | 64 | color + alpha
+            C4 = 0x08,      //4 | 8 | 8 | 32 | palette (IA8, RGB565, RGB5A3)
+            C8 = 0x09,      //8, 8, 4, 32 | palette (IA8, RGB565, RGB5A3)
+            C14X2 = 0x0a,   //16 (14 used) | 4 | 4 | 32 | palette (IA8, RGB565, RGB5A3)
+            CMPR = 0x0e,    //4 | 8 | 8 | 32 | mini palettes in each block, RGB565 or transparent.
+        }
+
+        public enum WrapMode : byte
+        {
+            ClampToEdge = 0,
+            Repeat = 1,
+            MirroredRepeat = 2,
         }
 
         public class FileHeader
@@ -27,8 +34,8 @@ namespace WindViewer.FileFormats
             private byte _alphaEnabled; //0 for no alpha, 0x02 (and anything else) for alpha enabled
             private ushort _width;
             private ushort _height;
-            private byte _wrapS; //0 or 1 (Clamp or Repeat?)
-            private byte _wrapT;
+            private WrapMode _wrapS; //0 or 1 (Clamp or Repeat?)
+            private WrapMode _wrapT;
             private ushort _paletteFormat;
             private ushort _paletteCount;
             private uint _paletteDataOffset; //Relative to file header
@@ -47,8 +54,8 @@ namespace WindViewer.FileFormats
                 _alphaEnabled = FSHelpers.Read8(data, (int) offset + 0x01);
                 _width = (ushort)FSHelpers.Read16(data, (int) offset + 0x02);
                 _height =(ushort)FSHelpers.Read16(data, (int) offset + 0x04);
-                _wrapS = FSHelpers.Read8(data, (int) offset + 0x06);
-                _wrapT = FSHelpers.Read8(data, (int) offset + 0x07);
+                _wrapS = (WrapMode) FSHelpers.Read8(data, (int) offset + 0x06);
+                _wrapT = (WrapMode) FSHelpers.Read8(data, (int) offset + 0x07);
                 _paletteFormat = (ushort) FSHelpers.Read16(data, (int) offset + 0x8);
                 _paletteCount = (ushort) FSHelpers.Read16(data, (int) offset + 0xA);
                 _paletteDataOffset = (uint) FSHelpers.Read32(data, (int) offset + 0xC);
