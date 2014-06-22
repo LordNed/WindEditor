@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows.Forms.VisualStyles;
 using WindViewer.Editor;
 
@@ -8,9 +10,6 @@ namespace WindViewer.FileFormats
 {
     public class BTI : BaseArchiveFile
     {
-
-
-
         public enum ImageFormat : byte
         {  
                             //Bits per Pixel | Block Width | Block Height | Block Size | Type / Description
@@ -94,13 +93,6 @@ namespace WindViewer.FileFormats
         //Temp for saving
         private byte[] _dataCache;
 
-        //temp
-        private class Block
-        {
-            public byte[] Data;
-        }
-
-
         public override void Load(byte[] data)
         {
             _dataCache = data;
@@ -114,38 +106,77 @@ namespace WindViewer.FileFormats
                     uint numBlocksW = header.GetWidth()/4; //4 byte block width
                     uint numBlocksH = header.GetHeight()/4; //4 byte block height 
 
-                    Block[] blockList = new Block[numBlocksW*numBlocksH];
-                    for (uint i = 0; i < numBlocksW*numBlocksH; i++)
-                    {
-                        Block curBlock = new Block();
-                        curBlock.Data = FSHelpers.ReadN(data, (int)header.ImageDataOffset, 4 * 4 * 4); //Width * Height * Bpp
+                    uint dataOffset = header.ImageDataOffset;
+                    byte[] destData = new byte[header.GetWidth()*header.GetHeight()*4];
 
-                        blockList[i] = curBlock;
+                    for (int yBlock = 0; yBlock < numBlocksH; yBlock++)
+                    {
+                        for (int xBlock = 0; xBlock < numBlocksW; xBlock++)
+                        {
+                            //For each block, we're going to examine block width / block height number of 'pixels'
+                            for (int pY = 0; pY < 4; pY++)
+                            {
+                                for (int pX = 0; pX < 4; pX++)
+                                {
+                                    //Ensure the pixel we're checking is within bounds of the image.
+                                    if ((xBlock*4 + pX >= header.GetWidth()) || (yBlock*4 + pY >= header.GetHeight()))
+                                    {
+                                        continue;
+                                    }
+
+                                    //Now we're looping through each pixel in a block, but a pixel is four bytes long. 
+                                    uint destIndex = (uint)(4*(header.GetWidth()*((yBlock *4)+ pY) + (xBlock *4)+ pX));
+                                    destData[destIndex + 3] = data[dataOffset + 0]; //Alpha
+                                    destData[destIndex + 2] = data[dataOffset + 1]; //Red
+                                    dataOffset += 2;
+                                }
+                            }
+
+                            //...but we have to do it twice, because RGBA32 stores two sub-blocks per block. (AR, and GB)
+                            for (int pY = 0; pY < 4; pY++)
+                            {
+                                for (int pX = 0; pX < 4; pX++)
+                                {
+                                    //Ensure the pixel we're checking is within bounds of the image.
+                                    if ((xBlock * 4 + pX >= header.GetWidth()) || (yBlock * 4 + pY >= header.GetHeight()))
+                                    {
+                                        continue;
+                                    }
+
+                                    //Now we're looping through each pixel in a block, but a pixel is four bytes long. 
+                                    uint destIndex = (uint)(4 * (header.GetWidth() * ((yBlock * 4) + pY) + (xBlock * 4) + pX));
+                                    destData[destIndex + 1] = data[dataOffset + 0]; //Green
+                                    destData[destIndex + 0] = data[dataOffset + 1]; //Blue
+                                    dataOffset += 2;
+                                }
+                            }
+                            
+                        }
                     }
 
                     //Test? 
                     Bitmap bmp = new Bitmap((int)header.GetWidth(), (int)header.GetHeight());
-                    for (int i = 0; i < 4; i++)
-                    {
-                        for (int k = 0; k < 4; k++)
-                        {
-                            byte[] argb = new byte[4];
-                            for(int p = 0; p < 4; p++)
-                                argb[p] = blockList[0].Data[(i*4) + k + p];
+                    Rectangle rect = new Rectangle(0, 0, (int)header.GetWidth(), (int)header.GetHeight());
+                    BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadWrite, bmp.PixelFormat);
 
-                            Color pixelColor = Color.FromArgb(argb[0], argb[1], argb[2], argb[3]);
-                            bmp.SetPixel(i, k, pixelColor);
-                        }
-                    }
+                    //Unsafe mass copy, yay
+                    IntPtr ptr = bmpData.Scan0;
+                    Marshal.Copy(destData, 0, ptr, destData.Length);
+                    bmp.UnlockBits(bmpData);
 
-                    bmp.Save("poked_with_stick.bmp");
 
+
+
+                    bmp.Save("poked_with_stick.png");
+                 
                     break;
 
                 default:
                     Console.WriteLine("Unsupported image format {0}!", header.GetFormat());
                     break;
             }
+
+            Console.WriteLine("After");
         }
 
         public override void Save(BinaryWriter stream)
