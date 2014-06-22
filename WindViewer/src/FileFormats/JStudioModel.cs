@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.IO;
@@ -183,154 +184,70 @@ namespace WindViewer.FileFormats
             Shp1Chunk shp1Chunk = GetChunkByType<Shp1Chunk>();
 
 
-            Shp1Chunk.Batch[] batches = new Shp1Chunk.Batch[shp1Chunk._batchCount];
-            Shp1Chunk.BatchPacketLocation[] packetLocations = new Shp1Chunk.BatchPacketLocation[shp1Chunk._batchCount];
-
-            //Read the batches
-            int batchDataOffset = (int)shp1Chunk.BatchDataOffset;
-            for (int i = 0; i < batches.Length; i++)
-            {
-                batches[i] = new Shp1Chunk.Batch();
-                batches[i].Load(shp1Chunk._dataCopy, ref batchDataOffset);
-
-            }
-
-            //Read the Packet Locations
-            int packetDataOffset = (int) shp1Chunk.PacketLocationOffset;
-            for (int i = 0; i < packetLocations.Length; i++)
-            {
-                packetLocations[i] = new Shp1Chunk.BatchPacketLocation();
-                packetLocations[i].PacketSize = (uint)FSHelpers.Read32(shp1Chunk._dataCopy, packetDataOffset + 0x0);
-                packetLocations[i].Offset = (uint)FSHelpers.Read32(shp1Chunk._dataCopy, packetDataOffset + 0x4);
-                packetDataOffset += 0x8;
-            }
-
             //Now, let's try to get our data.
-            for (int i = 0; i < batches.Length; i++)
+            for (uint i = 0; i < shp1Chunk.GetBatchCount(); i++)
             {
-                Shp1Chunk.Batch batch = batches[i];
-                Shp1Chunk.BatchPacketLocation packetLoc = packetLocations[batch.PacketIndex];
+                Shp1Chunk.Batch batch = shp1Chunk.GetBatch(i);
+                Shp1Chunk.BatchPacketLocation packetLoc = shp1Chunk.GetBatchPacketLocation(i);
 
                 for (int p = 0; p < batch.PacketCount; p++)
                 {
-                    int packetBytesRead = 0;
+                    uint numPrimitiveBytesRead = packetLoc.Offset;
 
-                    while (packetBytesRead < packetLoc.PacketSize)
+                    while (numPrimitiveBytesRead < packetLoc.Offset + packetLoc.PacketSize)
                     {
+                        //The data is going to be stored as:
+                        //[Primitive][Primitive.VertexCount * (AttributeType.ElementCount * sizeof(AttributeType.DataType))]
+
                         Shp1Chunk.BatchPrimitive primitive = new Shp1Chunk.BatchPrimitive();
-                        primitive.Load(shp1Chunk._dataCopy, (int)(shp1Chunk.PrimitiveDataOffset + packetLoc.Offset + packetBytesRead));
+                        primitive.Load(shp1Chunk._dataCopy, shp1Chunk._primitiveDataOffset + numPrimitiveBytesRead);
+                        numPrimitiveBytesRead += Shp1Chunk.BatchPrimitive.Size;
 
-                        PrimitiveList pmEntry = new PrimitiveList();
-                        pmEntry.VertexCount = primitive.VertexCount;
-                        pmEntry.VertexStart = finalData.Count;
+                        var primList = new PrimitiveList();
+                        primList.VertexCount = primitive.VertexCount;
+                        primList.VertexStart = _renderList.Count;
 
-                        //Immediately following the primitive is BatchPrimitive.VertexCount * (numElements * elementSize) bytes
-                        int primitiveDataOffset = (int)(shp1Chunk.PrimitiveDataOffset + packetLoc.Offset + 3); //3 bytes for the BatchPrimitive
-                        for (int v = 0; v < primitive.VertexCount; v++)
+                        _renderList.Add(primList);
+
+                        if (primitive.Type == 0)
                         {
-                            VertexFormatLayout newVert = new VertexFormatLayout();
-                            for (int u = 0; u < 3; u++)
-                            {
-                                //Hack Hack, this is overflowing... maybe off by one error? 
-                                if (primitiveDataOffset > shp1Chunk._dataCopy.Length - 2)
-                                    continue;
-
-                                ushort index = (ushort)FSHelpers.Read16(shp1Chunk._dataCopy, primitiveDataOffset);
-                                primitiveDataOffset += 2;
-
-                                switch (u)
-                                {
-                                    case 0:
-                                        if (index < vertList.Count)
-                                            newVert.Position = vertList[index];
-                                        break;
-                                    case 1:
-                                        if (index < colorList.Count)
-                                            newVert.Color = colorList[index];
-                                        break;
-                                    case 2:
-                                        if (index < tcList.Count)
-                                            newVert.TexCoord = tcList[index];
-                                        break;
-
-                                }
-                            }
-
-                            finalData.Add(newVert);
+                            //I think we've hit the end and we should break here.
+                            break;
                         }
 
-                        packetBytesRead += (primitive.VertexCount*6) + 3;
-                        _renderList.Add(pmEntry);
+                        //Now, for each Vertex we're going to read the right number of bytes... we're hacking it in this case
+                        //to fixed amount of 8...
+
+                        for (int vert = 0; vert < primitive.VertexCount; vert++)
+                        {
+                            VertexFormatLayout newVertex = new VertexFormatLayout();
+                            for (uint vertIndex = 0; vertIndex < 3; vertIndex++)
+                            {
+                                ushort curIndex =
+                                    (ushort)FSHelpers.Read16(shp1Chunk._dataCopy, (int)(shp1Chunk._primitiveDataOffset + numPrimitiveBytesRead));
+
+                                switch (vertIndex)
+                                {
+                                    case 0:
+                                        newVertex.Position = vtxChunk.GetPosition(curIndex);
+                                        break;
+                                    case 1:
+                                        newVertex.Color = vtxChunk.GetColor0(curIndex);
+                                        break;
+                                    case 2:
+                                        newVertex.TexCoord = vtxChunk.GetTex0(curIndex, 8);
+                                        break;
+                                }
+
+                                numPrimitiveBytesRead += 2; //Should be element size, but w/e.
+                            }
+
+                            //Add our vertex to our list of Vertexes
+                            finalData.Add(newVertex);
+                        }
                     }
                 }
             }
-
-
-            /*for (int i = 0; i < shp1Chunk.SectionCount; i++)
-            {
-                Shp1Chunk.Batch batch = new Shp1Chunk.Batch();
-                batch.Load(shp1Chunk._dataCopy, ref batchDataOffset);
-                int packetDataOffset = (int)shp1Chunk.PacketLocationOffset;
-
-                for (int p = 0; p < batch.PacketCount; p++)
-                {
-                    Shp1Chunk.BatchPacketLocation bP = new Shp1Chunk.BatchPacketLocation();
-                    
-
-                    //And then get the data from it or something.
-                    int packetReadCount = 0;
-                    int primitiveOffset = 0;
-                    while (packetReadCount < bP.Size)
-                    {
-                        Shp1Chunk.BatchPrimitive primitive = new Shp1Chunk.BatchPrimitive();
-                        primitive.Load(shp1Chunk._dataCopy, (int)(shp1Chunk.PrimitiveDataOffset + bP.Offset + primitiveOffset));
-
-                        PrimitiveList pmEntry = new PrimitiveList();
-                        pmEntry.VertexCount = primitive.VertexCount;
-                        pmEntry.VertexStart = finalData.Count;
-
-                        List<ushort> primitiveIndexes = new List<ushort>();
-                        //Immediately following the primitive is BatchPrimitive.VertexCount * (numElements * elementSize) bytes
-                        int primitiveDataOffset = (int)(shp1Chunk.PrimitiveDataOffset + packetReadCount + bP.Offset + 3); //3 bytes for the BatchPrimitive
-                        for (int v = 0; v < primitive.VertexCount; v++)
-                        {
-                            VertexFormatLayout newVert = new VertexFormatLayout();
-                            for (int u = 0; u < 3; u++)
-                            {
-                                ushort index = (ushort)FSHelpers.Read16(shp1Chunk._dataCopy, primitiveDataOffset);
-                                primitiveIndexes.Add(index);
-                                primitiveDataOffset += 2;
-
-
-                                //Console.WriteLine(index);
-                                switch (u)
-                                {
-                                    case 0:
-                                        if (index < vertList.Count)
-                                            newVert.Position = vertList[index];
-                                        break;
-                                    case 1:
-                                        if (index < colorList.Count)
-                                            newVert.Color = colorList[index];
-                                        break;
-                                    case 2:
-                                        if (index < tcList.Count)
-                                            newVert.TexCoord = tcList[index];
-                                        break;
-
-                                }
-                            }
-
-                            finalData.Add(newVert);
-                        }
-
-                        packetReadCount += primitive.VertexCount * 6 + 3;
-                        primitiveOffset += primitive.VertexCount * 6 + 3;
-
-                        _renderList.Add(pmEntry);
-                    }
-                }
-            }*/
 
             return finalData;
         }
@@ -694,10 +611,10 @@ namespace WindViewer.FileFormats
                 public PrimitiveTypes Type;
                 public ushort VertexCount;
 
-                public void Load(byte[] data, int offset)
+                public void Load(byte[] data, uint offset)
                 {
-                    Type = (PrimitiveTypes) FSHelpers.Read8(data, offset);
-                    VertexCount = (ushort)FSHelpers.Read16(data, offset + 0x1);
+                    Type = (PrimitiveTypes) FSHelpers.Read8(data, (int)offset);
+                    VertexCount = (ushort)FSHelpers.Read16(data, (int)offset + 0x1);
                 }
 
                 public const uint Size = 3;
@@ -709,7 +626,7 @@ namespace WindViewer.FileFormats
             private uint _zero;
             private uint _attributeOffset;
             private uint _matrixTableOffset;
-            private uint _primitiveDataOffset;
+            public uint _primitiveDataOffset;
             private uint _matrixDataOffset;
             private uint _packetLocationOffset;
 
