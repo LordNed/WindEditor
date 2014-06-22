@@ -8,6 +8,7 @@ using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using WindViewer.Editor;
 using WindViewer.Editor.Renderer;
+using WindViewer.Forms;
 
 namespace WindViewer.FileFormats
 {
@@ -144,13 +145,33 @@ namespace WindViewer.FileFormats
 
         }
 
+        private int _numPrimRender;
+        private float _lastChange;
+
         private void J3DRendererOnDraw()
         {
             //GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
             //GL.DrawArrays(PrimitiveType.TriangleStrip, 0, 10);
 
-            foreach (PrimitiveList primitive in _renderList)
+            if (EditorHelpers.GetKey(Keys.O) && Math.Abs(MainEditor.Time - _lastChange) > 0.02f)
             {
+                _numPrimRender++;
+                Console.WriteLine("Rendering: " + _numPrimRender);
+                _lastChange = MainEditor.Time;
+            }
+            if (EditorHelpers.GetKey(Keys.P) && Math.Abs(MainEditor.Time - _lastChange) > 0.02f)
+            {
+                _numPrimRender--;
+                if (_numPrimRender < 0)
+                    _numPrimRender = 0;
+                Console.WriteLine("Rendering: " + _numPrimRender);
+                _lastChange = MainEditor.Time;
+            }
+
+
+            for(int i = 0; i < Math.Min(_numPrimRender, _renderList.Count); i++)
+            {
+                PrimitiveList primitive = _renderList[i];
                 GL.DrawArrays(PrimitiveType.TriangleStrip, primitive.VertexStart, primitive.VertexCount);
             }
         }
@@ -205,7 +226,7 @@ namespace WindViewer.FileFormats
 
                         var primList = new PrimitiveList();
                         primList.VertexCount = primitive.VertexCount;
-                        primList.VertexStart = _renderList.Count;
+                        primList.VertexStart = finalData.Count;
 
                         _renderList.Add(primList);
 

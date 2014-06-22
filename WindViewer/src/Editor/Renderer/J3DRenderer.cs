@@ -136,7 +136,7 @@ namespace WindViewer.Editor.Renderer
             GL.VertexAttribPointer((int)ShaderAttributeIds.Color, 4, VertexAttribPointerType.Float, false, 9*4 , 3 *4);
             GL.VertexAttribPointer((int)ShaderAttributeIds.TexCoord, 2, VertexAttribPointerType.Float, false, 9*4, 7* 4);
 
-            Matrix4 projMatrix = Matrix4.CreatePerspectiveFieldOfView((float) Math.PI/4f, aspectRatio, 0.1f, 5000f);
+            Matrix4 projMatrix = Matrix4.CreatePerspectiveFieldOfView((float) Math.PI/4f, aspectRatio, 10f, 8000f);
             Matrix4 modelMatrix = Matrix4.Identity;
             Matrix4 viewMatrix = camera.GetViewMatrix();
 
@@ -146,7 +146,7 @@ namespace WindViewer.Editor.Renderer
             GL.UniformMatrix4(_uniformMVP, false, ref finalMatrix);
 
             //FFS
-            GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, 0);
+            //GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, 0);
 
             if (Draw != null)
                 Draw();

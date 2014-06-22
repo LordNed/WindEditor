@@ -49,6 +49,7 @@ namespace WindViewer.Forms
 
         //Framerate Independent Camera Movement
         public static float DeltaTime;
+        public static float Time;
 
         public MainEditor()
         {
@@ -110,7 +111,7 @@ namespace WindViewer.Forms
         {
             EditorHelpers.KeysDown[e.KeyValue] = true;
 
-           Console.WriteLine("cam pos: " + _camera.transform.Position);
+           //Console.WriteLine("cam pos: " + _camera.transform.Position);
         }
 
         void glControl_KeyUp(object sender, KeyEventArgs e)
@@ -301,6 +302,7 @@ namespace WindViewer.Forms
                 return;
 
             DeltaTime = Program.DeltaTimeStopwatch.Elapsed.Milliseconds / 1000f;
+            Time += DeltaTime;
             Program.DeltaTimeStopwatch.Restart();
             /*toolStripStatusLabel1.Text = (1 / DeltaTime).ToString("00") + " fps.";
 
@@ -361,6 +363,9 @@ namespace WindViewer.Forms
                 _camera.Move(-1, 0f, 0f);
 
             glControl.SwapBuffers();
+
+
+            EditorHelpers.UpdateKeysDownArray();
         }
 
 
