@@ -137,9 +137,65 @@ namespace WindViewer.FileFormats
 
             J3DRenderer.Draw += J3DRendererOnDraw;
             J3DRenderer.Bind += J3DRendererOnBind;
+
+            SceneGraph rootNode = BuildSceneGraphFromInfo(GetChunkByType<Inf1Chunk>());
         }
 
-        private List<VertexFormatLayout> vertData; 
+
+        private SceneGraph BuildSceneGraphFromInfo(Inf1Chunk info)
+        {
+            if (info == null)
+                return null;
+
+            SceneGraph root = new SceneGraph();
+            var hierarchyData = info.GetHierarchyData();
+
+            BuildNodeRecursive(ref root, hierarchyData, 0);
+
+            return root;
+        }
+
+        private int BuildNodeRecursive(ref SceneGraph parent, List<Inf1Chunk.HierarchyData> nodeList, int listIndex)
+        {
+            for (int i = listIndex; i < nodeList.Count; ++i)
+            {
+                Inf1Chunk.HierarchyData node = nodeList[i];
+                SceneGraph newNode;
+
+                switch (node.Type)
+                {
+                    //If it's a new node, push down in the stack one.
+                    case Inf1Chunk.HierarchyData.HierarchyDataTypes.NewNode:
+                        newNode = new SceneGraph(node.Type, node.Index);
+                        i += BuildNodeRecursive(ref newNode, nodeList, i + 1);
+                        parent.Children.Add(newNode);
+                        break;
+
+                    //If it's the end node, we need to go up.
+                    case Inf1Chunk.HierarchyData.HierarchyDataTypes.EndNode:
+                        return i - listIndex + 1;
+
+                    //If it's a material, joint, or shape, just produce them.
+                    case Inf1Chunk.HierarchyData.HierarchyDataTypes.Material:
+                    case Inf1Chunk.HierarchyData.HierarchyDataTypes.Joint:
+                    case Inf1Chunk.HierarchyData.HierarchyDataTypes.Shape:
+                        //newNode = new SceneGraph(node.Type, node.Index);
+                        //parent.Children.Add(newNode);
+                        break;
+                    default:
+                        Console.WriteLine("You broke something.");
+                        break;
+                }
+
+                //Update what we're about to add, because NewNodes can change it.
+                node = nodeList[i];
+                parent.Children.Add(new SceneGraph(node.Type, node.Index));
+            }
+
+            return 0;
+        }
+
+        private List<VertexFormatLayout> vertData;
 
         public override void Save(BinaryWriter stream)
         {
@@ -186,7 +242,7 @@ namespace WindViewer.FileFormats
                 _numPrimRender = _renderList.Count - 1;
 
 
-            for(int i = 0; i < Math.Min(_numPrimRender, _renderList.Count); i++)
+            for (int i = 0; i < Math.Min(_numPrimRender, _renderList.Count); i++)
             {
                 PrimitiveList primitive = _renderList[i];
                 GL.DrawArrays(PrimitiveType.TriangleStrip, primitive.VertexStart, primitive.VertexCount);
@@ -244,7 +300,7 @@ namespace WindViewer.FileFormats
                         if (primitive.Type == 0)
                         {
                             Console.WriteLine("Delta: " +
-                                              ((int)(packetLoc.Offset + packetLoc.PacketSize)-numPrimitiveBytesRead ).ToString());
+                                              ((int)(packetLoc.Offset + packetLoc.PacketSize) - numPrimitiveBytesRead).ToString());
                             //I think we've hit the end and we should break here.
                             break;
                         }
@@ -255,7 +311,7 @@ namespace WindViewer.FileFormats
 
                         _renderList.Add(primList);
 
-                        
+
 
                         if (primitive.Type != PrimitiveTypes.TriangleStrip)
                             Console.WriteLine("Well there you. go.");
@@ -357,6 +413,10 @@ namespace WindViewer.FileFormats
             }
         }
 
+        /// <summary>
+        /// Used for undefined chunks to properly incriment the data stream
+        /// as we read in.
+        /// </summary>
         private class DefaultChunk : BaseChunk
         {
             public override void Load(byte[] data, ref int offset)
@@ -379,7 +439,7 @@ namespace WindViewer.FileFormats
                 base.Load(data, ref offset);
 
                 _unknown1 = (ushort)FSHelpers.Read16(data, offset + 8);
-                _batchCount = (uint) FSHelpers.Read32(data, offset + 12); //2 bytes padding after Unknown1
+                _batchCount = (uint)FSHelpers.Read32(data, offset + 12); //2 bytes padding after Unknown1
                 _vertexCount = (uint)FSHelpers.Read32(data, offset + 16);
                 _hierarchyDataOffset = (uint)FSHelpers.Read32(data, offset + 20);
 
@@ -402,6 +462,11 @@ namespace WindViewer.FileFormats
                 {
                     Type = (HierarchyDataTypes)FSHelpers.Read16(data, (int)offset);
                     Index = (ushort)FSHelpers.Read16(data, (int)offset + 0x2);
+                }
+
+                public override string ToString()
+                {
+                    return string.Format("{0} [{1}]", Type, Index);
                 }
 
                 public const uint Size = 4;
@@ -497,7 +562,7 @@ namespace WindViewer.FileFormats
 
                 offset += ChunkSize;
             }
-            
+
             public VertexFormat GetVertexFormat(int index)
             {
                 VertexFormat vtxFmt = new VertexFormat();
@@ -508,8 +573,8 @@ namespace WindViewer.FileFormats
             public Vector3 GetPosition(int index)
             {
                 Vector3 newPos = new Vector3();
-                for(int i = 0; i < 3; i++)
-                    newPos[i] = FSHelpers.ReadFloat(_dataCopy, VertexDataOffsets[(int)VertexDataTypes.Position] + (index * Vector3.SizeInBytes) + (i*4));
+                for (int i = 0; i < 3; i++)
+                    newPos[i] = FSHelpers.ReadFloat(_dataCopy, VertexDataOffsets[(int)VertexDataTypes.Position] + (index * Vector3.SizeInBytes) + (i * 4));
 
                 return newPos;
             }
@@ -517,8 +582,8 @@ namespace WindViewer.FileFormats
             public Vector4 GetColor0(int index)
             {
                 Vector4 newColor = new Vector4();
-                for(int i = 0; i < 4; i++)
-                    newColor[i] = FSHelpers.Read8(_dataCopy, VertexDataOffsets[(int)VertexDataTypes.Color0] + (index * 4) + i)/255f;
+                for (int i = 0; i < 4; i++)
+                    newColor[i] = FSHelpers.Read8(_dataCopy, VertexDataOffsets[(int)VertexDataTypes.Color0] + (index * 4) + i) / 255f;
 
                 return newColor;
             }
@@ -526,11 +591,11 @@ namespace WindViewer.FileFormats
             public Vector2 GetTex0(int index, int decimalPlace)
             {
                 Vector2 newTexCoord = new Vector2();
-                float scaleFactor = (float) Math.Pow(0.5, decimalPlace);
+                float scaleFactor = (float)Math.Pow(0.5, decimalPlace);
 
                 for (int i = 0; i < 2; i++)
                     newTexCoord[i] = FSHelpers.Read16(_dataCopy,
-                        VertexDataOffsets[(int) VertexDataTypes.Tex0] + (index*4) + (i*0x2))*scaleFactor;
+                        VertexDataOffsets[(int)VertexDataTypes.Tex0] + (index * 4) + (i * 0x2)) * scaleFactor;
 
                 return newTexCoord;
             }
@@ -680,7 +745,7 @@ namespace WindViewer.FileFormats
 
                 public void Load(byte[] data, uint offset)
                 {
-                    Type = (PrimitiveTypes) FSHelpers.Read8(data, (int)offset);
+                    Type = (PrimitiveTypes)FSHelpers.Read8(data, (int)offset);
                     VertexCount = (ushort)FSHelpers.Read16(data, (int)offset + 0x1);
                 }
 
@@ -731,7 +796,7 @@ namespace WindViewer.FileFormats
             public BatchPacketLocation GetBatchPacketLocation(uint index)
             {
                 BatchPacketLocation newBp = new BatchPacketLocation();
-                newBp.PacketSize = (uint)FSHelpers.Read32(_dataCopy, (int)(_packetLocationOffset + (index*BatchPacketLocation.Size) + 0x0));
+                newBp.PacketSize = (uint)FSHelpers.Read32(_dataCopy, (int)(_packetLocationOffset + (index * BatchPacketLocation.Size) + 0x0));
                 newBp.Offset = (uint)FSHelpers.Read32(_dataCopy, (int)(_packetLocationOffset + (index * BatchPacketLocation.Size) + 0x4));
 
                 return newBp;
@@ -753,9 +818,9 @@ namespace WindViewer.FileFormats
             public override void Load(byte[] data, ref int offset)
             {
                 base.Load(data, ref offset);
-                _textureCount = (ushort) FSHelpers.Read16(data, offset + 0x08);
-                _textureHeaderOffset = (uint) FSHelpers.Read32(data, offset + 0xC);
-                _stringTableOffset = (uint) FSHelpers.Read32(data, offset + 0x10);
+                _textureCount = (ushort)FSHelpers.Read16(data, offset + 0x08);
+                _textureHeaderOffset = (uint)FSHelpers.Read32(data, offset + 0xC);
+                _stringTableOffset = (uint)FSHelpers.Read32(data, offset + 0x10);
 
                 offset += ChunkSize;
 
@@ -763,7 +828,7 @@ namespace WindViewer.FileFormats
                 {
                     BTI tex = GetTexture(i);
                 }
-                
+
             }
 
             public BTI GetTexture(uint index)
@@ -771,11 +836,11 @@ namespace WindViewer.FileFormats
                 if (index > _textureCount)
                     new Exception("Invalid index provided to GetTexture!");
 
-                uint dataOffset = _textureHeaderOffset + (index*BTI.FileHeader.Size);
+                uint dataOffset = _textureHeaderOffset + (index * BTI.FileHeader.Size);
                 BTI tex = new BTI();
 
                 //Before load the texture we need to modify the source byte array, because reasons.
-                int headerOffset = (int) (((index+1)*32) );
+                int headerOffset = (int)(((index + 1) * 32));
 
                 tex.Load(_dataCopy, dataOffset, headerOffset);
 
@@ -785,6 +850,36 @@ namespace WindViewer.FileFormats
             public ushort GetTextureCount()
             {
                 return _textureCount;
+            }
+        }
+
+        #endregion
+
+        #region Editor stuff to figure out later
+
+        private class SceneGraph
+        {
+            public List<SceneGraph> Children;
+            public Inf1Chunk.HierarchyData.HierarchyDataTypes NodeType { get; private set; }
+            public ushort DataIndex { get; private set; }
+
+            public SceneGraph(Inf1Chunk.HierarchyData.HierarchyDataTypes type, ushort index)
+            {
+                Children = new List<SceneGraph>();
+                NodeType = type;
+                DataIndex = index;
+            }
+
+            public SceneGraph()
+            {
+                Children = new List<SceneGraph>();
+                NodeType = 0;
+                DataIndex = 0;
+            }
+
+            public override string ToString()
+            {
+                return string.Format("{0} [{1}]", NodeType, Children.Count);
             }
         }
 
