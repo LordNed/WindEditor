@@ -172,7 +172,16 @@ namespace WindViewer.FileFormats
 
             HerpDerp(data);
         }
-
+        
+        //The index offset is a hack until I figure out a better way to do (/ confirm)
+        //that the indexes specified in the file header are actually relative to the
+        //start of that particular header, and not to the start of the file itself, which
+        //is kind of like wtf... Yeah so that seems to be the issue is that the indexes
+        //specified in the header are relative to the start of the header, so we sort of
+        //need to either modify the offsets... the offset probably also applies to the 
+        //palettes but I haven't tested those. The best solution might be to pass the
+        //offset to the loading function and on through to HerpDerp but that seems weird
+        //Meh.
         private void HerpDerp(byte[] fileData)
         {
             switch (Header.GetFormat())
@@ -313,7 +322,7 @@ namespace WindViewer.FileFormats
                     uint numBlocksW = Header.GetWidth() / 4; //4 byte block width
                     uint numBlocksH = Header.GetHeight() / 4; //4 byte block height 
 
-                    uint dataOffset = Header.ImageDataOffset+224;
+                    uint dataOffset = Header.ImageDataOffset;
                     byte[] destData = new byte[Header.GetWidth() * Header.GetHeight() * 4];
 
                     //Read the indexes from the file

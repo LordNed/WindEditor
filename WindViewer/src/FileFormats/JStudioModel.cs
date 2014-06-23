@@ -764,6 +764,9 @@ namespace WindViewer.FileFormats
 
                 uint dataOffset = _textureHeaderOffset + (index*BTI.FileHeader.Size);
                 BTI tex = new BTI();
+
+                //Before load the texture we need to modify the source byte array, because
+
                 tex.Load(_dataCopy, dataOffset);
 
                 return tex;
