@@ -361,10 +361,157 @@ namespace WindViewer.FileFormats
 
                     bmp.Save("poked_with_stick3.png");
                 }
-                break;                    
+                break;   
+                case ImageFormat.CMPR:
+                {
+                    //4 bpp, 8 block width/height, block size 32 bytes, color.
+                    //Ahhh, a classic case of S3TC1 / DXT1 compression.
+                    //uint numBlocksW = Header.GetWidth() / 4; //4 byte block width
+                    //uint numBlocksH = Header.GetHeight() / 4; //4 byte block height 
+
+                    uint dataOffset = Header.ImageDataOffset;
+                    byte[] destData = new byte[Header.GetWidth() * Header.GetHeight() * 4];
+
+                    //Read the indexes from the file
+                    for (int yBlock = 0; yBlock < Header.GetHeight(); yBlock += 2)
+                    {
+                        for (int xBlock = 0; xBlock < Header.GetWidth(); xBlock += 2)
+                        {
+                            //Inner Loop for pixels
+                            for (int pY = 0; pY < 2; pY++)
+                            {
+                                for (int pX = 0; pX < 2; pX++)
+                                {
+                                    //Ensure we're not reading past the end of the image.
+                                    if (4 * (xBlock + pX) >= Header.GetWidth() && 4 *(yBlock + pY) >= Header.GetHeight())
+                                        continue;
+
+                                    Buffer.BlockCopy(fileData, (int)dataOffset, destData,
+                                        (int)(8*((yBlock + pY)*Header.GetWidth()/4 + xBlock + pX)), 8);
+
+                                    dataOffset += 8;
+                                }
+                            }
+                        }
+                    }
+
+                    for (uint i = 0; i < Header.GetWidth()*Header.GetHeight()/2; i += 8)
+                    {
+                        //Byte order flip some data
+                        byte temp = destData[i + 1];
+                        destData[i + 1] = destData[i];
+                        destData[i] = temp;
+
+                        temp = destData[i + 3];
+                        destData[i + 3] = destData[i + 2];
+                        destData[i + 2] = temp;
+
+                        destData[i + 4] = S3TC1ReverseByte(destData[i + 4]);
+                        destData[i + 5] = S3TC1ReverseByte(destData[i + 5]);
+                        destData[i + 6] = S3TC1ReverseByte(destData[i + 6]);
+                        destData[i + 7] = S3TC1ReverseByte(destData[i + 7]);
+                    }
+
+                    byte[] finalData = new byte[(Header.GetWidth()*Header.GetHeight())*4];
+                    DecompressDXT1(ref finalData, destData, Header.GetWidth(), Header.GetHeight());
+
+                    //Test? 
+                    Bitmap bmp = new Bitmap((int)Header.GetWidth(), (int)Header.GetHeight());
+                    Rectangle rect = new Rectangle(0, 0, (int)Header.GetWidth(), (int)Header.GetHeight());
+                    BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadWrite, bmp.PixelFormat);
+
+                    //Unsafe mass copy, yay
+                    IntPtr ptr = bmpData.Scan0;
+                    Marshal.Copy(finalData, 0, ptr, finalData.Length);
+                    bmp.UnlockBits(bmpData);
+
+                    bmp.Save("poked_with_stick4.png");
+                }
+                break;
                 default:
                     Console.WriteLine("Unsupported image format {0}!", Header.GetFormat());
                     break;
+            }
+        }
+
+        private byte S3TC1ReverseByte(byte b)
+        {
+            byte b1 = (byte) (b & 0x3);
+            byte b2 = (byte) (b & 0xC);
+            byte b3 = (byte) (b & 0x30);
+            byte b4 = (byte) (b & 0xC0);
+
+            return (byte) ((b1 << 6) | (b2 << 2) | (b3 >> 2) | (b4 >> 6));
+        }
+
+        private void DecompressDXT1(ref byte[] destData, byte[] src, uint texWidth, uint texHeight)
+        {
+            uint dataOffset = 0;
+            for (int yBlock = 0; yBlock < texHeight; yBlock++)
+            {
+                for (int xBlock = 0; xBlock < texWidth; xBlock++)
+                {
+                    ushort color1 = FSHelpers.Read16Swap(src, dataOffset);
+                    ushort color2 = FSHelpers.Read16Swap(src, dataOffset + 0x2);
+                    uint bits = FSHelpers.Read32Swap(src, dataOffset + 0x4);
+
+                    dataOffset += 8;
+
+                    byte[][] colorTable = new byte[4][];
+                    for (int i = 0; i < 4; i++)
+                        colorTable[i] = new byte[4];
+
+                    RGB565ToRGBA8(color1, ref colorTable[0], 0);
+                    RGB565ToRGBA8(color2, ref colorTable[1], 0);
+
+                    if (color1 > color2)
+                    {
+                        colorTable[2][0] = (byte) ((2*colorTable[0][0] + colorTable[1][0] + 1)/3);
+                        colorTable[2][1] = (byte) ((2*colorTable[0][1] + colorTable[1][1] + 1)/3);
+                        colorTable[2][2] = (byte) ((2*colorTable[0][2] + colorTable[1][2] + 1)/3);
+                        colorTable[2][3] = 0xFF;
+
+                        colorTable[3][0] = (byte) ((colorTable[0][0] + 2*colorTable[1][0] + 1)/3);
+                        colorTable[3][1] = (byte) ((colorTable[0][1] + 2*colorTable[1][1] + 1)/3);
+                        colorTable[3][2] = (byte) ((colorTable[0][2] + 2*colorTable[1][2] + 1)/3);
+                        colorTable[3][3] = 0xFF;
+                    }
+                    else
+                    {
+                        colorTable[2][0] = (byte) ((colorTable[0][0] + colorTable[1][0] + 1)/2);
+                        colorTable[2][1] = (byte) ((colorTable[0][1] + colorTable[1][1] + 1)/2);
+                        colorTable[2][2] = (byte) ((colorTable[0][2] + colorTable[1][2] + 1)/2);
+                        colorTable[2][3] = 0xFF;
+
+                        colorTable[3][0] = (byte) ((colorTable[0][0] + 2*colorTable[1][0] + 1)/3);
+                        colorTable[3][1] = (byte) ((colorTable[0][1] + 2*colorTable[1][1] + 1)/3);
+                        colorTable[3][2] = (byte) ((colorTable[0][2] + 2*colorTable[1][2] + 1)/3);
+                        colorTable[3][3] = 0x00;
+                    }
+
+                    for (int yIndex = 0; yIndex < 4; yIndex++)
+                    {
+                        for (int xIndex = 0; xIndex < 4; xIndex++)
+                        {
+                            //Bounds check for non Power of 2 images
+                            if ((((xBlock*4) + xIndex) >= Header.GetWidth()) &&
+                                (((yBlock*4) + yIndex) >= Header.GetHeight()))
+                            {
+                                continue;
+                            }
+
+                            uint destIndex = (uint) (4*(((yBlock*4) + yIndex)*Header.GetWidth() + (xBlock*4) + xIndex));
+                            uint sIndex = (bits & 0x3);
+
+                            destData[destIndex + 0] = colorTable[sIndex][0];
+                            destData[destIndex + 1] = colorTable[sIndex][1];
+                            destData[destIndex + 2] = colorTable[sIndex][2];
+                            destData[destIndex + 3] = colorTable[sIndex][3];
+
+                            bits >>= 2;
+                        }
+                    }
+                }
             }
         }
 

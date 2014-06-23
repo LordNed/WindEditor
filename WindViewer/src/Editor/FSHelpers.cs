@@ -21,9 +21,19 @@ namespace WindViewer.Editor
             return (short)((Buffer.GetByte(data, offset) << 8) | Buffer.GetByte(data, offset + 1));
         }
 
+        public static ushort Read16Swap(byte[] data, uint offset)
+        {
+            return (ushort)((Buffer.GetByte(data, (int)offset + 1) << 8) | Buffer.GetByte(data, (int)offset));
+        }
+
         public static int Read32(byte[] data, int offset)
         {
             return ((Buffer.GetByte(data, offset) << 24) | (Buffer.GetByte(data, offset + 1) << 16) | (Buffer.GetByte(data, offset + 2) << 8) | Buffer.GetByte(data, offset + 3));
+        }
+
+        public static uint Read32Swap(byte[] data, uint offset)
+        {
+            return (uint)((Buffer.GetByte(data, (int)offset + 3) << 24) | (Buffer.GetByte(data, (int)offset + 2) << 16) | (Buffer.GetByte(data, (int)offset + 1) << 8) | Buffer.GetByte(data, (int)offset));
         }
 
         public static string ReadString(byte[] data, ref int offset)
