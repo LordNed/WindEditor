@@ -256,6 +256,7 @@ namespace WindViewer.FileFormats
                     bmp.UnlockBits(bmpData);
 
                     bmp.Save("poked_with_stick.png");
+                    _decodedData = destData;
                 }
                 break;
                 case ImageFormat.C4:
@@ -318,8 +319,8 @@ namespace WindViewer.FileFormats
                     bmp.UnlockBits(bmpData);
 
                     bmp.Save("poked_with_stick2.png");
+                    _decodedData = finalDest;
 
-                    
                 }
                 break;
                 case ImageFormat.RGB565:
@@ -366,6 +367,7 @@ namespace WindViewer.FileFormats
                     bmp.UnlockBits(bmpData);
 
                     bmp.Save("poked_with_stick3.png");
+                    _decodedData = destData;
                 }
                 break;   
                 case ImageFormat.CMPR:
@@ -434,9 +436,11 @@ namespace WindViewer.FileFormats
                     bmp.UnlockBits(bmpData);
 
                     bmp.Save("poked_with_stick4.png");
+                    _decodedData = finalData;
                 }
                 break;
                 default:
+                    _decodedData = new byte[0];
                     Console.WriteLine("Unsupported image format {0}!", Header.GetFormat());
                     break;
             }
@@ -649,6 +653,9 @@ namespace WindViewer.FileFormats
             dest[destOffset + 3] = r;
         }
 
+        //more temp[
+        private byte[] _decodedData;
+
         //Temp for saving
         private byte[] _dataCache;
 
@@ -656,6 +663,21 @@ namespace WindViewer.FileFormats
         public override void Save(BinaryWriter stream)
         {
             FSHelpers.WriteArray(stream, _dataCache);
+        }
+
+        public uint GetWidth()
+        {
+            return Header.GetWidth();
+        }
+
+        public uint GetHeight()
+        {
+            return Header.GetHeight();
+        }
+
+        public byte[] GetData()
+        {
+            return _decodedData;
         }
     }
 }

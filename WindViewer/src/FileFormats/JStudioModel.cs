@@ -138,9 +138,38 @@ namespace WindViewer.FileFormats
             J3DRenderer.Draw += J3DRendererOnDraw;
             J3DRenderer.Bind += J3DRendererOnBind;
 
-            SceneGraph rootNode = BuildSceneGraphFromInfo(GetChunkByType<Inf1Chunk>());
+            _sceneGraph = BuildSceneGraphFromInfo(GetChunkByType<Inf1Chunk>());
+
+            //IterateSceneGraphRecursive(_sceneGraph);
         }
 
+
+        private SceneGraph _sceneGraph;
+
+        private void IterateSceneGraphRecursive(SceneGraph curNode)
+        {
+            switch (curNode.NodeType)
+            {
+                case Inf1Chunk.HierarchyData.HierarchyDataTypes.Material:
+                    //Console.WriteLine("Bind material index {0}", curNode.DataIndex);
+                    //lol this is so wrong, but maybe something will not explode.
+                    GL.BindTexture(TextureTarget.Texture2D, GetGLTexIdFromCache(curNode.DataIndex));
+                    break;
+                case Inf1Chunk.HierarchyData.HierarchyDataTypes.Shape:
+                    //Console.WriteLine("Draw shape index {0}", curNode.DataIndex);
+
+                    foreach (PrimitiveList prim in _renderList[curNode.DataIndex])
+                    {
+                        GL.DrawArrays(PrimitiveType.TriangleStrip, prim.VertexStart, prim.VertexCount);
+                    }
+                    break;
+            }
+
+            foreach (SceneGraph subNode in curNode.Children)
+            {
+                IterateSceneGraphRecursive(subNode);
+            }
+        }
 
         private SceneGraph BuildSceneGraphFromInfo(Inf1Chunk info)
         {
@@ -179,8 +208,7 @@ namespace WindViewer.FileFormats
                     case Inf1Chunk.HierarchyData.HierarchyDataTypes.Material:
                     case Inf1Chunk.HierarchyData.HierarchyDataTypes.Joint:
                     case Inf1Chunk.HierarchyData.HierarchyDataTypes.Shape:
-                        //newNode = new SceneGraph(node.Type, node.Index);
-                        //parent.Children.Add(newNode);
+                    case Inf1Chunk.HierarchyData.HierarchyDataTypes.Finish:
                         break;
                     default:
                         Console.WriteLine("You broke something.");
@@ -208,7 +236,7 @@ namespace WindViewer.FileFormats
             public int VertexCount;
         }
 
-        private List<PrimitiveList> _renderList = new List<PrimitiveList>();
+        private Dictionary<int, List<PrimitiveList>> _renderList = new Dictionary<int, List<PrimitiveList>>();
 
         private void J3DRendererOnBind()
         {
@@ -241,12 +269,12 @@ namespace WindViewer.FileFormats
             if (EditorHelpers.GetKey(Keys.I))
                 _numPrimRender = _renderList.Count - 1;
 
-
-            for (int i = 0; i < Math.Min(_numPrimRender, _renderList.Count); i++)
+            IterateSceneGraphRecursive(_sceneGraph);
+            /*for (int i = 0; i < Math.Min(_numPrimRender, _renderList.Count); i++)
             {
                 PrimitiveList primitive = _renderList[i];
                 GL.DrawArrays(PrimitiveType.TriangleStrip, primitive.VertexStart, primitive.VertexCount);
-            }
+            }*/
         }
 
         private int _glVbo;
@@ -283,7 +311,7 @@ namespace WindViewer.FileFormats
             {
                 Shp1Chunk.Batch batch = shp1Chunk.GetBatch(i);
                 Shp1Chunk.BatchPacketLocation packetLoc = shp1Chunk.GetBatchPacketLocation(i);
-
+                _renderList[(int)i] = new List<PrimitiveList>();
                 for (int p = 0; p < batch.PacketCount; p++)
                 {
                     uint numPrimitiveBytesRead = packetLoc.Offset;
@@ -309,7 +337,7 @@ namespace WindViewer.FileFormats
                         primList.VertexCount = primitive.VertexCount;
                         primList.VertexStart = finalData.Count;
 
-                        _renderList.Add(primList);
+                        _renderList[(int)i].Add(primList);
 
 
 
@@ -856,6 +884,33 @@ namespace WindViewer.FileFormats
         #endregion
 
         #region Editor stuff to figure out later
+
+        private Dictionary<int, int> _textureCache = new Dictionary<int, int>();
+        private int GetGLTexIdFromCache(int j3dTextureId)
+        {
+            if (_textureCache.ContainsKey(j3dTextureId))
+                return _textureCache[j3dTextureId];
+
+            Console.WriteLine("Generating GL texture for id: " + j3dTextureId);
+
+            //If the texture cache doesn't contain the ID, we're going to load it here.
+            Tex1Chunk texChunk = GetChunkByType<Tex1Chunk>();
+            BTI image = texChunk.GetTexture((uint)j3dTextureId);
+
+            int glTextureId;
+            GL.GenTextures(1, out glTextureId);
+            GL.BindTexture(TextureTarget.Texture2D, glTextureId);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Nearest);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Nearest);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)All.Repeat);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)All.Repeat);
+
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, (int)image.GetWidth(), (int)image.GetHeight(), 0, PixelFormat.Rgba, PixelType.UnsignedByte,
+               image.GetData());
+
+            _textureCache[j3dTextureId] = glTextureId;
+            return glTextureId;
+        }
 
         private class SceneGraph
         {

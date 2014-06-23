@@ -38,8 +38,6 @@ namespace WindViewer.Editor.Renderer
             LoadShader(vertShader, ShaderType.VertexShader, _programId, out vertShaderId);
             LoadShader(fragShader, ShaderType.FragmentShader, _programId, out fragShaderId);
 
-            
-
             //Deincriment the reference count on the shaders so that they 
             //don't exist until the context is destroyed.
             GL.DeleteShader(vertShaderId);
