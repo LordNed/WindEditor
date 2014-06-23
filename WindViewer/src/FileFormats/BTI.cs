@@ -10,6 +10,7 @@ namespace WindViewer.FileFormats
 {
     public class BTI : BaseArchiveFile
     {
+#region File Formats
         public enum ImageFormat : byte
         {
                     //Bits per Pixel | Block Width | Block Height | Block Size | Type / Description
@@ -127,15 +128,16 @@ namespace WindViewer.FileFormats
                 return _paletteFormat;
             }
         }
-
-        //Temp for saving
-        private byte[] _dataCache;
+#endregion
 
 
         public FileHeader Header;
         public Palette ImagePalette;
         
-
+        /// <summary>
+        /// Call this if you want to initialize a BTI file from a filestream on disk.
+        /// </summary>
+        /// <param name="data"></param>
         public override void Load(byte[] data)
         {
             _dataCache = data;
@@ -146,143 +148,215 @@ namespace WindViewer.FileFormats
             ImagePalette = new Palette();
             ImagePalette.Load(data, Header.PaletteEntryCount, Header.PaletteDataOffset);
 
+            HerpDerp(data);
+        }
+
+        /// <summary>
+        /// And call this one if you want to initialize it from inside a byte stream
+        /// ie: Inside of a BMD/BDL file.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="offset"></param>
+        public void Load(byte[] data, uint offset)
+        {
+            Header = new FileHeader();
+            Header.Load(data, offset);
+
+            ImagePalette = new Palette();
+            ImagePalette.Load(data, Header.PaletteEntryCount, offset + Header.PaletteDataOffset);
+
+            //Copy a subsection out of the big buffer that is our actual file data.
+            //This is temp until we have a ImageData struct I guess?
+            //byte[] buffer = new byte[GetFileSize()];
+            //Array.Copy(data, (int) offset, buffer, 0, GetFileSize());
+
+            HerpDerp(data);
+        }
+
+        private void HerpDerp(byte[] fileData)
+        {
             switch (Header.GetFormat())
             {
                 case ImageFormat.RGBA32:
+                {
+                    uint numBlocksW = Header.GetWidth() / 4; //4 byte block width
+                    uint numBlocksH = Header.GetHeight() / 4; //4 byte block height 
+
+                    uint dataOffset = Header.ImageDataOffset;
+                    byte[] destData = new byte[Header.GetWidth() * Header.GetHeight() * 4];
+
+                    for (int yBlock = 0; yBlock < numBlocksH; yBlock++)
                     {
-                        uint numBlocksW = Header.GetWidth() / 4; //4 byte block width
-                        uint numBlocksH = Header.GetHeight() / 4; //4 byte block height 
-
-                        uint dataOffset = Header.ImageDataOffset;
-                        byte[] destData = new byte[Header.GetWidth() * Header.GetHeight() * 4];
-
-                        for (int yBlock = 0; yBlock < numBlocksH; yBlock++)
+                        for (int xBlock = 0; xBlock < numBlocksW; xBlock++)
                         {
-                            for (int xBlock = 0; xBlock < numBlocksW; xBlock++)
+                            //For each block, we're going to examine block width / block height number of 'pixels'
+                            for (int pY = 0; pY < 4; pY++)
                             {
-                                //For each block, we're going to examine block width / block height number of 'pixels'
-                                for (int pY = 0; pY < 4; pY++)
+                                for (int pX = 0; pX < 4; pX++)
                                 {
-                                    for (int pX = 0; pX < 4; pX++)
+                                    //Ensure the pixel we're checking is within bounds of the image.
+                                    if ((xBlock * 4 + pX >= Header.GetWidth()) || (yBlock * 4 + pY >= Header.GetHeight()))
                                     {
-                                        //Ensure the pixel we're checking is within bounds of the image.
-                                        if ((xBlock * 4 + pX >= Header.GetWidth()) || (yBlock * 4 + pY >= Header.GetHeight()))
-                                        {
-                                            continue;
-                                        }
-
-                                        //Now we're looping through each pixel in a block, but a pixel is four bytes long. 
-                                        uint destIndex = (uint)(4 * (Header.GetWidth() * ((yBlock * 4) + pY) + (xBlock * 4) + pX));
-                                        destData[destIndex + 3] = data[dataOffset + 0]; //Alpha
-                                        destData[destIndex + 2] = data[dataOffset + 1]; //Red
-                                        dataOffset += 2;
+                                        continue;
                                     }
+
+                                    //Now we're looping through each pixel in a block, but a pixel is four bytes long. 
+                                    uint destIndex = (uint)(4 * (Header.GetWidth() * ((yBlock * 4) + pY) + (xBlock * 4) + pX));
+                                    destData[destIndex + 3] = fileData[dataOffset + 0]; //Alpha
+                                    destData[destIndex + 2] = fileData[dataOffset + 1]; //Red
+                                    dataOffset += 2;
                                 }
-
-                                //...but we have to do it twice, because RGBA32 stores two sub-blocks per block. (AR, and GB)
-                                for (int pY = 0; pY < 4; pY++)
-                                {
-                                    for (int pX = 0; pX < 4; pX++)
-                                    {
-                                        //Ensure the pixel we're checking is within bounds of the image.
-                                        if ((xBlock * 4 + pX >= Header.GetWidth()) || (yBlock * 4 + pY >= Header.GetHeight()))
-                                        {
-                                            continue;
-                                        }
-
-                                        //Now we're looping through each pixel in a block, but a pixel is four bytes long. 
-                                        uint destIndex = (uint)(4 * (Header.GetWidth() * ((yBlock * 4) + pY) + (xBlock * 4) + pX));
-                                        destData[destIndex + 1] = data[dataOffset + 0]; //Green
-                                        destData[destIndex + 0] = data[dataOffset + 1]; //Blue
-                                        dataOffset += 2;
-                                    }
-                                }
-
                             }
+
+                            //...but we have to do it twice, because RGBA32 stores two sub-blocks per block. (AR, and GB)
+                            for (int pY = 0; pY < 4; pY++)
+                            {
+                                for (int pX = 0; pX < 4; pX++)
+                                {
+                                    //Ensure the pixel we're checking is within bounds of the image.
+                                    if ((xBlock * 4 + pX >= Header.GetWidth()) || (yBlock * 4 + pY >= Header.GetHeight()))
+                                    {
+                                        continue;
+                                    }
+
+                                    //Now we're looping through each pixel in a block, but a pixel is four bytes long. 
+                                    uint destIndex = (uint)(4 * (Header.GetWidth() * ((yBlock * 4) + pY) + (xBlock * 4) + pX));
+                                    destData[destIndex + 1] = fileData[dataOffset + 0]; //Green
+                                    destData[destIndex + 0] = fileData[dataOffset + 1]; //Blue
+                                    dataOffset += 2;
+                                }
+                            }
+
                         }
-
-                        //Test? 
-                        Bitmap bmp = new Bitmap((int)Header.GetWidth(), (int)Header.GetHeight());
-                        Rectangle rect = new Rectangle(0, 0, (int)Header.GetWidth(), (int)Header.GetHeight());
-                        BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadWrite, bmp.PixelFormat);
-
-                        //Unsafe mass copy, yay
-                        IntPtr ptr = bmpData.Scan0;
-                        Marshal.Copy(destData, 0, ptr, destData.Length);
-                        bmp.UnlockBits(bmpData);
-
-                        bmp.Save("poked_with_stick.png");
-                        break;
                     }
+
+                    //Test? 
+                    Bitmap bmp = new Bitmap((int)Header.GetWidth(), (int)Header.GetHeight());
+                    Rectangle rect = new Rectangle(0, 0, (int)Header.GetWidth(), (int)Header.GetHeight());
+                    BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadWrite, bmp.PixelFormat);
+
+                    //Unsafe mass copy, yay
+                    IntPtr ptr = bmpData.Scan0;
+                    Marshal.Copy(destData, 0, ptr, destData.Length);
+                    bmp.UnlockBits(bmpData);
+
+                    bmp.Save("poked_with_stick.png");
+                }
+                break;
                 case ImageFormat.C4:
+                {
+                    //4 bpp, 8 block width/height, block size 32 bytes, possible palettes (IA8, RGB565, RGB5A3)
+                    uint numBlocksW = Header.GetWidth() / 8; //8 block width
+                    uint numBlocksH = Header.GetHeight() / 8; //8 block height 
+
+                    uint dataOffset = Header.ImageDataOffset;
+                    byte[] destData = new byte[Header.GetWidth() * Header.GetHeight() * 8];
+
+                    //Read the indexes from the file
+                    for (int yBlock = 0; yBlock < numBlocksH; yBlock++)
                     {
-                        //4 bpp, 8 block width/height, block size 32 bytes, possible palettes (IA8, RGB565, RGB5A3)
-                        uint numBlocksW = Header.GetWidth() / 4; //4 byte block width
-                        uint numBlocksH = Header.GetHeight() / 4; //4 byte block height 
-
-                        uint dataOffset = Header.ImageDataOffset;
-                        byte[] destData = new byte[Header.GetWidth() * Header.GetHeight() * 8];
-
-                        //Read the indexes from the file
-                        for (int yBlock = 0; yBlock < numBlocksW; yBlock++)
+                        for (int xBlock = 0; xBlock < numBlocksW; xBlock++)
                         {
-                            for (int xBlock = 0; xBlock < numBlocksH; xBlock++)
+                            //Inner Loop for pixels
+                            for (int pY = 0; pY < 8; pY++)
                             {
-                                //Inner Loop for pixels
-                                for (int pY = 0; pY < 8; pY++)
+                                for (int pX = 0; pX < 8; pX += 2)
                                 {
-                                    for (int pX = 0; pX < 8; pX += 2)
-                                    {
-                                        //Ensure we're not reading past the end of the image.
-                                        if ((xBlock * 8 + pX >= Header.GetWidth()) || (yBlock * 8 + pY >= Header.GetHeight()))
-                                            continue;
+                                    //Ensure we're not reading past the end of the image.
+                                    if ((xBlock * 8 + pX >= Header.GetWidth()) || (yBlock * 8 + pY >= Header.GetHeight()))
+                                        continue;
 
-                                        byte t = (byte)(data[dataOffset] & 0xF0);
-                                        byte t2 = (byte)(data[dataOffset] & 0x0F);
+                                    byte t = (byte)(fileData[dataOffset] & 0xF0);
+                                    byte t2 = (byte)(fileData[dataOffset] & 0x0F);
 
-                                        destData[Header.GetWidth() * ((yBlock * 8) + pY) + (xBlock * 8) + pX + 0] = (byte)(t >> 4);
-                                        destData[Header.GetWidth() * ((yBlock * 8) + pY) + (xBlock * 8) + pX + 1] = t2;
+                                    destData[Header.GetWidth() * ((yBlock * 8) + pY) + (xBlock * 8) + pX + 0] = (byte)(t >> 4);
+                                    destData[Header.GetWidth() * ((yBlock * 8) + pY) + (xBlock * 8) + pX + 1] = t2;
 
-                                        dataOffset += 1;
-                                    }
+                                    dataOffset += 1;
                                 }
                             }
                         }
+                    }
 
-                        //Now look them up in the palette and turn them into actual colors.
-                        byte[] finalDest = new byte[destData.Length/2];
+                    //Now look them up in the palette and turn them into actual colors.
+                    byte[] finalDest = new byte[destData.Length / 2];
 
-                        int pixelSize = Header.GetPaletteFormat() == PaletteFormat.IA8 ? 2 : 4;
-                        int destOffset = 0;
-                        for (int y = 0; y < Header.GetHeight(); y++)
+                    int pixelSize = Header.GetPaletteFormat() == PaletteFormat.IA8 ? 2 : 4;
+                    int destOffset = 0;
+                    for (int y = 0; y < Header.GetHeight(); y++)
+                    {
+                        for (int x = 0; x < Header.GetWidth(); x++)
                         {
-                            for (int x = 0; x < Header.GetWidth(); x++)
+                            UnpackPixelFromPalette(destData[y * Header.GetWidth() + x], ref finalDest, destOffset,
+                                ImagePalette.GetBytes(), Header.GetPaletteFormat());
+                            destOffset += pixelSize;
+                        }
+                    }
+                    //Test? 
+                    Bitmap bmp = new Bitmap((int)Header.GetWidth(), (int)Header.GetHeight());
+                    Rectangle rect = new Rectangle(0, 0, (int)Header.GetWidth(), (int)Header.GetHeight());
+                    BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadWrite, bmp.PixelFormat);
+
+                    //Unsafe mass copy, yay
+                    IntPtr ptr = bmpData.Scan0;
+                    Marshal.Copy(finalDest, 0, ptr, finalDest.Length);
+                    bmp.UnlockBits(bmpData);
+
+                    bmp.Save("poked_with_stick2.png");
+
+                    
+                }
+                break;
+                case ImageFormat.RGB565:
+                {
+                    //16 bpp, 4 block width/height, block size 32 bytes, color.
+                    uint numBlocksW = Header.GetWidth() / 4; //4 byte block width
+                    uint numBlocksH = Header.GetHeight() / 4; //4 byte block height 
+
+                    uint dataOffset = Header.ImageDataOffset+224;
+                    byte[] destData = new byte[Header.GetWidth() * Header.GetHeight() * 4];
+
+                    //Read the indexes from the file
+                    for (int yBlock = 0; yBlock < numBlocksH; yBlock++)
+                    {
+                        for (int xBlock = 0; xBlock < numBlocksW; xBlock++)
+                        {
+                            //Inner Loop for pixels
+                            for (int pY = 0; pY < 4; pY++)
                             {
-                                UnpackPixelFromPalette(destData[y * Header.GetWidth() + x], ref finalDest, destOffset,
-                                    ImagePalette.GetBytes(), Header.GetPaletteFormat());
-                                destOffset += pixelSize;
+                                for (int pX = 0; pX < 4; pX++)
+                                {
+                                    //Ensure we're not reading past the end of the image.
+                                    if ((xBlock * 4 + pX >= Header.GetWidth()) || (yBlock * 4 + pY >= Header.GetHeight()))
+                                        continue;
+
+                                    ushort sourcePixel = (ushort)FSHelpers.Read16(fileData, (int)dataOffset);
+                                    RGB565ToRGBA8(sourcePixel, ref destData,
+                                        (int) (4*(Header.GetWidth()*((yBlock*4) + pY) + (xBlock*4) + pX)));
+
+                                    dataOffset += 2;
+                                }
                             }
                         }
-                        //Test? 
-                        Bitmap bmp = new Bitmap((int)Header.GetWidth(), (int)Header.GetHeight());
-                        Rectangle rect = new Rectangle(0, 0, (int)Header.GetWidth(), (int)Header.GetHeight());
-                        BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadWrite, bmp.PixelFormat);
-
-                        //Unsafe mass copy, yay
-                        IntPtr ptr = bmpData.Scan0;
-                        Marshal.Copy(finalDest, 0, ptr, finalDest.Length);
-                        bmp.UnlockBits(bmpData);
-
-                        bmp.Save("poked_with_stick2.png");
-
-                        break;
                     }
+
+                    //Test? 
+                    Bitmap bmp = new Bitmap((int)Header.GetWidth(), (int)Header.GetHeight());
+                    Rectangle rect = new Rectangle(0, 0, (int)Header.GetWidth(), (int)Header.GetHeight());
+                    BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadWrite, bmp.PixelFormat);
+
+                    //Unsafe mass copy, yay
+                    IntPtr ptr = bmpData.Scan0;
+                    Marshal.Copy(destData, 0, ptr, destData.Length);
+                    bmp.UnlockBits(bmpData);
+
+                    bmp.Save("poked_with_stick3.png");
+                }
+                break;                    
                 default:
                     Console.WriteLine("Unsupported image format {0}!", Header.GetFormat());
                     break;
             }
-
-            Console.WriteLine("After");
         }
 
         public uint GetFileSize()
@@ -307,7 +381,7 @@ namespace WindViewer.FileFormats
                     break;
             }
 
-            return (uint) (FileHeader.Size + (Header.GetWidth()*Header.GetHeight()*(bpp/8)) + (Header.PaletteEntryCount*2));;
+            return (uint) (FileHeader.Size + (Header.GetWidth()*Header.GetHeight()*(bpp/8)) + (Header.PaletteEntryCount*2));
         }
 
         private void UnpackPixelFromPalette(int paletteIndex, ref byte[] dest, int offset, byte[] paletteData, PaletteFormat format)
@@ -393,6 +467,10 @@ namespace WindViewer.FileFormats
             dest[destOffset + 2] = g;
             dest[destOffset + 3] = r;
         }
+
+        //Temp for saving
+        private byte[] _dataCache;
+
 
         public override void Save(BinaryWriter stream)
         {

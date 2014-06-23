@@ -72,7 +72,7 @@ namespace WindViewer.FileFormats
         public override void Load(byte[] data)
         {
             _origDataCache = data;
-            return; //TEMP
+
             _chunkList = new List<BaseChunk>();
 
             int dataOffset = 0;
@@ -111,11 +111,13 @@ namespace WindViewer.FileFormats
                         baseChunk = new Shp1Chunk();
                         break;
                     case "TEX1":
+                        baseChunk = new Tex1Chunk();
+                        break;
                     case "MAT3":
                     case "ANK1":
                     default:
                         Console.WriteLine("Found unknown chunk {0}!", tagName);
-                        baseChunk = new BaseChunk();
+                        baseChunk = new DefaultChunk();
                         break;
                 }
 
@@ -352,6 +354,16 @@ namespace WindViewer.FileFormats
             {
                 FSHelpers.WriteString(stream, Type, 4);
                 FSHelpers.Write32(stream, ChunkSize);
+            }
+        }
+
+        private class DefaultChunk : BaseChunk
+        {
+            public override void Load(byte[] data, ref int offset)
+            {
+                base.Load(data, ref offset);
+
+                offset += ChunkSize;
             }
         }
 
@@ -716,6 +728,53 @@ namespace WindViewer.FileFormats
                 return newBp;
             }
         }
+
+        /// <summary>
+        /// The Tex1 chunk stores a series of BTI images within the BMD/BDL format.
+        /// The BMD/BDL also stores a string table which contains the file name for
+        /// each image. The TEX1 chunk stores _textureCount headers immediately after
+        /// the chunk, and then the data for those textures comes.
+        /// </summary>
+        private class Tex1Chunk : BaseChunk
+        {
+            private ushort _textureCount;
+            private uint _textureHeaderOffset;
+            private uint _stringTableOffset;
+
+            public override void Load(byte[] data, ref int offset)
+            {
+                base.Load(data, ref offset);
+                _textureCount = (ushort) FSHelpers.Read16(data, offset + 0x08);
+                _textureHeaderOffset = (uint) FSHelpers.Read32(data, offset + 0xC);
+                _stringTableOffset = (uint) FSHelpers.Read32(data, offset + 0x10);
+
+                offset += ChunkSize;
+
+                for (uint i = 0; i < _textureCount; i++)
+                {
+                    BTI tex = GetTexture(i);
+                }
+                
+            }
+
+            public BTI GetTexture(uint index)
+            {
+                if (index > _textureCount)
+                    new Exception("Invalid index provided to GetTexture!");
+
+                uint dataOffset = _textureHeaderOffset + (index*BTI.FileHeader.Size);
+                BTI tex = new BTI();
+                tex.Load(_dataCopy, dataOffset);
+
+                return tex;
+            }
+
+            public ushort GetTextureCount()
+            {
+                return _textureCount;
+            }
+        }
+
         #endregion
     }
 }
