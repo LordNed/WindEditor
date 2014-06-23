@@ -369,44 +369,25 @@ namespace WindViewer.FileFormats
 
         private class Inf1Chunk : BaseChunk
         {
-            public short Unknown1; //? Anim related
-            private int _batchCount;
-            private int _vertexCount;
-            private int _dataOffset;
+            private ushort _unknown1; //? Anim related
+            private uint _batchCount;
+            private uint _vertexCount;
+            private uint _hierarchyDataOffset;
 
             public override void Load(byte[] data, ref int offset)
             {
                 base.Load(data, ref offset);
 
-                Unknown1 = FSHelpers.Read16(data, offset + 8);
-                _batchCount = FSHelpers.Read32(data, offset + 12); //2 bytes padding after Unknown1
-                _vertexCount = FSHelpers.Read32(data, offset + 16);
-                _dataOffset = FSHelpers.Read32(data, offset + 20);
-
-                var hierarchyDataList = new List<HierarchyData>();
-                int dataOffsetCpy = _dataOffset;
-
-                //Nintendo doesn't seem to define how many of these there are anywhere,
-                //so we're going to have to sort of guess at the maximum (since the struct
-                //is padded to 32 byte alignment) and then break early. Bleh.
-                int maxHierarchyData = (ChunkSize - 24) / 4; //24 bytes for the header, 4 bytes per HierarchyData
-                for (int i = 0; i < maxHierarchyData; i++)
-                {
-                    HierarchyData hData = new HierarchyData();
-                    hData.Load(data, ref dataOffsetCpy);
-
-                    hierarchyDataList.Add(hData);
-
-                    //Anything after the Finish command is just "This is padding data to " padding.
-                    if (hData.Type == HierarchyData.HierarchyDataTypes.Finish)
-                        break;
-                }
+                _unknown1 = (ushort)FSHelpers.Read16(data, offset + 8);
+                _batchCount = (uint) FSHelpers.Read32(data, offset + 12); //2 bytes padding after Unknown1
+                _vertexCount = (uint)FSHelpers.Read32(data, offset + 16);
+                _hierarchyDataOffset = (uint)FSHelpers.Read32(data, offset + 20);
 
                 offset += ChunkSize;
             }
 
             //"SceneGraphRaw"
-            private class HierarchyData
+            public class HierarchyData
             {
                 public enum HierarchyDataTypes : ushort
                 {
@@ -414,21 +395,49 @@ namespace WindViewer.FileFormats
                     Joint = 0x10, Material = 0x11, Shape = 0x12,
                 }
 
-                public HierarchyDataTypes Type;
-                public ushort Index;
+                public HierarchyDataTypes Type { get; private set; }
+                public ushort Index { get; private set; }
 
-                public void Load(byte[] data, ref int offset)
+                public void Load(byte[] data, uint offset)
                 {
-                    Type = (HierarchyDataTypes)FSHelpers.Read16(data, offset);
-                    Index = (ushort)FSHelpers.Read16(data, offset + 2);
-
-                    offset += 4;
+                    Type = (HierarchyDataTypes)FSHelpers.Read16(data, (int)offset);
+                    Index = (ushort)FSHelpers.Read16(data, (int)offset + 0x2);
                 }
+
+                public const uint Size = 4;
             }
 
-            public int GetVertexCount()
+            public uint GetVertexCount()
             {
                 return _vertexCount;
+            }
+
+            public uint GetBatchCount()
+            {
+                return _batchCount;
+            }
+
+            public ushort GetUnknown1()
+            {
+                return _unknown1;
+            }
+
+            public List<HierarchyData> GetHierarchyData()
+            {
+                var data = new List<HierarchyData>();
+                HierarchyData curNode;
+                uint readOffset = 0;
+
+                do
+                {
+                    curNode = new HierarchyData();
+                    curNode.Load(_dataCopy, _hierarchyDataOffset + readOffset);
+                    data.Add(curNode);
+
+                    readOffset += HierarchyData.Size;
+                } while (curNode.Type != HierarchyData.HierarchyDataTypes.Finish);
+
+                return data;
             }
         }
 
@@ -765,9 +774,10 @@ namespace WindViewer.FileFormats
                 uint dataOffset = _textureHeaderOffset + (index*BTI.FileHeader.Size);
                 BTI tex = new BTI();
 
-                //Before load the texture we need to modify the source byte array, because
+                //Before load the texture we need to modify the source byte array, because reasons.
+                int headerOffset = (int) (((index+1)*32) );
 
-                tex.Load(_dataCopy, dataOffset);
+                tex.Load(_dataCopy, dataOffset, headerOffset);
 
                 return tex;
             }

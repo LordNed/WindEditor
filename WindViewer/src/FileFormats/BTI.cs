@@ -45,7 +45,7 @@ namespace WindViewer.FileFormats
         {
             private byte[] _paletteData;
 
-            public void Load(byte[] data, uint paletteEntryCount, uint offset)
+            public void Load(byte[] data, uint paletteEntryCount, int offset)
             {
                 //Files that don't have palettes have an entry count of zero.
                 if (paletteEntryCount == 0)
@@ -75,7 +75,7 @@ namespace WindViewer.FileFormats
             private PaletteFormat _paletteFormat;
             private byte _unknown1;
             public ushort PaletteEntryCount { get; private set; } //Numer of entries in palette
-            public uint PaletteDataOffset { get; private set; } //Relative to file header
+            public int PaletteDataOffset; //Relative to file header
             private uint _unknown2; //0 in MKWii (RGBA for border?)
             private byte _filterSettingMin; //1 or 0? (Assumed filters are in min/mag order)
             private byte _filterSettingMag; //
@@ -83,7 +83,7 @@ namespace WindViewer.FileFormats
             private byte _imageCount; //(= numMipmaps + 1)
             private byte _padding2; //0 in MKWii //Padding
             private ushort _padding3; //0 in MKWii
-            public uint ImageDataOffset { get; private set; } //Relative to file header
+            public int ImageDataOffset; //Relative to file header
 
             public const int Size = 32;
             public void Load(byte[] data, uint offset)
@@ -97,7 +97,7 @@ namespace WindViewer.FileFormats
                 _paletteFormat = (PaletteFormat)FSHelpers.Read8(data, (int)offset + 0x8);
                 _unknown1 = FSHelpers.Read8(data, (int) offset + 0x09);
                 PaletteEntryCount = (ushort)FSHelpers.Read16(data, (int)offset + 0xA);
-                PaletteDataOffset = (uint)FSHelpers.Read32(data, (int)offset + 0xC);
+                PaletteDataOffset = (int)FSHelpers.Read32(data, (int)offset + 0xC);
                 _unknown2 = (uint)FSHelpers.Read32(data, (int)offset + 0x10);
                 _filterSettingMin = FSHelpers.Read8(data, (int)offset + 0x14);
                 _filterSettingMag = FSHelpers.Read8(data, (int)offset + 0x15);
@@ -105,7 +105,7 @@ namespace WindViewer.FileFormats
                 _imageCount = FSHelpers.Read8(data, (int)offset + 0x18);
                 _padding2 = FSHelpers.Read8(data, (int)offset + 0x19);
                 _padding3 = (ushort)FSHelpers.Read16(data, (int)offset + 0x1A);
-                ImageDataOffset = (uint)FSHelpers.Read32(data, (int)offset + 0x1C);
+                ImageDataOffset = (int)FSHelpers.Read32(data, (int)offset + 0x1C);
             }
 
             public ImageFormat GetFormat()
@@ -157,13 +157,19 @@ namespace WindViewer.FileFormats
         /// </summary>
         /// <param name="data"></param>
         /// <param name="offset"></param>
-        public void Load(byte[] data, uint offset)
+        public void Load(byte[] data, uint offset, int headerLocOffset)
         {
             Header = new FileHeader();
             Header.Load(data, offset);
 
+            //We're going to modify the header's offsets by a second offset
+            //because reasons.
+            Header.ImageDataOffset += headerLocOffset;
+            Header.PaletteDataOffset += headerLocOffset;
+
+
             ImagePalette = new Palette();
-            ImagePalette.Load(data, Header.PaletteEntryCount, offset + Header.PaletteDataOffset);
+            ImagePalette.Load(data, Header.PaletteEntryCount, (int)offset + Header.PaletteDataOffset);
 
             //Copy a subsection out of the big buffer that is our actual file data.
             //This is temp until we have a ImageData struct I guess?
@@ -191,7 +197,7 @@ namespace WindViewer.FileFormats
                     uint numBlocksW = Header.GetWidth() / 4; //4 byte block width
                     uint numBlocksH = Header.GetHeight() / 4; //4 byte block height 
 
-                    uint dataOffset = Header.ImageDataOffset;
+                    int dataOffset = Header.ImageDataOffset;
                     byte[] destData = new byte[Header.GetWidth() * Header.GetHeight() * 4];
 
                     for (int yBlock = 0; yBlock < numBlocksH; yBlock++)
@@ -258,7 +264,7 @@ namespace WindViewer.FileFormats
                     uint numBlocksW = Header.GetWidth() / 8; //8 block width
                     uint numBlocksH = Header.GetHeight() / 8; //8 block height 
 
-                    uint dataOffset = Header.ImageDataOffset;
+                    int dataOffset = Header.ImageDataOffset;
                     byte[] destData = new byte[Header.GetWidth() * Header.GetHeight() * 8];
 
                     //Read the indexes from the file
@@ -322,7 +328,7 @@ namespace WindViewer.FileFormats
                     uint numBlocksW = Header.GetWidth() / 4; //4 byte block width
                     uint numBlocksH = Header.GetHeight() / 4; //4 byte block height 
 
-                    uint dataOffset = Header.ImageDataOffset;
+                    int dataOffset = Header.ImageDataOffset;
                     byte[] destData = new byte[Header.GetWidth() * Header.GetHeight() * 4];
 
                     //Read the indexes from the file
@@ -369,11 +375,11 @@ namespace WindViewer.FileFormats
                     //uint numBlocksW = Header.GetWidth() / 4; //4 byte block width
                     //uint numBlocksH = Header.GetHeight() / 4; //4 byte block height 
 
-                    uint dataOffset = Header.ImageDataOffset;
+                    int dataOffset = Header.ImageDataOffset;
                     byte[] destData = new byte[Header.GetWidth() * Header.GetHeight() * 4];
 
                     //Read the indexes from the file
-                    for (int yBlock = 0; yBlock < Header.GetHeight(); yBlock += 2)
+                    /*for (int yBlock = 0; yBlock < Header.GetHeight(); yBlock += 2)
                     {
                         for (int xBlock = 0; xBlock < Header.GetWidth(); xBlock += 2)
                         {
@@ -410,10 +416,12 @@ namespace WindViewer.FileFormats
                         destData[i + 5] = S3TC1ReverseByte(destData[i + 5]);
                         destData[i + 6] = S3TC1ReverseByte(destData[i + 6]);
                         destData[i + 7] = S3TC1ReverseByte(destData[i + 7]);
-                    }
+                    }*/
+
+                    FixS3TC1(ref destData, fileData, (int)dataOffset, (int) Header.GetWidth(), (int)Header.GetHeight());
 
                     byte[] finalData = new byte[(Header.GetWidth()*Header.GetHeight())*4];
-                    DecompressDXT1(ref finalData, destData, Header.GetWidth(), Header.GetHeight());
+                    DecompressDXT1(ref finalData, destData, (int)Header.GetWidth(), (int)Header.GetHeight());
 
                     //Test? 
                     Bitmap bmp = new Bitmap((int)Header.GetWidth(), (int)Header.GetHeight());
@@ -444,71 +452,88 @@ namespace WindViewer.FileFormats
             return (byte) ((b1 << 6) | (b2 << 2) | (b3 >> 2) | (b4 >> 6));
         }
 
-        private void DecompressDXT1(ref byte[] destData, byte[] src, uint texWidth, uint texHeight)
+        void FixS3TC1(ref byte[] Dest, byte[] Src, int S, int Width, int Height)
         {
-            uint dataOffset = 0;
-            for (int yBlock = 0; yBlock < texHeight; yBlock++)
+            int y, x, dy, dx;
+            for (y = 0; y < Height / 4; y += 2)
+                for (x = 0; x < Width / 4; x += 2)
+                    for (dy = 0; dy < 2; ++dy)
+                        for (dx = 0; dx < 2; ++dx, S += 8)
+                            if (4 * (x + dx) < Width && 4 * (y + dy) < Height)
+                                Buffer.BlockCopy(Src, S, Dest, 8 * ((y + dy) * Width / 4 + x + dx), 8);
+
+            for (int i = 0; i < Width * Height / 2; i += 8)
             {
-                for (int xBlock = 0; xBlock < texWidth; xBlock++)
+                FSHelpers.Swap(ref Dest[i], ref Dest[i + 1]);
+                FSHelpers.Swap(ref Dest[i + 2], ref Dest[i + 3]);
+
+                Dest[i + 4] = S3TC1ReverseByte(Dest[i + 4]);
+                Dest[i + 5] = S3TC1ReverseByte(Dest[i + 5]);
+                Dest[i + 6] = S3TC1ReverseByte(Dest[i + 6]);
+                Dest[i + 7] = S3TC1ReverseByte(Dest[i + 7]);
+            }
+        }
+
+        private void DecompressDXT1(ref byte[] Dest, byte[] Src, int Width, int Height)
+        {
+            uint Address = 0;
+
+            int y = 0, x = 0, iy = 0, ix = 0;
+            for (y = 0; y < Height; y += 4)
+            {
+                for (x = 0; x < Width; x += 4)
                 {
-                    ushort color1 = FSHelpers.Read16Swap(src, dataOffset);
-                    ushort color2 = FSHelpers.Read16Swap(src, dataOffset + 0x2);
-                    uint bits = FSHelpers.Read32Swap(src, dataOffset + 0x4);
+                    UInt16 Color1 = FSHelpers.Read16Swap(Src, Address);
+                    UInt16 Color2 = FSHelpers.Read16Swap(Src, Address + 2);
+                    UInt32 Bits = FSHelpers.Read32Swap(Src, Address + 4);
+                    Address += 8;
 
-                    dataOffset += 8;
-
-                    byte[][] colorTable = new byte[4][];
+                    byte[][] ColorTable = new byte[4][];
                     for (int i = 0; i < 4; i++)
-                        colorTable[i] = new byte[4];
+                        ColorTable[i] = new byte[4];
 
-                    RGB565ToRGBA8(color1, ref colorTable[0], 0);
-                    RGB565ToRGBA8(color2, ref colorTable[1], 0);
+                    RGB565ToRGBA8(Color1, ref ColorTable[0], 0);
+                    RGB565ToRGBA8(Color2, ref ColorTable[1], 0);
 
-                    if (color1 > color2)
+                    if (Color1 > Color2)
                     {
-                        colorTable[2][0] = (byte) ((2*colorTable[0][0] + colorTable[1][0] + 1)/3);
-                        colorTable[2][1] = (byte) ((2*colorTable[0][1] + colorTable[1][1] + 1)/3);
-                        colorTable[2][2] = (byte) ((2*colorTable[0][2] + colorTable[1][2] + 1)/3);
-                        colorTable[2][3] = 0xFF;
+                        ColorTable[2][0] = (byte)((2 * ColorTable[0][0] + ColorTable[1][0] + 1) / 3);
+                        ColorTable[2][1] = (byte)((2 * ColorTable[0][1] + ColorTable[1][1] + 1) / 3);
+                        ColorTable[2][2] = (byte)((2 * ColorTable[0][2] + ColorTable[1][2] + 1) / 3);
+                        ColorTable[2][3] = 0xFF;
 
-                        colorTable[3][0] = (byte) ((colorTable[0][0] + 2*colorTable[1][0] + 1)/3);
-                        colorTable[3][1] = (byte) ((colorTable[0][1] + 2*colorTable[1][1] + 1)/3);
-                        colorTable[3][2] = (byte) ((colorTable[0][2] + 2*colorTable[1][2] + 1)/3);
-                        colorTable[3][3] = 0xFF;
+                        ColorTable[3][0] = (byte)((ColorTable[0][0] + 2 * ColorTable[1][0] + 1) / 3);
+                        ColorTable[3][1] = (byte)((ColorTable[0][1] + 2 * ColorTable[1][1] + 1) / 3);
+                        ColorTable[3][2] = (byte)((ColorTable[0][2] + 2 * ColorTable[1][2] + 1) / 3);
+                        ColorTable[3][3] = 0xFF;
                     }
                     else
                     {
-                        colorTable[2][0] = (byte) ((colorTable[0][0] + colorTable[1][0] + 1)/2);
-                        colorTable[2][1] = (byte) ((colorTable[0][1] + colorTable[1][1] + 1)/2);
-                        colorTable[2][2] = (byte) ((colorTable[0][2] + colorTable[1][2] + 1)/2);
-                        colorTable[2][3] = 0xFF;
+                        ColorTable[2][0] = (byte)((ColorTable[0][0] + ColorTable[1][0] + 1) / 2);
+                        ColorTable[2][1] = (byte)((ColorTable[0][1] + ColorTable[1][1] + 1) / 2);
+                        ColorTable[2][2] = (byte)((ColorTable[0][2] + ColorTable[1][2] + 1) / 2);
+                        ColorTable[2][3] = 0xFF;
 
-                        colorTable[3][0] = (byte) ((colorTable[0][0] + 2*colorTable[1][0] + 1)/3);
-                        colorTable[3][1] = (byte) ((colorTable[0][1] + 2*colorTable[1][1] + 1)/3);
-                        colorTable[3][2] = (byte) ((colorTable[0][2] + 2*colorTable[1][2] + 1)/3);
-                        colorTable[3][3] = 0x00;
+                        ColorTable[3][0] = (byte)((ColorTable[0][0] + 2 * ColorTable[1][0] + 1) / 3);
+                        ColorTable[3][1] = (byte)((ColorTable[0][1] + 2 * ColorTable[1][1] + 1) / 3);
+                        ColorTable[3][2] = (byte)((ColorTable[0][2] + 2 * ColorTable[1][2] + 1) / 3);
+                        ColorTable[3][3] = 0x00;
                     }
 
-                    for (int yIndex = 0; yIndex < 4; yIndex++)
+                    for (iy = 0; iy < 4; ++iy)
                     {
-                        for (int xIndex = 0; xIndex < 4; xIndex++)
+                        for (ix = 0; ix < 4; ++ix)
                         {
-                            //Bounds check for non Power of 2 images
-                            if ((((xBlock*4) + xIndex) >= Header.GetWidth()) &&
-                                (((yBlock*4) + yIndex) >= Header.GetHeight()))
+                            if (((x + ix) < Width) && ((y + iy) < Height))
                             {
-                                continue;
+                                int di = 4 * ((y + iy) * Width + x + ix);
+                                int si = (int)(Bits & 0x3);
+                                Dest[di + 0] = ColorTable[si][0];
+                                Dest[di + 1] = ColorTable[si][1];
+                                Dest[di + 2] = ColorTable[si][2];
+                                Dest[di + 3] = ColorTable[si][3];
                             }
-
-                            uint destIndex = (uint) (4*(((yBlock*4) + yIndex)*Header.GetWidth() + (xBlock*4) + xIndex));
-                            uint sIndex = (bits & 0x3);
-
-                            destData[destIndex + 0] = colorTable[sIndex][0];
-                            destData[destIndex + 1] = colorTable[sIndex][1];
-                            destData[destIndex + 2] = colorTable[sIndex][2];
-                            destData[destIndex + 3] = colorTable[sIndex][3];
-
-                            bits >>= 2;
+                            Bits >>= 2;
                         }
                     }
                 }

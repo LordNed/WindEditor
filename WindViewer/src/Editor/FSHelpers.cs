@@ -93,6 +93,12 @@ namespace WindViewer.Editor
             return BitConverter.ToSingle(data, 0);
         }
         #endregion
+
+        public static void Swap(ref byte b1, ref byte b2)
+        {
+            byte tmp = b1; b1 = b2; b2 = tmp;
+        }
+
         #region Writing
         public static void Write8(BinaryWriter bWriter, byte value)
         {
