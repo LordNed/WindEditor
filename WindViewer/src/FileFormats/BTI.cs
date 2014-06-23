@@ -12,7 +12,7 @@ namespace WindViewer.FileFormats
     {
         public enum ImageFormat : byte
         {
-            //Bits per Pixel | Block Width | Block Height | Block Size | Type / Description
+                    //Bits per Pixel | Block Width | Block Height | Block Size | Type / Description
             I4 = 0x00,      // 4 | 8 | 8 | 32 | grey
             I8 = 0x01,      // 8 | 8 | 8 | 32 | grey
             IA4 = 0x02,     // 8 | 8 | 4 | 32 | grey + alpha
@@ -84,7 +84,7 @@ namespace WindViewer.FileFormats
             private ushort _padding3; //0 in MKWii
             public uint ImageDataOffset { get; private set; } //Relative to file header
 
-
+            public const int Size = 32;
             public void Load(byte[] data, uint offset)
             {
                 _format = (ImageFormat)FSHelpers.Read8(data, (int)offset + 0x00);
@@ -131,25 +131,30 @@ namespace WindViewer.FileFormats
         //Temp for saving
         private byte[] _dataCache;
 
+
+        public FileHeader Header;
+        public Palette ImagePalette;
+        
+
         public override void Load(byte[] data)
         {
             _dataCache = data;
 
-            FileHeader header = new FileHeader();
-            header.Load(data, 0);
+            Header = new FileHeader();
+            Header.Load(data, 0);
 
-            Palette palette = new Palette();
-            palette.Load(data, header.PaletteEntryCount, header.PaletteDataOffset);
+            ImagePalette = new Palette();
+            ImagePalette.Load(data, Header.PaletteEntryCount, Header.PaletteDataOffset);
 
-            switch (header.GetFormat())
+            switch (Header.GetFormat())
             {
                 case ImageFormat.RGBA32:
                     {
-                        uint numBlocksW = header.GetWidth() / 4; //4 byte block width
-                        uint numBlocksH = header.GetHeight() / 4; //4 byte block height 
+                        uint numBlocksW = Header.GetWidth() / 4; //4 byte block width
+                        uint numBlocksH = Header.GetHeight() / 4; //4 byte block height 
 
-                        uint dataOffset = header.ImageDataOffset;
-                        byte[] destData = new byte[header.GetWidth() * header.GetHeight() * 4];
+                        uint dataOffset = Header.ImageDataOffset;
+                        byte[] destData = new byte[Header.GetWidth() * Header.GetHeight() * 4];
 
                         for (int yBlock = 0; yBlock < numBlocksH; yBlock++)
                         {
@@ -161,13 +166,13 @@ namespace WindViewer.FileFormats
                                     for (int pX = 0; pX < 4; pX++)
                                     {
                                         //Ensure the pixel we're checking is within bounds of the image.
-                                        if ((xBlock * 4 + pX >= header.GetWidth()) || (yBlock * 4 + pY >= header.GetHeight()))
+                                        if ((xBlock * 4 + pX >= Header.GetWidth()) || (yBlock * 4 + pY >= Header.GetHeight()))
                                         {
                                             continue;
                                         }
 
                                         //Now we're looping through each pixel in a block, but a pixel is four bytes long. 
-                                        uint destIndex = (uint)(4 * (header.GetWidth() * ((yBlock * 4) + pY) + (xBlock * 4) + pX));
+                                        uint destIndex = (uint)(4 * (Header.GetWidth() * ((yBlock * 4) + pY) + (xBlock * 4) + pX));
                                         destData[destIndex + 3] = data[dataOffset + 0]; //Alpha
                                         destData[destIndex + 2] = data[dataOffset + 1]; //Red
                                         dataOffset += 2;
@@ -180,13 +185,13 @@ namespace WindViewer.FileFormats
                                     for (int pX = 0; pX < 4; pX++)
                                     {
                                         //Ensure the pixel we're checking is within bounds of the image.
-                                        if ((xBlock * 4 + pX >= header.GetWidth()) || (yBlock * 4 + pY >= header.GetHeight()))
+                                        if ((xBlock * 4 + pX >= Header.GetWidth()) || (yBlock * 4 + pY >= Header.GetHeight()))
                                         {
                                             continue;
                                         }
 
                                         //Now we're looping through each pixel in a block, but a pixel is four bytes long. 
-                                        uint destIndex = (uint)(4 * (header.GetWidth() * ((yBlock * 4) + pY) + (xBlock * 4) + pX));
+                                        uint destIndex = (uint)(4 * (Header.GetWidth() * ((yBlock * 4) + pY) + (xBlock * 4) + pX));
                                         destData[destIndex + 1] = data[dataOffset + 0]; //Green
                                         destData[destIndex + 0] = data[dataOffset + 1]; //Blue
                                         dataOffset += 2;
@@ -197,8 +202,8 @@ namespace WindViewer.FileFormats
                         }
 
                         //Test? 
-                        Bitmap bmp = new Bitmap((int)header.GetWidth(), (int)header.GetHeight());
-                        Rectangle rect = new Rectangle(0, 0, (int)header.GetWidth(), (int)header.GetHeight());
+                        Bitmap bmp = new Bitmap((int)Header.GetWidth(), (int)Header.GetHeight());
+                        Rectangle rect = new Rectangle(0, 0, (int)Header.GetWidth(), (int)Header.GetHeight());
                         BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadWrite, bmp.PixelFormat);
 
                         //Unsafe mass copy, yay
@@ -212,11 +217,11 @@ namespace WindViewer.FileFormats
                 case ImageFormat.C4:
                     {
                         //4 bpp, 8 block width/height, block size 32 bytes, possible palettes (IA8, RGB565, RGB5A3)
-                        uint numBlocksW = header.GetWidth() / 4; //4 byte block width
-                        uint numBlocksH = header.GetHeight() / 4; //4 byte block height 
+                        uint numBlocksW = Header.GetWidth() / 4; //4 byte block width
+                        uint numBlocksH = Header.GetHeight() / 4; //4 byte block height 
 
-                        uint dataOffset = header.ImageDataOffset;
-                        byte[] destData = new byte[header.GetWidth() * header.GetHeight() * 8];
+                        uint dataOffset = Header.ImageDataOffset;
+                        byte[] destData = new byte[Header.GetWidth() * Header.GetHeight() * 8];
 
                         //Read the indexes from the file
                         for (int yBlock = 0; yBlock < numBlocksW; yBlock++)
@@ -229,14 +234,14 @@ namespace WindViewer.FileFormats
                                     for (int pX = 0; pX < 8; pX += 2)
                                     {
                                         //Ensure we're not reading past the end of the image.
-                                        if ((xBlock * 8 + pX >= header.GetWidth()) || (yBlock * 8 + pY >= header.GetHeight()))
+                                        if ((xBlock * 8 + pX >= Header.GetWidth()) || (yBlock * 8 + pY >= Header.GetHeight()))
                                             continue;
 
                                         byte t = (byte)(data[dataOffset] & 0xF0);
                                         byte t2 = (byte)(data[dataOffset] & 0x0F);
 
-                                        destData[header.GetWidth() * ((yBlock * 8) + pY) + (xBlock * 8) + pX + 0] = (byte)(t >> 4);
-                                        destData[header.GetWidth() * ((yBlock * 8) + pY) + (xBlock * 8) + pX + 1] = t2;
+                                        destData[Header.GetWidth() * ((yBlock * 8) + pY) + (xBlock * 8) + pX + 0] = (byte)(t >> 4);
+                                        destData[Header.GetWidth() * ((yBlock * 8) + pY) + (xBlock * 8) + pX + 1] = t2;
 
                                         dataOffset += 1;
                                     }
@@ -246,21 +251,21 @@ namespace WindViewer.FileFormats
 
                         //Now look them up in the palette and turn them into actual colors.
                         byte[] finalDest = new byte[destData.Length/2];
-                        
-                        int pixelSize = header.GetPaletteFormat() == PaletteFormat.IA8 ? 2 : 4;
+
+                        int pixelSize = Header.GetPaletteFormat() == PaletteFormat.IA8 ? 2 : 4;
                         int destOffset = 0;
-                        for (int y = 0; y < header.GetHeight(); y++)
+                        for (int y = 0; y < Header.GetHeight(); y++)
                         {
-                            for (int x = 0; x < header.GetWidth(); x++)
+                            for (int x = 0; x < Header.GetWidth(); x++)
                             {
-                                UnpackPixelFromPalette(destData[y * header.GetWidth() + x], ref finalDest, destOffset,
-                                    palette.GetBytes(), header.GetPaletteFormat());
+                                UnpackPixelFromPalette(destData[y * Header.GetWidth() + x], ref finalDest, destOffset,
+                                    ImagePalette.GetBytes(), Header.GetPaletteFormat());
                                 destOffset += pixelSize;
                             }
                         }
                         //Test? 
-                        Bitmap bmp = new Bitmap((int)header.GetWidth(), (int)header.GetHeight());
-                        Rectangle rect = new Rectangle(0, 0, (int)header.GetWidth(), (int)header.GetHeight());
+                        Bitmap bmp = new Bitmap((int)Header.GetWidth(), (int)Header.GetHeight());
+                        Rectangle rect = new Rectangle(0, 0, (int)Header.GetWidth(), (int)Header.GetHeight());
                         BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadWrite, bmp.PixelFormat);
 
                         //Unsafe mass copy, yay
@@ -273,11 +278,36 @@ namespace WindViewer.FileFormats
                         break;
                     }
                 default:
-                    Console.WriteLine("Unsupported image format {0}!", header.GetFormat());
+                    Console.WriteLine("Unsupported image format {0}!", Header.GetFormat());
                     break;
             }
 
             Console.WriteLine("After");
+        }
+
+        public uint GetFileSize()
+        {
+            double bpp;
+            switch (Header.GetFormat())
+            {
+                case ImageFormat.CMPR:
+                case ImageFormat.C4:
+                case ImageFormat.I4: bpp = 4; break;
+                case ImageFormat.I8:
+                case ImageFormat.C8:
+                case ImageFormat.IA4: bpp = 8; break;
+                case ImageFormat.C14X2:
+                case ImageFormat.IA8:
+                case ImageFormat.RGB565:
+                case ImageFormat.RGB5A3: bpp = 16; break;
+                case ImageFormat.RGBA32: bpp = 32; break;
+                default:
+                    Console.WriteLine("Unknown Header Format for GetFileSize. Assuming 16bpp!");
+                    bpp = 16;
+                    break;
+            }
+
+            return (uint) (FileHeader.Size + (Header.GetWidth()*Header.GetHeight()*(bpp/8)) + (Header.PaletteEntryCount*2));;
         }
 
         private void UnpackPixelFromPalette(int paletteIndex, ref byte[] dest, int offset, byte[] paletteData, PaletteFormat format)
