@@ -222,64 +222,57 @@ namespace WindViewer.Editor
                 foreach (string filePath in subFiles)
                 {
                     BinaryReader br = new BinaryReader(File.OpenRead(filePath));
-                    try
+                    BaseArchiveFile file;
+
+                    byte[] fileData = br.ReadBytes((int)br.BaseStream.Length);
+                    switch ((new DirectoryInfo(folder).Name).ToLower())
                     {
-                        BaseArchiveFile file;
+                        /* Map Collision Format */
+                        case "dzb":
+                            file = new StaticCollisionModel();
+                            break;
 
-                        byte[] fileData = br.ReadBytes((int)br.BaseStream.Length);
-                        switch ((new DirectoryInfo(folder).Name).ToLower())
-                        {
-                            /* Map Collision Format */
-                            case "dzb":
-                                file = new StaticCollisionModel();
-                                break;
-
-                            /* Room and Stage Entity Data */
-                            case "dzr":
-                            case "dzs":
-                                //Apparently Nintendo likes to mis-categorize files sometimes and put the wrong
-                                //file format inside the wrong folder! We'll name-check dzr and dzs before loading
-                                //them as they have fixed names (Room.*)
-                                if (filePath.EndsWith(".dzr") || filePath.EndsWith(".dzs"))
-                                    file = new WindWakerEntityData();
-                                else
-                                    file = new GenericArchiveData();
-                                break;
-
-                            /* 3D Model Formats */
-                            case "bmd":
-                            case "bdl":
-                            case "bck":
-                            case "brk":
-                            case "btk":
-                                file = new JStudioModel();
-                                break;
-
-                            case "tex":
-                                file = new BTI();
-                                break;
-
-                            default:
-                                Console.WriteLine("Unknown folder " + folder +
-                                                  " found. Creating GenericData holder for it!");
+                        /* Room and Stage Entity Data */
+                        case "dzr":
+                        case "dzs":
+                            //Apparently Nintendo likes to mis-categorize files sometimes and put the wrong
+                            //file format inside the wrong folder! We'll name-check dzr and dzs before loading
+                            //them as they have fixed names (Room.*)
+                            if (filePath.EndsWith(".dzr") || filePath.EndsWith(".dzs"))
+                                file = new WindWakerEntityData();
+                            else
                                 file = new GenericArchiveData();
-                                break;
-                        }
+                            break;
 
-                        file.Load(fileData);
-                        file.FileName = Path.GetFileName(filePath);
-                        file.FolderName = new DirectoryInfo(folder).Name;
-                        file.ParentArchive = this;
+                        /* 3D Model Formats */
+                        case "bmd":
+                        case "bdl":
+                        case "bck":
+                        case "brk":
+                        case "btk":
+                            file = new JStudioModel();
+                            break;
 
-                        //Now that we've created the appropriate file (and hopefully mapped them all out!) we'll just stick
-                        //it in our list of loaded files. They can later be gotten with the templated getter!
-                        _archiveFiles.Add(file);
-                        br.Close();
+                        case "tex":
+                            file = new BTI();
+                            break;
+
+                        default:
+                            Console.WriteLine("Unknown folder " + folder +
+                                                " found. Creating GenericData holder for it!");
+                            file = new GenericArchiveData();
+                            break;
                     }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Error opening file " + filePath + " for reading. Error Message: " + ex);
-                    }
+
+                    file.FileName = Path.GetFileName(filePath);
+                    file.FolderName = new DirectoryInfo(folder).Name;
+                    file.ParentArchive = this;
+                    file.Load(fileData);
+
+                    //Now that we've created the appropriate file (and hopefully mapped them all out!) we'll just stick
+                    //it in our list of loaded files. They can later be gotten with the templated getter!
+                    _archiveFiles.Add(file);
+                    br.Close();
                 }
             }
         }
