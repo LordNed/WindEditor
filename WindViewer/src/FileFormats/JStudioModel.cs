@@ -905,7 +905,7 @@ namespace WindViewer.FileFormats
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)All.Repeat);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)All.Repeat);
 
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, (int)image.GetWidth(), (int)image.GetHeight(), 0, PixelFormat.Rgba, PixelType.UnsignedByte,
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, (int)image.GetWidth(), (int)image.GetHeight(), 0, PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed,
                image.GetData());
 
             _textureCache[j3dTextureId] = glTextureId;
