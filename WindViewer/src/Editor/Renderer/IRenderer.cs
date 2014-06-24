@@ -7,7 +7,7 @@ namespace WindViewer.Editor.Renderer
 {
     public abstract class IRenderer : IEditorTool, IDisposable
     {
-        protected enum ShaderAttributeIds
+        public enum ShaderAttributeIds
         {
             Position, Color,
             TexCoord

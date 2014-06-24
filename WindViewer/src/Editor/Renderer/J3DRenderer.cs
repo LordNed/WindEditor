@@ -45,8 +45,8 @@ namespace WindViewer.Editor.Renderer
 
             
             GL.BindAttribLocation(_programId, (int) ShaderAttributeIds.Position, "vertexPos");
-            GL.BindAttribLocation(_programId, (int)ShaderAttributeIds.Color, "inColor");
-            GL.BindAttribLocation(_programId, (int)ShaderAttributeIds.TexCoord, "vertexUV");
+            GL.BindAttribLocation(_programId, (int) ShaderAttributeIds.Color, "inColor");
+            GL.BindAttribLocation(_programId, (int) ShaderAttributeIds.TexCoord, "vertexUV");
 
             //Link shaders 
             GL.LinkProgram(_programId);

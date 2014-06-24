@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Dynamic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using OpenTK;
+using OpenTK.Audio.OpenAL;
 using OpenTK.Graphics.OpenGL;
 using WindViewer.Editor;
 using WindViewer.Editor.Renderer;
@@ -40,17 +42,17 @@ namespace WindViewer.FileFormats
             Unsigned16 = 0x2,
             Signed16 = 0x3,
             Float32 = 0x4,
-            RGBA8 = 0x5,
+            Rgba8 = 0x5,
         }
 
         public enum TextureFormats
         {
-            RGB565 = 0x0,
-            RGB888 = 0x1,
-            RGBX8 = 0x2,
-            RGBA4 = 0x3,
-            RGBA6 = 0x4,
-            RGBA8 = 0x5,
+            Rgb565 = 0x0,
+            Rgb888 = 0x1,
+            Rgbx8 = 0x2,
+            Rgba4 = 0x3,
+            Rgba6 = 0x4,
+            Rgba8 = 0x5,
         }
 
         public enum PrimitiveTypes
@@ -114,6 +116,8 @@ namespace WindViewer.FileFormats
                         baseChunk = new Tex1Chunk();
                         break;
                     case "MAT3":
+                        baseChunk = new Mat3Chunk();
+                        break;
                     case "ANK1":
                     default:
                         Console.WriteLine("Found unknown chunk {0}!", tagName);
@@ -124,6 +128,8 @@ namespace WindViewer.FileFormats
                 baseChunk.Load(data, ref dataOffset);
                 _chunkList.Add(baseChunk);
             }
+
+            _enabledVertexAttribs = GetEnabledVertexAttribs();
 
             //STEP 2: Once all of the data is loaded, we're going to pull different data from
             //different chunks to transform the data into something
@@ -143,8 +149,79 @@ namespace WindViewer.FileFormats
             //IterateSceneGraphRecursive(_sceneGraph);
         }
 
+        private List<Vtx1Chunk.VertexDataTypes> GetEnabledVertexAttribs()
+        {
+            Vtx1Chunk vtxChunk = GetChunkByType<Vtx1Chunk>();
+
+            var enabledVertexAttribs = new List<Vtx1Chunk.VertexDataTypes>();
+            for (int i = 0; i < vtxChunk.VertexDataOffsets.Length; i++)
+            {
+                if (vtxChunk.VertexDataOffsets[i] == 0)
+                    continue;
+                enabledVertexAttribs.Add((Vtx1Chunk.VertexDataTypes)i);
+            }
+
+            return enabledVertexAttribs;
+        }
+
+
+        private void BindEnabledVertexAttribs()
+        {
+            //Pre-build the stride size.
+            int stride = 0;
+
+            for (int i = 0; i < _enabledVertexAttribs.Count; i++)
+            {
+                stride += GetElementSizeFromAttrib(_enabledVertexAttribs[i]);
+            }
+
+            int ongoingOffset = 0;
+
+            foreach (var attrib in _enabledVertexAttribs)
+            {
+                switch (attrib)
+                {
+                    case Vtx1Chunk.VertexDataTypes.Position:
+                        GL.EnableVertexAttribArray((int)IRenderer.ShaderAttributeIds.Position);
+                        GL.VertexAttribPointer((int)IRenderer.ShaderAttributeIds.Position, 3,
+                            VertexAttribPointerType.Float, false, stride, ongoingOffset);
+                        ongoingOffset += GetElementSizeFromAttrib(attrib);
+                        break;
+
+                    case Vtx1Chunk.VertexDataTypes.Color0:
+                        GL.EnableVertexAttribArray((int)IRenderer.ShaderAttributeIds.Color);
+                        GL.VertexAttribPointer((int)IRenderer.ShaderAttributeIds.Color, 4,
+                            VertexAttribPointerType.Float, false, stride, ongoingOffset);
+                        ongoingOffset += GetElementSizeFromAttrib(attrib);
+                        break;
+
+                    case Vtx1Chunk.VertexDataTypes.Tex0:
+                        GL.EnableVertexAttribArray((int)IRenderer.ShaderAttributeIds.TexCoord);
+                        GL.VertexAttribPointer((int)IRenderer.ShaderAttributeIds.TexCoord, 2,
+                            VertexAttribPointerType.Float, false, stride, ongoingOffset);
+                        ongoingOffset += GetElementSizeFromAttrib(attrib);
+                        break;
+                }
+            }
+        }
+
+        private int GetElementSizeFromAttrib(Vtx1Chunk.VertexDataTypes attrib)
+        {
+            switch (attrib)
+            {
+                case Vtx1Chunk.VertexDataTypes.Position: return 3 * 4;
+                case Vtx1Chunk.VertexDataTypes.Normal: return 3 * 4;
+                case Vtx1Chunk.VertexDataTypes.Color0: return 4 * 4;
+                case Vtx1Chunk.VertexDataTypes.Tex0: return 2 * 4;
+                default:
+                    Console.WriteLine("Unknown vertex attrib type {0}!", attrib);
+                    return 0;
+            }
+        }
+
 
         private SceneGraph _sceneGraph;
+        private List<Vtx1Chunk.VertexDataTypes> _enabledVertexAttribs;
 
         private void IterateSceneGraphRecursive(SceneGraph curNode)
         {
@@ -160,7 +237,7 @@ namespace WindViewer.FileFormats
 
                     foreach (PrimitiveList prim in _renderList[curNode.DataIndex])
                     {
-                        GL.DrawArrays(PrimitiveType.TriangleStrip, prim.VertexStart, prim.VertexCount);
+                        GL.DrawArrays(prim.DrawType, prim.VertexStart, prim.VertexCount);
                     }
                     break;
             }
@@ -234,6 +311,7 @@ namespace WindViewer.FileFormats
         {
             public int VertexStart;
             public int VertexCount;
+            public PrimitiveType DrawType;
         }
 
         private Dictionary<int, List<PrimitiveList>> _renderList = new Dictionary<int, List<PrimitiveList>>();
@@ -241,6 +319,7 @@ namespace WindViewer.FileFormats
         private void J3DRendererOnBind()
         {
             GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
+            BindEnabledVertexAttribs();
 
         }
 
@@ -293,6 +372,7 @@ namespace WindViewer.FileFormats
         public struct VertexFormatLayout
         {
             public Vector3 Position;
+            // Vector3 Normal;
             public Vector4 Color;
             public Vector2 TexCoord;
         }
@@ -311,6 +391,7 @@ namespace WindViewer.FileFormats
             {
                 Shp1Chunk.Batch batch = shp1Chunk.GetBatch(i);
                 Shp1Chunk.BatchPacketLocation packetLoc = shp1Chunk.GetBatchPacketLocation(i);
+
                 _renderList[(int)i] = new List<PrimitiveList>();
                 for (int p = 0; p < batch.PacketCount; p++)
                 {
@@ -325,25 +406,23 @@ namespace WindViewer.FileFormats
                         primitive.Load(shp1Chunk._dataCopy, shp1Chunk._primitiveDataOffset + numPrimitiveBytesRead);
                         numPrimitiveBytesRead += Shp1Chunk.BatchPrimitive.Size;
 
+                        //Game pads the chunks out with zeros, so this is signal for early break.
                         if (primitive.Type == 0)
                         {
-                            Console.WriteLine("Delta: " +
-                                              ((int)(packetLoc.Offset + packetLoc.PacketSize) - numPrimitiveBytesRead).ToString());
-                            //I think we've hit the end and we should break here.
                             break;
                         }
 
                         var primList = new PrimitiveList();
                         primList.VertexCount = primitive.VertexCount;
                         primList.VertexStart = finalData.Count;
+                        primList.DrawType = primitive.Type == PrimitiveTypes.TriangleStrip
+                            ? PrimitiveType.TriangleStrip
+                            : PrimitiveType.TriangleFan;
 
                         _renderList[(int)i].Add(primList);
 
 
-
-                        if (primitive.Type != PrimitiveTypes.TriangleStrip)
-                            Console.WriteLine("Well there you. go.");
-
+                        //Todo: that's pretty shitty too.
 
                         //Now, for each Vertex we're going to read the right number of bytes... we're hacking it in this case
                         //to fixed amount of 8...
@@ -351,22 +430,30 @@ namespace WindViewer.FileFormats
                         for (int vert = 0; vert < primitive.VertexCount; vert++)
                         {
                             VertexFormatLayout newVertex = new VertexFormatLayout();
-                            for (uint vertIndex = 0; vertIndex < 3; vertIndex++)
+                            for (uint vertIndex = 0; vertIndex < _enabledVertexAttribs.Count; vertIndex++)
                             {
                                 ushort curIndex =
                                     (ushort)FSHelpers.Read16(shp1Chunk._dataCopy, (int)(shp1Chunk._primitiveDataOffset + numPrimitiveBytesRead));
 
-                                switch (vertIndex)
+
+                                Vtx1Chunk.VertexDataTypes attribType = _enabledVertexAttribs[(int)vertIndex];
+
+                                switch (attribType)
                                 {
-                                    case 0:
+                                    case Vtx1Chunk.VertexDataTypes.Position:
                                         newVertex.Position = vtxChunk.GetPosition(curIndex);
                                         break;
-                                    case 1:
+                                    case Vtx1Chunk.VertexDataTypes.Normal:
+                                        newVertex.Color = new Vector4(vtxChunk.GetNormal(curIndex, 14), 1); //temp
+                                        break;
+                                    case Vtx1Chunk.VertexDataTypes.Color0:
                                         newVertex.Color = vtxChunk.GetColor0(curIndex);
                                         break;
-                                    case 2:
+                                    case Vtx1Chunk.VertexDataTypes.Tex0:
                                         newVertex.TexCoord = vtxChunk.GetTex0(curIndex, 8);
                                         break;
+
+
                                 }
 
                                 numPrimitiveBytesRead += 2; //Should be element size, but w/e.
@@ -563,10 +650,7 @@ namespace WindViewer.FileFormats
             }
 
             private int _vertexFormatsOffset;
-            private int[] VertexDataOffsets = new int[13];
-
-            //Not part of the header
-            public List<VertexFormat> VertexFormats = new List<VertexFormat>();
+            public int[] VertexDataOffsets = new int[13];
 
             public override void Load(byte[] data, ref int offset)
             {
@@ -575,18 +659,6 @@ namespace WindViewer.FileFormats
                 _vertexFormatsOffset = FSHelpers.Read32(data, offset + 0x8);
                 for (int i = 0; i < 13; i++)
                     VertexDataOffsets[i] = FSHelpers.Read32(data, (offset + 0xC) + (i * 0x4));
-
-                //Load the VertexFormats 
-                int dataOffsetCpy = offset + _vertexFormatsOffset;
-                VertexFormat vFormat;
-                do
-                {
-                    vFormat = new VertexFormat();
-                    vFormat.Load(data, dataOffsetCpy);
-                    VertexFormats.Add(vFormat);
-
-                    dataOffsetCpy += VertexFormat.Size;
-                } while (vFormat.ArrayType != ArrayTypes.NullAttr);
 
                 offset += ChunkSize;
             }
@@ -598,6 +670,24 @@ namespace WindViewer.FileFormats
                 return vtxFmt;
             }
 
+
+            public List<VertexFormat> GetAllVertexFormats()
+            {
+                var allFormats = new List<VertexFormat>();
+                VertexFormat vFormat;
+                int dataOffset = _vertexFormatsOffset;
+                do
+                {
+                    vFormat = new VertexFormat();
+                    vFormat.Load(_dataCopy, dataOffset);
+                    allFormats.Add(vFormat);
+
+                    dataOffset += VertexFormat.Size;
+                } while (vFormat.ArrayType != ArrayTypes.NullAttr);
+
+                return allFormats;
+            }
+
             public Vector3 GetPosition(int index)
             {
                 Vector3 newPos = new Vector3();
@@ -605,6 +695,18 @@ namespace WindViewer.FileFormats
                     newPos[i] = FSHelpers.ReadFloat(_dataCopy, VertexDataOffsets[(int)VertexDataTypes.Position] + (index * Vector3.SizeInBytes) + (i * 4));
 
                 return newPos;
+            }
+
+            public Vector3 GetNormal(int index, int decimalPlace)
+            {
+                Vector3 newNormal = new Vector3();
+                float scaleFactor = (float)Math.Pow(0.5, decimalPlace);
+
+                for (int i = 0; i < 3; i++)
+                    newNormal[i] = FSHelpers.Read16(_dataCopy,
+                        VertexDataOffsets[(int)VertexDataTypes.Normal] + (index * 6) + (i * 2)) * scaleFactor;
+
+                return newNormal;
             }
 
             public Vector4 GetColor0(int index)
@@ -862,7 +964,19 @@ namespace WindViewer.FileFormats
             public BinaryTextureImage GetTexture(uint index)
             {
                 if (index > _textureCount)
+                {
+                    //Todo: Irrelevent when we stop hacking textures.
+                    return null;
                     new Exception("Invalid index provided to GetTexture!");
+                }
+
+                if (_textureCount == 0)
+                {
+                    return null;
+                    //ToDo: This should really return an error texture of some sort.
+                    //ToDo: this is irrelevent once we get material loading instead of
+                    //weirdly indexing textures.
+                }
 
                 uint dataOffset = _textureHeaderOffset + (index * BinaryTextureImage.FileHeader.Size);
                 BinaryTextureImage tex = new BinaryTextureImage();
@@ -879,6 +993,90 @@ namespace WindViewer.FileFormats
             {
                 return _textureCount;
             }
+        }
+
+        private class Mat3Chunk : BaseChunk
+        {
+            private ushort _materialCount;
+            private uint _materialInitDataOffset;
+            private uint _materialIndexOffset; //"Us" ? Seems to index tex coords.
+            private uint _stringTableOffset;
+            private uint _indirectTextureOffset; //Indirect textures is using the output of of one TEV stage as tex coords for another.
+            private uint _gxCullModeOffset;
+            private uint _gxColorOffset;
+            private uint _ucOffset; //UC?
+            private uint _colorChannelInfoOffset;
+            private uint _gxColor2Offset;
+            private uint _lightInfoOffset;
+            private uint _uc2Offset; //UC?
+            private uint _texCoordInfoOffset;
+            private uint _texCoordInfo2Offset;
+            private uint _texMatrixInfoOffset;
+            private uint _texMatrix2InfoOffset;
+            private uint _texCoordOrMatrixOffset; //US? Related to _materialIndexOffsetS? Unknown.
+            private uint _tevOrderInfoOffset;
+            private uint _gxColorS10Offset; //(Signed 10-bit value)
+            private uint _gxColor3Offset;
+            private uint _uc3Offset; //UC?
+            private uint _tevStageInfoOffset;
+            private uint _tevSwapModeInfoOffset;
+            private uint _tevSwapModeTableInfoOffset;
+            private uint _fogInfoOffset;
+            private uint _alphaCompareInfoOffset;
+            private uint _blendInfoOffset;
+            private uint _zModeInfoOffset; //Depth mode
+            private uint _uc4Offset; //UC?
+            private uint _uc5Offset;
+            private uint _nbtScaleInfoOffset;
+
+            /* Misc Thoughts on UC's
+             *  1:01 PM - Zeal of 12000BC: setanmcolor
+                1:02 PM - Zeal of 12000BC: setanmtextureSRT
+                1:02 PM - Zeal of 12000BC: setanmvisibility
+                1:02 PM - Zeal of 12000BC: setanmvtxcolor
+*/
+            public override void Load(byte[] data, ref int offset)
+            {
+                base.Load(data, ref offset);
+
+                _materialCount = (ushort)FSHelpers.Read16(data, offset + 0x8);
+                //Two bytes padding
+                _materialInitDataOffset = (uint)FSHelpers.Read32(data, offset + 0xC);
+                _materialIndexOffset = (uint)FSHelpers.Read32(data, offset + 0x10);
+                _stringTableOffset = (uint)FSHelpers.Read32(data, offset + 0x14);
+                _indirectTextureOffset = (uint)FSHelpers.Read32(data, offset + 0x18);
+                _gxCullModeOffset = (uint)FSHelpers.Read32(data, offset + 0x1C);
+                _gxColorOffset = (uint)FSHelpers.Read32(data, offset + 0x20);
+                _ucOffset = (uint)FSHelpers.Read32(data, offset + 0x24);
+                _colorChannelInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x28);
+                _gxColor2Offset = (uint)FSHelpers.Read32(data, offset + 0x2C);
+                _lightInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x30);
+                _uc2Offset = (uint)FSHelpers.Read32(data, offset + 0x34);
+                _texCoordInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x38);
+                _texCoordInfo2Offset = (uint)FSHelpers.Read32(data, offset + 0x3C);
+                _texMatrixInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x40);
+                _texMatrix2InfoOffset = (uint)FSHelpers.Read32(data, offset + 0x44);
+                _texCoordOrMatrixOffset = (uint)FSHelpers.Read32(data, offset + 0x48);
+                _tevOrderInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x4C);
+                _gxColorS10Offset = (uint)FSHelpers.Read32(data, offset + 0x50);
+                _gxColor3Offset = (uint)FSHelpers.Read32(data, offset + 0x54);
+                _uc3Offset = (uint)FSHelpers.Read32(data, offset + 0x58);
+                _tevStageInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x5C);
+                _tevSwapModeInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x60);
+                _tevSwapModeTableInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x64);
+                _fogInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x68);
+                _alphaCompareInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x6C);
+                _blendInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x70);
+                _zModeInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x74);
+                _uc4Offset = (uint)FSHelpers.Read32(data, offset + 0x78);
+                _uc5Offset = (uint)FSHelpers.Read32(data, offset + 0x7C);
+                _nbtScaleInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x80);
+
+                offset += ChunkSize;
+            }
+
+
+            public const int Size = 132;
         }
 
         #endregion
@@ -905,8 +1103,8 @@ namespace WindViewer.FileFormats
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)All.Repeat);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)All.Repeat);
 
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, image.Width, image.Height, 0, PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed,
-               image.GetData());
+            if (image != null) //ToDo :Temp till we fix material shit
+                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, image.Width, image.Height, 0, PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, image.GetData());
 
             _textureCache[j3dTextureId] = glTextureId;
             return glTextureId;
