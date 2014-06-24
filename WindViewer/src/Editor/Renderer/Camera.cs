@@ -27,8 +27,16 @@ namespace WindViewer.Editor
 
         public void Rotate(float x, float y)
         {
+            
             transform.Rotate(Vector3.UnitY, x * MouseSensitivity);
             transform.Rotate(transform.Right, y * MouseSensitivity);
+            Vector3 up = Vector3.Cross(transform.Forward, transform.Right);
+            if (Vector3.Dot(up, Vector3.UnitY) <= 0.001)
+            {
+                //rotate back if we went too far...
+                transform.Rotate(transform.Right, -y * MouseSensitivity);
+            }
+
         }
 
         public Matrix4 GetViewMatrix()
