@@ -854,23 +854,23 @@ namespace WindViewer.FileFormats
 
                 for (uint i = 0; i < _textureCount; i++)
                 {
-                    BTI tex = GetTexture(i);
+                    BinaryTextureImage tex = GetTexture(i);
                 }
 
             }
 
-            public BTI GetTexture(uint index)
+            public BinaryTextureImage GetTexture(uint index)
             {
                 if (index > _textureCount)
                     new Exception("Invalid index provided to GetTexture!");
 
-                uint dataOffset = _textureHeaderOffset + (index * BTI.FileHeader.Size);
-                BTI tex = new BTI();
+                uint dataOffset = _textureHeaderOffset + (index * BinaryTextureImage.FileHeader.Size);
+                BinaryTextureImage tex = new BinaryTextureImage();
 
                 //Before load the texture we need to modify the source byte array, because reasons.
-                int headerOffset = (int)(((index + 1) * 32));
+                uint headerOffset = (((index + 1) * 32));
 
-                tex.Load(_dataCopy, dataOffset, headerOffset);
+                tex.Load(_dataCopy, _textureHeaderOffset, headerOffset);
 
                 return tex;
             }
@@ -895,7 +895,7 @@ namespace WindViewer.FileFormats
 
             //If the texture cache doesn't contain the ID, we're going to load it here.
             Tex1Chunk texChunk = GetChunkByType<Tex1Chunk>();
-            BTI image = texChunk.GetTexture((uint)j3dTextureId);
+            BinaryTextureImage image = texChunk.GetTexture((uint)j3dTextureId);
 
             int glTextureId;
             GL.GenTextures(1, out glTextureId);
@@ -905,7 +905,7 @@ namespace WindViewer.FileFormats
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)All.Repeat);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)All.Repeat);
 
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, (int)image.GetWidth(), (int)image.GetHeight(), 0, PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed,
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, image.Width, image.Height, 0, PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed,
                image.GetData());
 
             _textureCache[j3dTextureId] = glTextureId;

@@ -254,7 +254,7 @@ namespace WindViewer.Editor
                             break;
 
                         case "tex":
-                            file = new BTI();
+                            file = new BinaryTextureImage();
                             break;
 
                         default:
