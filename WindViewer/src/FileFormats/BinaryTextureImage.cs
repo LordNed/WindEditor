@@ -232,7 +232,7 @@ namespace WindViewer.FileFormats
             _imagePalette.Load(data, _header.PaletteEntryCount, mainOffset + dataOffset + _header.PaletteDataOffset);
 
             //Now lets load a copy of the image data out of the file.
-            _argbImageData = DecodeData(data, Width, Height, mainOffset + dataOffset + _header.ImageDataOffset, Format, _header.PaletteFormat);
+            _argbImageData = DecodeData(data, Width, Height, mainOffset + dataOffset + _header.ImageDataOffset, Format, _imagePalette, _header.PaletteFormat);
         }
 
         /// <summary>
@@ -295,7 +295,7 @@ namespace WindViewer.FileFormats
         }
 
         #region Decoding
-        private byte[] DecodeData(byte[] data, uint width, uint height, uint dataOffset, ImageFormat format, PaletteFormat paletteFormat)
+        private static byte[] DecodeData(byte[] data, uint width, uint height, uint dataOffset, ImageFormat format, Palette imagePalette, PaletteFormat paletteFormat)
         {
             switch (format)
             {
@@ -303,7 +303,7 @@ namespace WindViewer.FileFormats
                     return DecodeRgba32(data, dataOffset, width, height);
 
                 case ImageFormat.C4:
-                    return DecodeC4(data, dataOffset, width, height, paletteFormat);
+                    return DecodeC4(data, dataOffset, width, height, imagePalette, paletteFormat);
 
                 case ImageFormat.RGB565:
                     return DecodeRgb565(data, dataOffset, width, height);
@@ -316,7 +316,7 @@ namespace WindViewer.FileFormats
             }
         }
 
-        private byte[] DecodeRgba32(byte[] fileData, uint dataOffset, uint width, uint height)
+        private static byte[] DecodeRgba32(byte[] fileData, uint dataOffset, uint width, uint height)
         {
             uint numBlocksW = width / 4; //4 byte block width
             uint numBlocksH = height / 4; //4 byte block height 
@@ -367,7 +367,7 @@ namespace WindViewer.FileFormats
             return decodedData;
         }
 
-        private byte[] DecodeC4(byte[] fileData, uint dataOffset, uint width, uint height, PaletteFormat paletteFormat)
+        private static byte[] DecodeC4(byte[] fileData, uint dataOffset, uint width, uint height, Palette imagePalette, PaletteFormat paletteFormat)
         {
             //4 bpp, 8 block width/height, block size 32 bytes, possible palettes (IA8, RGB565, RGB5A3)
             uint numBlocksW = width / 8;
@@ -410,7 +410,7 @@ namespace WindViewer.FileFormats
             {
                 for (int x = 0; x < width; x++)
                 {
-                    UnpackPixelFromPalette(decodedData[y * width + x], ref finalDest, destOffset, _imagePalette.GetBytes(), paletteFormat);
+                    UnpackPixelFromPalette(decodedData[y * width + x], ref finalDest, destOffset, imagePalette.GetBytes(), paletteFormat);
                     destOffset += pixelSize;
                 }
             }
@@ -418,7 +418,7 @@ namespace WindViewer.FileFormats
             return finalDest;
         }
 
-        private byte[] DecodeRgb565(byte[] fileData, uint dataOffset, uint width, uint height)
+        private static byte[] DecodeRgb565(byte[] fileData, uint dataOffset, uint width, uint height)
         {
             //16 bpp, 4 block width/height, block size 32 bytes, color.
             uint numBlocksW = width / 4;
@@ -453,27 +453,27 @@ namespace WindViewer.FileFormats
             return decodedData;
         }
 
-        private byte[] DecodeCmpr(byte[] fileData, uint dataOffset, uint width, uint height)
+        private static byte[] DecodeCmpr(byte[] fileData, uint dataOffset, uint width, uint height)
         {
             //Decode S3TC1
             byte[] buffer = new byte[width * height * 4];
 
-            for (int y = 0; y < Height/4; y += 2)
+            for (int y = 0; y < height/4; y += 2)
             {
-                for (int x = 0; x < Width/4; x += 2)
+                for (int x = 0; x < width/4; x += 2)
                 {
                     for (int dy = 0; dy < 2; ++dy)
                     {
                         for (int dx = 0; dx < 2; ++dx, dataOffset += 8)
                         {
-                            if (4*(x + dx) < Width && 4*(y + dy) < Height)
-                                Buffer.BlockCopy(fileData, (int) dataOffset, buffer, 8*((y + dy)*Width/4 + x + dx), 8);
+                            if (4*(x + dx) < width && 4*(y + dy) < height)
+                                Buffer.BlockCopy(fileData, (int) dataOffset, buffer, (int) (8*((y + dy)*width/4 + x + dx)), 8);
                         }
                     }
                 }
             }
 
-            for (int i = 0; i < Width * Height / 2; i += 8)
+            for (int i = 0; i < width * height / 2; i += 8)
             {
                 FSHelpers.Swap(ref buffer[i], ref buffer[i + 1]);
                 FSHelpers.Swap(ref buffer[i + 2], ref buffer[i + 3]);
@@ -488,7 +488,7 @@ namespace WindViewer.FileFormats
             return DecompressDxt1(buffer, width, height);
         }
 
-        private byte S3TC1ReverseByte(byte b)
+        private static byte S3TC1ReverseByte(byte b)
         {
             byte b1 = (byte) (b & 0x3);
             byte b2 = (byte) (b & 0xC);
@@ -498,7 +498,7 @@ namespace WindViewer.FileFormats
             return (byte) ((b1 << 6) | (b2 << 2) | (b3 >> 2) | (b4 >> 6));
         }
 
-        private byte[] DecompressDxt1(byte[] src, uint width, uint height)
+        private static byte[] DecompressDxt1(byte[] src, uint width, uint height)
         {
             uint dataOffset = 0;
             byte[] finalData = new byte[width*height*4];
@@ -566,7 +566,7 @@ namespace WindViewer.FileFormats
             return finalData;
         }
 
-        private void UnpackPixelFromPalette(int paletteIndex, ref byte[] dest, int offset, byte[] paletteData, PaletteFormat format)
+        private static void UnpackPixelFromPalette(int paletteIndex, ref byte[] dest, int offset, byte[] paletteData, PaletteFormat format)
         {
             switch (format)
             {
@@ -590,7 +590,7 @@ namespace WindViewer.FileFormats
         /// <param name="sourcePixel">RGB565 encoded pixel.</param>
         /// <param name="dest">Destination array for RGBA pixel.</param>
         /// <param name="destOffset">Offset into destination array to write RGBA pixel.</param>
-        private void RGB565ToRGBA8(ushort sourcePixel, ref byte[] dest, int destOffset)
+        private static void RGB565ToRGBA8(ushort sourcePixel, ref byte[] dest, int destOffset)
         {
             byte r, g, b;
             r = (byte)((sourcePixel & 0xF100) >> 11);
@@ -614,7 +614,7 @@ namespace WindViewer.FileFormats
         /// <param name="sourcePixel">RGB5A3 encoded pixel.</param>
         /// <param name="dest">Destination array for RGBA pixel.</param>
         /// <param name="destOffset">Offset into destination array to write RGBA pixel.</param>
-        private void RGB5A3ToRGBA8(ushort sourcePixel, ref byte[] dest, int destOffset)
+        private static void RGB5A3ToRGBA8(ushort sourcePixel, ref byte[] dest, int destOffset)
         {
             byte r, g, b, a;
 
