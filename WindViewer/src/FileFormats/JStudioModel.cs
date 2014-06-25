@@ -965,24 +965,13 @@ namespace WindViewer.FileFormats
             {
                 if (index > _textureCount)
                 {
-                    //Todo: Irrelevent when we stop hacking textures.
-                    return null;
                     new Exception("Invalid index provided to GetTexture!");
                 }
 
-                if (_textureCount == 0)
-                {
-                    return null;
-                    //ToDo: This should really return an error texture of some sort.
-                    //ToDo: this is irrelevent once we get material loading instead of
-                    //weirdly indexing textures.
-                }
-
-                uint dataOffset = _textureHeaderOffset + (index * BinaryTextureImage.FileHeader.Size);
                 BinaryTextureImage tex = new BinaryTextureImage();
 
                 //Before load the texture we need to modify the source byte array, because reasons.
-                uint headerOffset = (((index + 1) * 32));
+                uint headerOffset = ((index + 1) * 32);
 
                 tex.Load(_dataCopy, _textureHeaderOffset, headerOffset);
 
@@ -1004,11 +993,11 @@ namespace WindViewer.FileFormats
             private uint _indirectTextureOffset; //Indirect textures is using the output of of one TEV stage as tex coords for another.
             private uint _gxCullModeOffset;
             private uint _gxColorOffset;
-            private uint _ucOffset; //UC?
+            private uint _colorChannelNumOffset; //UC?
             private uint _colorChannelInfoOffset;
             private uint _gxColor2Offset;
             private uint _lightInfoOffset;
-            private uint _uc2Offset; //UC?
+            private uint _texGenNumberOffset; //UC?
             private uint _texCoordInfoOffset;
             private uint _texCoordInfo2Offset;
             private uint _texMatrixInfoOffset;
@@ -1017,7 +1006,7 @@ namespace WindViewer.FileFormats
             private uint _tevOrderInfoOffset;
             private uint _gxColorS10Offset; //(Signed 10-bit value)
             private uint _gxColor3Offset;
-            private uint _uc3Offset; //UC?
+            private uint _tevStageNumInfoOffset; //UC?
             private uint _tevStageInfoOffset;
             private uint _tevSwapModeInfoOffset;
             private uint _tevSwapModeTableInfoOffset;
@@ -1025,16 +1014,10 @@ namespace WindViewer.FileFormats
             private uint _alphaCompareInfoOffset;
             private uint _blendInfoOffset;
             private uint _zModeInfoOffset; //Depth mode
-            private uint _uc4Offset; //UC?
-            private uint _uc5Offset;
+            private uint _zCompareInfoOffset; //UC?
+            private uint _ditherINfoOffset;
             private uint _nbtScaleInfoOffset;
 
-            /* Misc Thoughts on UC's
-             *  1:01 PM - Zeal of 12000BC: setanmcolor
-                1:02 PM - Zeal of 12000BC: setanmtextureSRT
-                1:02 PM - Zeal of 12000BC: setanmvisibility
-                1:02 PM - Zeal of 12000BC: setanmvtxcolor
-*/
             public override void Load(byte[] data, ref int offset)
             {
                 base.Load(data, ref offset);
@@ -1047,11 +1030,11 @@ namespace WindViewer.FileFormats
                 _indirectTextureOffset = (uint)FSHelpers.Read32(data, offset + 0x18);
                 _gxCullModeOffset = (uint)FSHelpers.Read32(data, offset + 0x1C);
                 _gxColorOffset = (uint)FSHelpers.Read32(data, offset + 0x20);
-                _ucOffset = (uint)FSHelpers.Read32(data, offset + 0x24);
+                _colorChannelNumOffset = (uint)FSHelpers.Read32(data, offset + 0x24);
                 _colorChannelInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x28);
                 _gxColor2Offset = (uint)FSHelpers.Read32(data, offset + 0x2C);
                 _lightInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x30);
-                _uc2Offset = (uint)FSHelpers.Read32(data, offset + 0x34);
+                _texGenNumberOffset = (uint)FSHelpers.Read32(data, offset + 0x34);
                 _texCoordInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x38);
                 _texCoordInfo2Offset = (uint)FSHelpers.Read32(data, offset + 0x3C);
                 _texMatrixInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x40);
@@ -1060,7 +1043,7 @@ namespace WindViewer.FileFormats
                 _tevOrderInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x4C);
                 _gxColorS10Offset = (uint)FSHelpers.Read32(data, offset + 0x50);
                 _gxColor3Offset = (uint)FSHelpers.Read32(data, offset + 0x54);
-                _uc3Offset = (uint)FSHelpers.Read32(data, offset + 0x58);
+                _tevStageNumInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x58);
                 _tevStageInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x5C);
                 _tevSwapModeInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x60);
                 _tevSwapModeTableInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x64);
@@ -1068,15 +1051,113 @@ namespace WindViewer.FileFormats
                 _alphaCompareInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x6C);
                 _blendInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x70);
                 _zModeInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x74);
-                _uc4Offset = (uint)FSHelpers.Read32(data, offset + 0x78);
-                _uc5Offset = (uint)FSHelpers.Read32(data, offset + 0x7C);
+                _zCompareInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x78);
+                _ditherINfoOffset = (uint)FSHelpers.Read32(data, offset + 0x7C);
                 _nbtScaleInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x80);
 
                 offset += ChunkSize;
+
+
+                GetMaterialInitData(0);
+            }
+
+            public MaterialInitData GetMaterialInitData(uint index)
+            {
+                if (index > _materialCount)
+                    throw new Exception("Invalid MaterialInit data requested.");
+
+                MaterialInitData initData = new MaterialInitData();
+                initData.Load(_dataCopy, _materialInitDataOffset + (index*MaterialInitData.Size));
+
+                return initData;
+            }
+
+            public ushort GetMaterialIndex(uint index)
+            {
+                return (ushort)FSHelpers.Read16(_dataCopy, (int)(_texCoordOrMatrixOffset + (index * 0x2)));
             }
 
 
-            public const int Size = 132;
+            public const int Size = 132;    
+        }
+
+        public class MaterialInitData
+        {
+            private byte _unknown1; //Read by PatchedMaterial, always 1?
+            private byte _unknown2; //Mostly 0, sometimes 2.
+            private ushort _padding1; //Always 0
+            private ushort _indirectTexturingIndex;
+            private ushort _cullModeIndex;
+            private ushort[] _ambientColorIndex = new ushort[2]; //2 ushorts
+            private ushort[] _colorChannelIndex = new ushort[4]; //4 ushorts
+            private ushort[] _materialColorIndex = new ushort[2]; //2 ushorts
+            private ushort[] _lightingIndex = new ushort[8]; //8 ushorts
+            private ushort[] _texCoordIndex = new ushort[8]; //8 ushorts
+            private ushort[] _texCoord2Index = new ushort[8]; //8 ushorts
+            private ushort[] _texMatrixIndex = new ushort[8]; //8 ushorts
+            private ushort[] _texMatrix2Index = new ushort[8]; //8 ushorts
+            private ushort[] _textureIndex = new ushort[8]; //8 ushorts (diffuse textures)
+            private ushort[] _tevConstantColorIndex = new ushort[4]; //4 ushorts
+            private byte[] _constColorSel = new byte[16]; //16 (4 * RGBA?)
+            private byte[] _constAlphaSel = new byte[16]; //16 (4 * RGBA?)
+            private ushort[] _tevOrderIndex = new ushort[16]; //16 ushorts
+            private ushort[] _tevColorIndex = new ushort[4]; //4 ushorts
+            private ushort[] _tevStageInfoIndex = new ushort[16]; //16 ushorts
+            private ushort[] _tevSwapModeInfoindex = new ushort[16]; //16 ushorts
+            private ushort[] _tevSwapModeTableInfoindex = new ushort[4]; //4 ushorts
+            private ushort[] _unconfirmedIndexes= new ushort[16]; //16 of them!
+
+            public void Load(byte[] data, uint offset)
+            {
+                _unknown1 = FSHelpers.Read8(data, (int) offset + 0x0);
+                _unknown2 = FSHelpers.Read8(data, (int)offset + 0x1);
+                _padding1 = (ushort) FSHelpers.Read16(data, (int) offset + 0x2);
+                _indirectTexturingIndex = (ushort)FSHelpers.Read16(data, (int)offset + 0x4);
+                _cullModeIndex = (ushort)FSHelpers.Read16(data, (int)offset + 0x6);
+                for (int i = 0; i < 2; i++)
+                    _ambientColorIndex[i] = (ushort) FSHelpers.Read16(data, (int) offset + 0x8 + (i*0x2));
+                for (int i = 0; i < 4; i++)
+                    _colorChannelIndex[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0xC + (i * 0x2));
+                for (int i = 0; i < 2; i++)
+                    _materialColorIndex[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0x14 + (i * 0x2));
+                for (int i = 0; i < 8; i++)
+                    _lightingIndex[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0x18 + (i * 0x2));
+                for (int i = 0; i < 8; i++)
+                    _texCoordIndex[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0x28 + (i * 0x2));
+                for (int i = 0; i < 8; i++)
+                    _texCoord2Index[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0x38 + (i * 0x2));
+                for (int i = 0; i < 8; i++)
+                    _texMatrixIndex[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0x48 + (i * 0x2));
+                for (int i = 0; i < 8; i++)
+                    _texMatrix2Index[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0x58 + (i * 0x2));
+                for (int i = 0; i < 8; i++)
+                    _textureIndex[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0x84 + (i * 0x2));
+                for (int i = 0; i < 4; i++)
+                    _tevConstantColorIndex[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0x94 + (i * 0x2));
+                for (int i = 0; i <16; i++)
+                    _constColorSel[i] = FSHelpers.Read8(data, (int)offset + 0x9C + (i * 0x1));
+                for (int i = 0; i < 16; i++)
+                    _constAlphaSel[i] = FSHelpers.Read8(data, (int)offset + 0xAC + (i * 0x1));
+                for (int i = 0; i < 16; i++)
+                    _tevOrderIndex[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0xBC + (i * 0x2));
+                for (int i = 0; i < 4; i++)
+                    _tevColorIndex[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0xDC + (i * 0x2));
+                for (int i = 0; i < 16; i++)
+                    _tevStageInfoIndex[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0xE4 + (i * 0x2));
+                for (int i = 0; i < 16; i++)
+                    _tevSwapModeInfoindex[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0x104 + (i * 0x2));
+                for (int i = 0; i < 4; i++)
+                    _tevSwapModeTableInfoindex[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0x124 + (i * 0x2));
+                for (int i = 0; i < 16; i++)
+                    _unconfirmedIndexes[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0x12C + (i * 0x2));
+            }
+
+            public ushort GetTextureIndex(ushort index)
+            {
+                return _textureIndex[index];
+            }
+
+            public const int Size = 332;
         }
 
         #endregion
@@ -1091,9 +1172,13 @@ namespace WindViewer.FileFormats
 
             Console.WriteLine("Generating GL texture for id: " + j3dTextureId);
 
+            //Look up the material first.
+            Mat3Chunk matChunk = GetChunkByType<Mat3Chunk>();
+            MaterialInitData matData = matChunk.GetMaterialInitData((uint) j3dTextureId);
+            
             //If the texture cache doesn't contain the ID, we're going to load it here.
             Tex1Chunk texChunk = GetChunkByType<Tex1Chunk>();
-            BinaryTextureImage image = texChunk.GetTexture((uint)j3dTextureId);
+            BinaryTextureImage image = texChunk.GetTexture(matChunk.GetMaterialIndex(matData.GetTextureIndex(0)));
 
             int glTextureId;
             GL.GenTextures(1, out glTextureId);
@@ -1105,6 +1190,10 @@ namespace WindViewer.FileFormats
 
             if (image != null) //ToDo :Temp till we fix material shit
                 GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, image.Width, image.Height, 0, PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, image.GetData());
+            else
+            {
+                Console.WriteLine("Invalid texture {0}", j3dTextureId);
+            }
 
             _textureCache[j3dTextureId] = glTextureId;
             return glTextureId;

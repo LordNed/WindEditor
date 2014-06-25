@@ -247,16 +247,16 @@ namespace WindViewer.Editor
                         /* 3D Model Formats */
                         case "bmd":
                         case "bdl":
-                        case "bck":
-                        case "brk":
-                        case "btk":
                             file = new JStudioModel();
                             break;
-
+                
                         case "tex":
                             file = new BinaryTextureImage();
                             break;
 
+                        case "bck":
+                        case "brk":
+                        case "btk":
                         default:
                             Console.WriteLine("Unknown folder " + folder +
                                                 " found. Creating GenericData holder for it!");

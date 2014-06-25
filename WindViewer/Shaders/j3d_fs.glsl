@@ -15,5 +15,4 @@ void main()
 	//finalColor = texture(tex, nTexCoord);
 	finalColor = texture(tex, nTexCoord) * nColor;
 	//finalColor = nColor;
-	//finalColor = vec4(1.0, 1.0, 1.0, 1.0);
 }
