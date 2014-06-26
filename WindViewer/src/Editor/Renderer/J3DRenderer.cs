@@ -135,7 +135,7 @@ namespace WindViewer.Editor.Renderer
             GL.VertexAttribPointer((int)ShaderAttributeIds.Color, 4, VertexAttribPointerType.Float, false, 9*4 , 3 *4);
             GL.VertexAttribPointer((int)ShaderAttributeIds.TexCoord, 2, VertexAttribPointerType.Float, false, 9*4, 7* 4);
 
-            _projMatrix = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4f, aspectRatio, 10f, 8000f);
+            _projMatrix = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4f, aspectRatio, 100f, 10000f);
             //Matrix4 modelMatrix = Matrix4.Identity;
             _viewMatrix = camera.GetViewMatrix();
 

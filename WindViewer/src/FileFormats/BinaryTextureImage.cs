@@ -51,7 +51,7 @@ namespace WindViewer.FileFormats
         /// </summary>
         public enum ImageFormat : byte
         {
-                    //Bits per Pixel | Block Width | Block Height | Block Size | Type / Description
+            //Bits per Pixel | Block Width | Block Height | Block Size | Type / Description
             I4 = 0x00,      // 4 | 8 | 8 | 32 | grey
             I8 = 0x01,      // 8 | 8 | 8 | 32 | grey
             IA4 = 0x02,     // 8 | 8 | 4 | 32 | grey + alpha
@@ -129,8 +129,8 @@ namespace WindViewer.FileFormats
                 }
 
                 //All palette formats are 2 bytes per entry.
-                _paletteData = new byte[paletteEntryCount*2];
-                Array.Copy(data, offset, _paletteData, 0, paletteEntryCount*2);
+                _paletteData = new byte[paletteEntryCount * 2];
+                Array.Copy(data, offset, _paletteData, 0, paletteEntryCount * 2);
             }
 
             public byte[] GetBytes()
@@ -148,7 +148,7 @@ namespace WindViewer.FileFormats
         {
             //Not part of the structure, overall size of FileHeader.
             public const int Size = 32;
-            
+
             public ImageFormat Format { get; private set; }
             private byte _alphaUnknownSetting; //0 for no alpha, 0x02 (and other values) 
             public ushort Width { get; private set; }
@@ -178,12 +178,12 @@ namespace WindViewer.FileFormats
                 WrapS = (WrapMode)FSHelpers.Read8(data, (int)offset + 0x06);
                 WrapT = (WrapMode)FSHelpers.Read8(data, (int)offset + 0x07);
                 PaletteFormat = (PaletteFormat)FSHelpers.Read8(data, (int)offset + 0x8);
-                _unknown1 = FSHelpers.Read8(data, (int) offset + 0x09);
+                _unknown1 = FSHelpers.Read8(data, (int)offset + 0x09);
                 PaletteEntryCount = (ushort)FSHelpers.Read16(data, (int)offset + 0xA);
                 PaletteDataOffset = (uint)FSHelpers.Read32(data, (int)offset + 0xC);
                 _unknown2 = (uint)FSHelpers.Read32(data, (int)offset + 0x10);
-                FilterSettingMin = (FilterMode) FSHelpers.Read8(data, (int)offset + 0x14);
-                FilterSettingMag = (FilterMode) FSHelpers.Read8(data, (int)offset + 0x15);
+                FilterSettingMin = (FilterMode)FSHelpers.Read8(data, (int)offset + 0x14);
+                FilterSettingMag = (FilterMode)FSHelpers.Read8(data, (int)offset + 0x15);
                 _padding1 = (ushort)FSHelpers.Read16(data, (int)offset + 0x16);
                 _imageCount = FSHelpers.Read8(data, (int)offset + 0x18);
                 _padding2 = FSHelpers.Read8(data, (int)offset + 0x19);
@@ -326,7 +326,11 @@ namespace WindViewer.FileFormats
                 case ImageFormat.CMPR:
                     return DecodeCmpr(data, dataOffset, width, height);
 
+                case ImageFormat.IA8:
+                    return DecodeIA8(data, dataOffset, width, height);
+
                 default:
+                    Console.WriteLine("Unknown BTI Format {0}, unable to decode!", format);
                     return new byte[0];
             }
         }
@@ -369,7 +373,7 @@ namespace WindViewer.FileFormats
                                 continue;
 
                             //Now we're looping through each pixel in a block, but a pixel is four bytes long. 
-                            uint destIndex = (uint)(4 * (width* ((yBlock * 4) + pY) + (xBlock * 4) + pX));
+                            uint destIndex = (uint)(4 * (width * ((yBlock * 4) + pY) + (xBlock * 4) + pX));
                             decodedData[destIndex + 1] = fileData[dataOffset + 0]; //Green
                             decodedData[destIndex + 0] = fileData[dataOffset + 1]; //Blue
                             dataOffset += 2;
@@ -473,16 +477,16 @@ namespace WindViewer.FileFormats
             //Decode S3TC1
             byte[] buffer = new byte[width * height * 4];
 
-            for (int y = 0; y < height/4; y += 2)
+            for (int y = 0; y < height / 4; y += 2)
             {
-                for (int x = 0; x < width/4; x += 2)
+                for (int x = 0; x < width / 4; x += 2)
                 {
                     for (int dy = 0; dy < 2; ++dy)
                     {
                         for (int dx = 0; dx < 2; ++dx, dataOffset += 8)
                         {
-                            if (4*(x + dx) < width && 4*(y + dy) < height)
-                                Buffer.BlockCopy(fileData, (int) dataOffset, buffer, (int) (8*((y + dy)*width/4 + x + dx)), 8);
+                            if (4 * (x + dx) < width && 4 * (y + dy) < height)
+                                Buffer.BlockCopy(fileData, (int)dataOffset, buffer, (int)(8 * ((y + dy) * width / 4 + x + dx)), 8);
                         }
                     }
                 }
@@ -505,18 +509,18 @@ namespace WindViewer.FileFormats
 
         private static byte S3TC1ReverseByte(byte b)
         {
-            byte b1 = (byte) (b & 0x3);
-            byte b2 = (byte) (b & 0xC);
-            byte b3 = (byte) (b & 0x30);
-            byte b4 = (byte) (b & 0xC0);
+            byte b1 = (byte)(b & 0x3);
+            byte b2 = (byte)(b & 0xC);
+            byte b3 = (byte)(b & 0x30);
+            byte b4 = (byte)(b & 0xC0);
 
-            return (byte) ((b1 << 6) | (b2 << 2) | (b3 >> 2) | (b4 >> 6));
+            return (byte)((b1 << 6) | (b2 << 2) | (b3 >> 2) | (b4 >> 6));
         }
 
         private static byte[] DecompressDxt1(byte[] src, uint width, uint height)
         {
             uint dataOffset = 0;
-            byte[] finalData = new byte[width*height*4];
+            byte[] finalData = new byte[width * height * 4];
 
             for (int y = 0; y < height; y += 4)
             {
@@ -565,7 +569,7 @@ namespace WindViewer.FileFormats
                         {
                             if (((x + ix) < width) && ((y + iy) < height))
                             {
-                                int di = (int) (4*((y + iy)*width + x + ix));
+                                int di = (int)(4 * ((y + iy) * width + x + ix));
                                 int si = (int)(bits & 0x3);
                                 finalData[di + 0] = ColorTable[si][0];
                                 finalData[di + 1] = ColorTable[si][1];
@@ -579,6 +583,41 @@ namespace WindViewer.FileFormats
             }
 
             return finalData;
+        }
+
+        private static byte[] DecodeIA8(byte[] fileData, uint dataOffset, uint width, uint height)
+        {
+            uint numBlocksW = width / 4; //4 byte block width
+            uint numBlocksH = height / 4; //4 byte block height 
+
+            byte[] decodedData = new byte[width * height * 4];
+
+            for (int yBlock = 0; yBlock < numBlocksH; yBlock++)
+            {
+                for (int xBlock = 0; xBlock < numBlocksW; xBlock++)
+                {
+                    //For each block, we're going to examine block width / block height number of 'pixels'
+                    for (int pY = 0; pY < 4; pY++)
+                    {
+                        for (int pX = 0; pX < 4; pX++)
+                        {
+                            //Ensure the pixel we're checking is within bounds of the image.
+                            if ((xBlock * 4 + pX >= width) || (yBlock * 4 + pY >= height))
+                                continue;
+
+                            //Now we're looping through each pixel in a block, but a pixel is four bytes long. 
+                            uint destIndex = (uint) (4*(width*((yBlock*4) + pY) + (xBlock*4) + pX));
+                            decodedData[destIndex + 3] = fileData[dataOffset + 0];
+                            decodedData[destIndex + 2] = fileData[dataOffset + 1];
+                            decodedData[destIndex + 1] = fileData[dataOffset + 1];
+                            decodedData[destIndex + 0] = fileData[dataOffset + 1];
+                            dataOffset += 2;
+                        }
+                    }
+                }
+            }
+
+            return decodedData;
         }
 
         private static void UnpackPixelFromPalette(int paletteIndex, ref byte[] dest, int offset, byte[] paletteData, PaletteFormat format)

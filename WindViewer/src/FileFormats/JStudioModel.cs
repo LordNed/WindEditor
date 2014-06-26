@@ -468,13 +468,13 @@ namespace WindViewer.FileFormats
                     attributeCount++;
                 }
 
-                bool isWeighted = drw1Chunk.IsWeighted(batch.FirstMatrixIndex);
+                /*bool isWeighted = drw1Chunk.IsWeighted(batch.FirstMatrixIndex);
                 if (!isWeighted)
                 {
                     ushort jointIndex = drw1Chunk.GetIndex(batch.FirstMatrixIndex);
                     var joint = jnt1Chunk.GetJoint(jointIndex);
                     Console.WriteLine(joint);
-                }
+                }*/
                 
 
                 _renderList[(int)i] = new List<PrimitiveList>();
