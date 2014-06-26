@@ -799,32 +799,34 @@ namespace WindViewer.FileFormats
 
         private class Drw1Chunk : BaseChunk
         {
-            public ushort SectionCount;
-            public uint IsWeightedOffset;
-            public uint DataOffset;
-
-            //Not part of header
-            public bool[] IsWeighted;
-            public ushort[] Data; //Related to that thing in collision perhaps?
+            private ushort _sectionCount;
+            private uint _isWeightedOffset;
+            private uint _dataOffset;
 
             public override void Load(byte[] data, ref int offset)
             {
                 base.Load(data, ref offset);
 
-                SectionCount = (ushort)FSHelpers.Read16(data, offset + 0x8);
-                IsWeightedOffset = (uint)FSHelpers.Read32(data, offset + 0xC);
-                DataOffset = (uint)FSHelpers.Read32(data, offset + 0x10);
-
-                IsWeighted = new bool[SectionCount];
-                Data = new ushort[SectionCount];
-
-                for (int i = 0; i < SectionCount; i++)
-                {
-                    IsWeighted[i] = Convert.ToBoolean(FSHelpers.Read8(data, (int)(offset + IsWeightedOffset + i)));
-                    Data[i] = (ushort)FSHelpers.Read16(data, (int)(offset + DataOffset + (i * 2)));
-                }
+                _sectionCount = (ushort) FSHelpers.Read16(data, offset + 0x8);
+                _isWeightedOffset = (uint) FSHelpers.Read32(data, offset + 0xC);
+                _dataOffset = (uint) FSHelpers.Read32(data, offset + 0x10);
 
                 offset += ChunkSize;
+
+                for (ushort i = 0; i < _sectionCount; i++)
+                {
+                    //Console.WriteLine("weighted: {0} index: {1}", IsWeighted(i), GetIndex(i));
+                }
+            }
+
+            public bool IsWeighted(ushort index)
+            {
+                return Convert.ToBoolean(FSHelpers.Read8(_dataCopy, (int)_isWeightedOffset + index));
+            }
+
+            public ushort GetIndex(ushort index)
+            {
+                return (ushort) FSHelpers.Read16(_dataCopy, (int) _dataOffset + (index*0x2));
             }
         }
 
