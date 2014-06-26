@@ -202,12 +202,12 @@ namespace WindViewer.FileFormats
             var vtxChunk = GetChunkByType<Vtx1Chunk>();
 
             var enabledVertexAttribs = new List<VertexDataTypes>();
-            for (int i = 0; i < vtxChunk.VertexDataOffsets.Length; i++)
+            /*for (int i = 0; i < vtxChunk.GetAllVertexFormats().Count; i++)
             {
-                if (vtxChunk.VertexDataOffsets[i] == 0)
-                    continue;
+                //if (vtxChunk.VertexDataOffsets[i] == 0)
+                    //continue;
                 enabledVertexAttribs.Add((VertexDataTypes)i);
-            }
+            }*/
 
             return enabledVertexAttribs;
         }
@@ -591,7 +591,7 @@ namespace WindViewer.FileFormats
              * chunk doesn't seem to ever initialize the entry count and the only 
              * varying data in this chunk seems uses a different method of finding
              * the last entry. */
-            private ushort _unusedEntryCount;
+            private ushort _unusedEntryCount; //Not unused, a lot of Links models have it.
             private uint _batchCount;
             private uint _vertexCount;
             private uint _hierarchyDataOffset;
@@ -606,9 +606,6 @@ namespace WindViewer.FileFormats
                 _hierarchyDataOffset = (uint)FSHelpers.Read32(data, offset + 20);
 
                 offset += ChunkSize;
-
-                if (_unusedEntryCount != 0)
-                    throw new Exception("Hey this file is special!");
             }
 
             public uint GetVertexCount()
@@ -749,24 +746,54 @@ namespace WindViewer.FileFormats
 
         private class Evp1Chunk : BaseChunk
         {
-            public ushort SectionCount;
-            public uint CountsArrayOffset;
-            public uint IndicesOffset;
-            public uint WeightsOffset;
-            public uint MatrixDataOffset;
+            private ushort _sectionCount; //BST has 3 
+            private uint _countsArrayOffset; //BST values: 2, 2, 2
+            private uint _indicesOffset; //BST's is 12 bytes in length. (six shorts) 06 07 00 06 00 07 (pairs?)
+            private uint _weightsOffset; //24 bytes length, 6 floats. (one per indice) (pairs + weights to each side of the pair)
+            private uint _matrixDataOffset; //3x4 float array. Indeded into by something else. 15 in BST
 
             public override void Load(byte[] data, ref int offset)
             {
                 base.Load(data, ref offset);
 
-                SectionCount = (ushort)FSHelpers.Read16(data, offset + 0x8);
-                CountsArrayOffset = (uint)FSHelpers.Read32(data, offset + 0xC);
-                IndicesOffset = (uint)FSHelpers.Read32(data, offset + 0x10);
-                WeightsOffset = (uint)FSHelpers.Read32(data, offset + 0x14);
-                MatrixDataOffset = (uint)FSHelpers.Read32(data, offset + 0x18);
+                _sectionCount = (ushort)FSHelpers.Read16(data, offset + 0x8);
+                _countsArrayOffset = (uint)FSHelpers.Read32(data, offset + 0xC);
+                _indicesOffset = (uint)FSHelpers.Read32(data, offset + 0x10);
+                _weightsOffset = (uint)FSHelpers.Read32(data, offset + 0x14);
+                _matrixDataOffset = (uint)FSHelpers.Read32(data, offset + 0x18);
 
 
                 offset += ChunkSize;
+            }
+
+            public byte GetCount(uint index)
+            {
+                return FSHelpers.Read8(_dataCopy, (int) (_countsArrayOffset + index));
+            }
+
+            public ushort GetIndex(uint index)
+            {
+                return (ushort) FSHelpers.Read16(_dataCopy, (int) (_indicesOffset + (index*0x2)));
+            }
+
+            public float GetWeight(uint index)
+            {
+                return FSHelpers.ReadFloat(_dataCopy, (int) (_weightsOffset + (index*0x4)));
+            }
+
+            public Matrix3x4 GetMatrix(ushort index)
+            {
+                Matrix3x4 matrix = new Matrix3x4();
+                for (int row = 0; row < 3; row++)
+                {
+                    for (int col = 0; col < 4; col++)
+                    {
+                        float rawFloat = FSHelpers.ReadFloat(_dataCopy, (int)_matrixDataOffset + (index*(3*4*4)) + ((row*4*4) + (col*4)));
+                        matrix[row, col] = (float)Math.Round(rawFloat, 4);
+                    }
+                }
+
+                return matrix;
             }
         }
 
