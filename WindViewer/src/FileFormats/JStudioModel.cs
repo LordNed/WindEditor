@@ -1242,6 +1242,7 @@ namespace WindViewer.FileFormats
             public const int Size = 132;    
         }
 
+        //ToDo: These offsets are a little bit messed up.
         public class MaterialInitData
         {
             private byte _unknown1; //Read by PatchedMaterial, always 1?
@@ -1339,8 +1340,11 @@ namespace WindViewer.FileFormats
             
             //If the texture cache doesn't contain the ID, we're going to load it here.
             Tex1Chunk texChunk = GetChunkByType<Tex1Chunk>();
-            BinaryTextureImage image = texChunk.GetTexture(matChunk.GetMaterialIndex(matData.GetTextureIndex(0)));
-            image.WriteImageToFile("image_" + matChunk.GetMaterialIndex(matData.GetTextureIndex(0)) + ".png");
+            ushort textureIndex = matData.GetTextureIndex(0);
+            if (textureIndex == 0xFFFF)
+                return 0;
+            BinaryTextureImage image = texChunk.GetTexture(matChunk.GetMaterialIndex(textureIndex));
+            //image.WriteImageToFile("image_" + matChunk.GetMaterialIndex(matData.GetTextureIndex(0)) + ".png");
 
             int glTextureId;
             GL.GenTextures(1, out glTextureId);

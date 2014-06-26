@@ -258,8 +258,7 @@ namespace WindViewer.Editor
                         case "brk":
                         case "btk":
                         default:
-                            Console.WriteLine("Unknown folder " + folder +
-                                                " found. Creating GenericData holder for it!");
+                            Console.WriteLine("Unknown file extension {0} found ({1}). Creating GenericData holder for it!", Path.GetExtension(filePath), Path.GetFileName(filePath));
                             file = new GenericArchiveData();
                             break;
                     }
