@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Dynamic;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using OpenTK;
-using OpenTK.Audio.OpenAL;
 using OpenTK.Graphics.OpenGL;
 using WindViewer.Editor;
 using WindViewer.Editor.Renderer;
@@ -66,6 +61,31 @@ namespace WindViewer.FileFormats
             Quads = 0x80,
         }
 
+        public enum HierarchyDataTypes : ushort
+        {
+            Finish = 0x0, NewNode = 0x01, EndNode = 0x02,
+            Joint = 0x10, Material = 0x11, Shape = 0x12,
+        }
+
+        public class HierarchyData
+        {
+            public HierarchyDataTypes Type { get; private set; }
+            public ushort Index { get; private set; }
+
+            public void Load(byte[] data, uint offset)
+            {
+                Type = (HierarchyDataTypes)FSHelpers.Read16(data, (int)offset);
+                Index = (ushort)FSHelpers.Read16(data, (int)offset + 0x2);
+            }
+
+            public override string ToString()
+            {
+                return string.Format("{0} [{1}]", Type, Index);
+            }
+
+            public const uint Size = 4;
+        }
+
         //Temp in case I fuck up
         private byte[] _origDataCache;
 
@@ -79,7 +99,7 @@ namespace WindViewer.FileFormats
 
             int dataOffset = 0;
 
-            Header header = new Header();
+            var header = new Header();
             header.Load(data, ref dataOffset);
 
             //STEP 1: We're going to load all of the data out of memory straight into the chunks that
@@ -87,7 +107,7 @@ namespace WindViewer.FileFormats
             //the Wiki is probably a better place to draw that information from.
             for (int i = 0; i < header.ChunkCount; i++)
             {
-                BaseChunk baseChunk = null;
+                BaseChunk baseChunk;
 
                 //Read the first four bytes to get the tag.
                 string tagName = FSHelpers.ReadString(data, dataOffset, 4);
@@ -227,12 +247,12 @@ namespace WindViewer.FileFormats
         {
             switch (curNode.NodeType)
             {
-                case Inf1Chunk.HierarchyData.HierarchyDataTypes.Material:
+                case HierarchyDataTypes.Material:
                     //Console.WriteLine("Bind material index {0}", curNode.DataIndex);
                     //lol this is so wrong, but maybe something will not explode.
                     GL.BindTexture(TextureTarget.Texture2D, GetGLTexIdFromCache(curNode.DataIndex));
                     break;
-                case Inf1Chunk.HierarchyData.HierarchyDataTypes.Shape:
+                case HierarchyDataTypes.Shape:
                     //Console.WriteLine("Draw shape index {0}", curNode.DataIndex);
 
                     foreach (PrimitiveList prim in _renderList[curNode.DataIndex])
@@ -261,7 +281,7 @@ namespace WindViewer.FileFormats
             return root;
         }
 
-        private int BuildNodeRecursive(ref SceneGraph parent, List<Inf1Chunk.HierarchyData> nodeList, int listIndex)
+        private int BuildNodeRecursive(ref SceneGraph parent, List<HierarchyData> nodeList, int listIndex)
         {
             for (int i = listIndex; i < nodeList.Count; ++i)
             {
@@ -544,7 +564,12 @@ namespace WindViewer.FileFormats
 
         private class Inf1Chunk : BaseChunk
         {
-            private ushort _unknown1; //? Anim related
+            /* All other chunks have a 4 byte tag, a 4 byte chunk size, and then
+             * a 2 byte "entry" count (+ 2 more bytes padding) at the start. This
+             * chunk doesn't seem to ever initialize the entry count and the only 
+             * varying data in this chunk seems uses a different method of finding
+             * the last entry. */
+            private ushort _unusedEntryCount;
             private uint _batchCount;
             private uint _vertexCount;
             private uint _hierarchyDataOffset;
@@ -553,38 +578,15 @@ namespace WindViewer.FileFormats
             {
                 base.Load(data, ref offset);
 
-                _unknown1 = (ushort)FSHelpers.Read16(data, offset + 8);
-                _batchCount = (uint)FSHelpers.Read32(data, offset + 12); //2 bytes padding after Unknown1
+                _unusedEntryCount = (ushort)FSHelpers.Read16(data, offset + 8);
+                _batchCount = (uint)FSHelpers.Read32(data, offset + 12); //2 bytes padding after _unusedEntryCount
                 _vertexCount = (uint)FSHelpers.Read32(data, offset + 16);
                 _hierarchyDataOffset = (uint)FSHelpers.Read32(data, offset + 20);
 
                 offset += ChunkSize;
-            }
 
-            //"SceneGraphRaw"
-            public class HierarchyData
-            {
-                public enum HierarchyDataTypes : ushort
-                {
-                    Finish = 0x0, NewNode = 0x01, EndNode = 0x02,
-                    Joint = 0x10, Material = 0x11, Shape = 0x12,
-                }
-
-                public HierarchyDataTypes Type { get; private set; }
-                public ushort Index { get; private set; }
-
-                public void Load(byte[] data, uint offset)
-                {
-                    Type = (HierarchyDataTypes)FSHelpers.Read16(data, (int)offset);
-                    Index = (ushort)FSHelpers.Read16(data, (int)offset + 0x2);
-                }
-
-                public override string ToString()
-                {
-                    return string.Format("{0} [{1}]", Type, Index);
-                }
-
-                public const uint Size = 4;
+                if (_unusedEntryCount != 0)
+                    throw new Exception("Hey this file is special!");
             }
 
             public uint GetVertexCount()
@@ -595,11 +597,6 @@ namespace WindViewer.FileFormats
             public uint GetBatchCount()
             {
                 return _batchCount;
-            }
-
-            public ushort GetUnknown1()
-            {
-                return _unknown1;
             }
 
             public List<HierarchyData> GetHierarchyData()
@@ -615,7 +612,7 @@ namespace WindViewer.FileFormats
                     data.Add(curNode);
 
                     readOffset += HierarchyData.Size;
-                } while (curNode.Type != HierarchyData.HierarchyDataTypes.Finish);
+                } while (curNode.Type != HierarchyDataTypes.Finish);
 
                 return data;
             }
@@ -1199,10 +1196,10 @@ namespace WindViewer.FileFormats
         private class SceneGraph
         {
             public List<SceneGraph> Children;
-            public Inf1Chunk.HierarchyData.HierarchyDataTypes NodeType { get; private set; }
+            public HierarchyDataTypes NodeType { get; private set; }
             public ushort DataIndex { get; private set; }
 
-            public SceneGraph(Inf1Chunk.HierarchyData.HierarchyDataTypes type, ushort index)
+            public SceneGraph(HierarchyDataTypes type, ushort index)
             {
                 Children = new List<SceneGraph>();
                 NodeType = type;
