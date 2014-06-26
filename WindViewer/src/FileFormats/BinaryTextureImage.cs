@@ -216,7 +216,7 @@ namespace WindViewer.FileFormats
         public void Load(byte[] data, uint mainOffset, uint dataOffset)
         {
             _header = new FileHeader();
-            _header.Load(data, dataOffset);
+            _header.Load(data, mainOffset);
 
             //Copy our public settings out of the header and into the BinaryTextureImage instance.
             Format = _header.Format;
@@ -229,10 +229,10 @@ namespace WindViewer.FileFormats
 
             //Grab the palette data
             _imagePalette = new Palette();
-            _imagePalette.Load(data, _header.PaletteEntryCount, mainOffset + dataOffset + _header.PaletteDataOffset);
+            _imagePalette.Load(data, _header.PaletteEntryCount, dataOffset + _header.PaletteDataOffset);
 
             //Now lets load a copy of the image data out of the file.
-            _argbImageData = DecodeData(data, Width, Height, mainOffset + dataOffset + _header.ImageDataOffset, Format, _imagePalette, _header.PaletteFormat);
+            _argbImageData = DecodeData(data, Width, Height, dataOffset + _header.ImageDataOffset, Format, _imagePalette, _header.PaletteFormat);
         }
 
         /// <summary>
@@ -249,6 +249,21 @@ namespace WindViewer.FileFormats
         public override void Save(BinaryWriter stream)
         {
             FSHelpers.WriteArray(stream, _dataCache);
+        }
+
+        public void WriteImageToFile(string outputFile)
+        {
+            Bitmap bmp = new Bitmap(Width, Height);
+            Rectangle rect = new Rectangle(0, 0, Width, Height);
+            BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadWrite, bmp.PixelFormat);
+
+            //Lock the bitmap for writing, copy the bits and then unlock for saving.
+            IntPtr ptr = bmpData.Scan0;
+            byte[] imageData = GetData();
+            Marshal.Copy(imageData, 0, ptr, imageData.Length);
+            bmp.UnlockBits(bmpData);
+
+            bmp.Save(outputFile);
         }
 
         /// <summary>

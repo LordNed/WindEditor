@@ -971,9 +971,9 @@ namespace WindViewer.FileFormats
                 BinaryTextureImage tex = new BinaryTextureImage();
 
                 //Before load the texture we need to modify the source byte array, because reasons.
-                uint headerOffset = ((index + 1) * 32);
+                uint headerOffset = ((index) * 32);
 
-                tex.Load(_dataCopy, _textureHeaderOffset, headerOffset);
+                tex.Load(_dataCopy, _textureHeaderOffset + headerOffset, headerOffset+32);
 
                 return tex;
             }
@@ -1179,6 +1179,7 @@ namespace WindViewer.FileFormats
             //If the texture cache doesn't contain the ID, we're going to load it here.
             Tex1Chunk texChunk = GetChunkByType<Tex1Chunk>();
             BinaryTextureImage image = texChunk.GetTexture(matChunk.GetMaterialIndex(matData.GetTextureIndex(0)));
+            image.WriteImageToFile("image_" + matChunk.GetMaterialIndex(matData.GetTextureIndex(0)) + ".png");
 
             int glTextureId;
             GL.GenTextures(1, out glTextureId);
@@ -1188,12 +1189,8 @@ namespace WindViewer.FileFormats
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)All.Repeat);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)All.Repeat);
 
-            if (image != null) //ToDo :Temp till we fix material shit
-                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, image.Width, image.Height, 0, PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, image.GetData());
-            else
-            {
-                Console.WriteLine("Invalid texture {0}", j3dTextureId);
-            }
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, image.Width, image.Height, 0, PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, image.GetData());
+
 
             _textureCache[j3dTextureId] = glTextureId;
             return glTextureId;
