@@ -832,21 +832,138 @@ namespace WindViewer.FileFormats
 
         private class Jnt1Chunk : BaseChunk
         {
-            public ushort SectionCount;
-            public uint EntryOffset;
-            public uint UnknownOffset;
-            public uint StringTableOffset;
+            private ushort _sectionCount;
+            private uint _entryOffset;
+            private uint _stringIdTableOffset;
+            private uint _stringTableOffset;
 
             public override void Load(byte[] data, ref int offset)
             {
                 base.Load(data, ref offset);
 
-                SectionCount = (ushort)FSHelpers.Read16(data, offset + 0x8);
-                EntryOffset = (uint)FSHelpers.Read32(data, offset + 0xC);
-                UnknownOffset = (uint)FSHelpers.Read32(data, offset + 0x10);
-                StringTableOffset = (uint)FSHelpers.Read32(data, offset + 0x14);
+                _sectionCount = (ushort)FSHelpers.Read16(data, offset + 0x8);
+                _entryOffset = (uint)FSHelpers.Read32(data, offset + 0xC);
+                _stringIdTableOffset = (uint)FSHelpers.Read32(data, offset + 0x10);
+                _stringTableOffset = (uint)FSHelpers.Read32(data, offset + 0x14);
 
                 offset += ChunkSize;
+            }
+
+            public ushort GetUnknown(ushort index)
+            {
+                return (ushort) FSHelpers.Read16(_dataCopy, (int) _stringIdTableOffset + (index*0x2));
+            }
+
+            public JntEntry GetJoint(ushort index)
+            {
+                JntEntry joint = new JntEntry();
+                joint.Load(_dataCopy, _entryOffset + (index * JntEntry.Size));
+
+                return joint;
+            }
+
+            public ushort GetStringIndex(ushort index)
+            {
+                return (ushort)FSHelpers.Read16(_dataCopy, (int)_stringIdTableOffset + (index * 0x2));
+            }
+
+            public ushort GetStringTableSize()
+            {
+                return (ushort) FSHelpers.Read16(_dataCopy, (int) _stringTableOffset);
+            }
+
+            public StringTableEntry GetStringTableEntry(ushort index)
+            {
+                var ste = new StringTableEntry();
+                                                                                        /* String Table Header */
+                ste.UnknownIndex = (ushort) FSHelpers.Read16(_dataCopy, (int) _stringTableOffset + 0x4 + (index*0x4));
+                ste.StringOffset = (ushort)FSHelpers.Read16(_dataCopy, (int)_stringTableOffset + 0x6 + (index * 0x4));
+
+                return ste;
+            }
+
+            public string GetString(StringTableEntry entry)
+            {
+                return FSHelpers.ReadString(_dataCopy, (int) _stringTableOffset + entry.StringOffset);
+            }
+
+            public struct StringTableEntry
+            {
+                public ushort UnknownIndex;
+                public ushort StringOffset;
+
+                public override string ToString()
+                {
+                    return string.Format("[{0}] - {1}", UnknownIndex, StringOffset);
+                }
+            }
+
+            public class JntEntry
+            {
+                private ushort _unknown1; //0 = has unknown2, bboxmin, bboxmax. 
+                private byte _unknown2; //Seems to match the value of above.
+                private Vector3 _scale;
+                private HalfRotation _rotation;
+                private Vector3 _translation;
+                private float _unknown3;
+                private Vector3 _boundingBoxMin;
+                private Vector3 _boundingBoxMax;
+
+                public void Load(byte[] data, uint offset)
+                {
+                    _unknown1 = (ushort) FSHelpers.Read16(data, (int)offset + 0x0);
+                    _unknown2 = (byte)FSHelpers.Read16(data, (int)offset + 0x2);
+                    //One byte padding.
+                    _scale = FSHelpers.ReadVector3(data, (int) offset + 0x4);
+                    _rotation = FSHelpers.ReadHalfRot(data, offset + 0x10);
+                    //2 bytes padding
+                    _translation = FSHelpers.ReadVector3(data, (int) offset + 0x18);
+                    _unknown3 = FSHelpers.ReadFloat(data, (int) offset + 0x24);
+                    _boundingBoxMin = FSHelpers.ReadVector3(data, (int) offset + 0x28);
+                    _boundingBoxMax = FSHelpers.ReadVector3(data, (int) offset + 0x34);
+                }
+
+                public ushort GetUnknown1()
+                {
+                    return _unknown1;
+                }
+
+                public byte GetUnknown2()
+                {
+                    return _unknown2;
+                }
+
+                public Vector3 GetScale()
+                {
+                    return _scale;
+                }
+
+                public HalfRotation GetRotation()
+                {
+                    return _rotation;
+                }
+
+                public Vector3 GetTranslation()
+                {
+                    return _translation;
+                }
+
+                public float GetUnknownFloat()
+                {
+                    return _unknown3;
+                }
+
+                public Vector3 GetBoundingBoxMin()
+                {
+                    return _boundingBoxMin;
+                }
+
+                public Vector3 GetBoundingBoxMax()
+                {
+                    return _boundingBoxMax;
+                }
+
+                public const uint Size = 64;
             }
 
         }

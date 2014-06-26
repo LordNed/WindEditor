@@ -85,6 +85,16 @@ namespace WindViewer.Editor
             return result;
         }
 
+        public static HalfRotation ReadHalfRot(byte[] data, uint offset)
+        {
+            HalfRotation rot = new HalfRotation();
+            rot.X = Read16(data, (int) offset + 0x0);
+            rot.Y = Read16(data, (int)offset + 0x2);
+            rot.Z = Read16(data, (int)offset + 0x4);
+
+            return rot;
+        }
+
         public static float ConvertIEEE754Float(UInt32 Raw)
         {
             byte[] data = new byte[4];
