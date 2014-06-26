@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
@@ -86,6 +87,33 @@ namespace WindViewer.FileFormats
             public const uint Size = 4;
         }
 
+        public class VertexFormat
+        {
+            public ArrayTypes ArrayType { get; private set; }
+            public uint ArrayCount { get; private set; }
+            public DataTypes DataType { get; private set; }
+            public byte DecimalPoint { get; private set; }
+
+            public void Load(byte[] data, uint offset)
+            {
+                ArrayType = (ArrayTypes)FSHelpers.Read32(data, (int)offset);
+                ArrayCount = (uint)FSHelpers.Read32(data, (int)offset + 4);
+                DataType = (DataTypes)FSHelpers.Read32(data, (int)offset + 8);
+                DecimalPoint = FSHelpers.Read8(data, (int)offset + 12);
+            }
+
+            public const int Size = 16;
+        }
+
+        public enum VertexDataTypes
+        {
+            Position = 0,
+            Normal = 1,
+            Color0 = 3,
+            Tex0 = 5,
+        }
+
+
         //Temp in case I fuck up
         private byte[] _origDataCache;
 
@@ -169,16 +197,16 @@ namespace WindViewer.FileFormats
             //IterateSceneGraphRecursive(_sceneGraph);
         }
 
-        private List<Vtx1Chunk.VertexDataTypes> GetEnabledVertexAttribs()
+        private List<VertexDataTypes> GetEnabledVertexAttribs()
         {
-            Vtx1Chunk vtxChunk = GetChunkByType<Vtx1Chunk>();
+            var vtxChunk = GetChunkByType<Vtx1Chunk>();
 
-            var enabledVertexAttribs = new List<Vtx1Chunk.VertexDataTypes>();
+            var enabledVertexAttribs = new List<VertexDataTypes>();
             for (int i = 0; i < vtxChunk.VertexDataOffsets.Length; i++)
             {
                 if (vtxChunk.VertexDataOffsets[i] == 0)
                     continue;
-                enabledVertexAttribs.Add((Vtx1Chunk.VertexDataTypes)i);
+                enabledVertexAttribs.Add((VertexDataTypes)i);
             }
 
             return enabledVertexAttribs;
@@ -201,21 +229,21 @@ namespace WindViewer.FileFormats
             {
                 switch (attrib)
                 {
-                    case Vtx1Chunk.VertexDataTypes.Position:
+                    case VertexDataTypes.Position:
                         GL.EnableVertexAttribArray((int)IRenderer.ShaderAttributeIds.Position);
                         GL.VertexAttribPointer((int)IRenderer.ShaderAttributeIds.Position, 3,
                             VertexAttribPointerType.Float, false, stride, ongoingOffset);
                         ongoingOffset += GetElementSizeFromAttrib(attrib);
                         break;
 
-                    case Vtx1Chunk.VertexDataTypes.Color0:
+                    case VertexDataTypes.Color0:
                         GL.EnableVertexAttribArray((int)IRenderer.ShaderAttributeIds.Color);
                         GL.VertexAttribPointer((int)IRenderer.ShaderAttributeIds.Color, 4,
                             VertexAttribPointerType.Float, false, stride, ongoingOffset);
                         ongoingOffset += GetElementSizeFromAttrib(attrib);
                         break;
 
-                    case Vtx1Chunk.VertexDataTypes.Tex0:
+                    case VertexDataTypes.Tex0:
                         GL.EnableVertexAttribArray((int)IRenderer.ShaderAttributeIds.TexCoord);
                         GL.VertexAttribPointer((int)IRenderer.ShaderAttributeIds.TexCoord, 2,
                             VertexAttribPointerType.Float, false, stride, ongoingOffset);
@@ -225,14 +253,14 @@ namespace WindViewer.FileFormats
             }
         }
 
-        private int GetElementSizeFromAttrib(Vtx1Chunk.VertexDataTypes attrib)
+        private int GetElementSizeFromAttrib(VertexDataTypes attrib)
         {
             switch (attrib)
             {
-                case Vtx1Chunk.VertexDataTypes.Position: return 3 * 4;
-                case Vtx1Chunk.VertexDataTypes.Normal: return 3 * 4;
-                case Vtx1Chunk.VertexDataTypes.Color0: return 4 * 4;
-                case Vtx1Chunk.VertexDataTypes.Tex0: return 2 * 4;
+                case VertexDataTypes.Position: return 3 * 4;
+                case VertexDataTypes.Normal: return 3 * 4;
+                case VertexDataTypes.Color0: return 4 * 4;
+                case VertexDataTypes.Tex0: return 2 * 4;
                 default:
                     Console.WriteLine("Unknown vertex attrib type {0}!", attrib);
                     return 0;
@@ -241,7 +269,7 @@ namespace WindViewer.FileFormats
 
 
         private SceneGraph _sceneGraph;
-        private List<Vtx1Chunk.VertexDataTypes> _enabledVertexAttribs;
+        private List<VertexDataTypes> _enabledVertexAttribs;
 
         private void IterateSceneGraphRecursive(SceneGraph curNode)
         {
@@ -285,27 +313,27 @@ namespace WindViewer.FileFormats
         {
             for (int i = listIndex; i < nodeList.Count; ++i)
             {
-                Inf1Chunk.HierarchyData node = nodeList[i];
+                HierarchyData node = nodeList[i];
                 SceneGraph newNode;
 
                 switch (node.Type)
                 {
                     //If it's a new node, push down in the stack one.
-                    case Inf1Chunk.HierarchyData.HierarchyDataTypes.NewNode:
+                    case HierarchyDataTypes.NewNode:
                         newNode = new SceneGraph(node.Type, node.Index);
                         i += BuildNodeRecursive(ref newNode, nodeList, i + 1);
                         parent.Children.Add(newNode);
                         break;
 
                     //If it's the end node, we need to go up.
-                    case Inf1Chunk.HierarchyData.HierarchyDataTypes.EndNode:
+                    case HierarchyDataTypes.EndNode:
                         return i - listIndex + 1;
 
                     //If it's a material, joint, or shape, just produce them.
-                    case Inf1Chunk.HierarchyData.HierarchyDataTypes.Material:
-                    case Inf1Chunk.HierarchyData.HierarchyDataTypes.Joint:
-                    case Inf1Chunk.HierarchyData.HierarchyDataTypes.Shape:
-                    case Inf1Chunk.HierarchyData.HierarchyDataTypes.Finish:
+                    case HierarchyDataTypes.Material:
+                    case HierarchyDataTypes.Joint:
+                    case HierarchyDataTypes.Shape:
+                    case HierarchyDataTypes.Finish:
                         break;
                     default:
                         Console.WriteLine("You broke something.");
@@ -380,13 +408,7 @@ namespace WindViewer.FileFormats
 
         public T GetChunkByType<T>() where T : class
         {
-            foreach (BaseChunk file in _chunkList)
-            {
-                if (file is T)
-                    return file as T;
-            }
-
-            return default(T);
+            return _chunkList.OfType<T>().Select(file => file).FirstOrDefault();
         }
 
         public struct VertexFormatLayout
@@ -456,20 +478,20 @@ namespace WindViewer.FileFormats
                                     (ushort)FSHelpers.Read16(shp1Chunk._dataCopy, (int)(shp1Chunk._primitiveDataOffset + numPrimitiveBytesRead));
 
 
-                                Vtx1Chunk.VertexDataTypes attribType = _enabledVertexAttribs[(int)vertIndex];
+                                VertexDataTypes attribType = _enabledVertexAttribs[(int)vertIndex];
 
                                 switch (attribType)
                                 {
-                                    case Vtx1Chunk.VertexDataTypes.Position:
+                                    case VertexDataTypes.Position:
                                         newVertex.Position = vtxChunk.GetPosition(curIndex);
                                         break;
-                                    case Vtx1Chunk.VertexDataTypes.Normal:
+                                    case VertexDataTypes.Normal:
                                         newVertex.Color = new Vector4(vtxChunk.GetNormal(curIndex, 14), 1); //temp
                                         break;
-                                    case Vtx1Chunk.VertexDataTypes.Color0:
+                                    case VertexDataTypes.Color0:
                                         newVertex.Color = vtxChunk.GetColor0(curIndex);
                                         break;
-                                    case Vtx1Chunk.VertexDataTypes.Tex0:
+                                    case VertexDataTypes.Tex0:
                                         newVertex.TexCoord = vtxChunk.GetTex0(curIndex, 8);
                                         break;
 
@@ -620,47 +642,44 @@ namespace WindViewer.FileFormats
 
         private class Vtx1Chunk : BaseChunk
         {
-            public class VertexFormat
-            {
-                public ArrayTypes ArrayType;
-                public uint ArrayCount;
-                public DataTypes DataType;
-                public byte DecimalPoint;
-
-                public void Load(byte[] data, int offset)
-                {
-                    ArrayType = (ArrayTypes)FSHelpers.Read32(data, offset);
-                    ArrayCount = (uint)FSHelpers.Read32(data, offset + 4);
-                    DataType = (DataTypes)FSHelpers.Read32(data, offset + 8);
-                    DecimalPoint = FSHelpers.Read8(data, offset + 12);
-                }
-
-                public const int Size = 16;
-            }
-
-            public enum VertexDataTypes
-            {
-                Position = 0,
-                Normal = 1,
-                Color0 = 3,
-                Tex0 = 5,
-            }
-
-            private int _vertexFormatsOffset;
-            public int[] VertexDataOffsets = new int[13];
+            private uint _vertexFormatsOffset;
+            private uint _positionDataOffset;
+            private uint _normalDataOffset;
+            private uint _normalBinormalTangentDataOffset; //Presumed
+            private uint _color0DataOffset;
+            private uint _color1DataOffset; //Presumed
+            private uint _tex0DataOffset;
+            private uint _tex1DataOffset; //Presumed
+            private uint _tex2DataOffset; //Presumed
+            private uint _tex3DataOffset; //Presumed
+            private uint _tex4DataOffset; //Presumed
+            private uint _tex5DataOffset; //Presumed
+            private uint _tex6DataOffset; //Presumed
+            private uint _tex7DataOffset; //Presumed
 
             public override void Load(byte[] data, ref int offset)
             {
                 base.Load(data, ref offset);
 
-                _vertexFormatsOffset = FSHelpers.Read32(data, offset + 0x8);
-                for (int i = 0; i < 13; i++)
-                    VertexDataOffsets[i] = FSHelpers.Read32(data, (offset + 0xC) + (i * 0x4));
+                _vertexFormatsOffset = (uint) FSHelpers.Read32(data, offset + 0x8);
+                _positionDataOffset = (uint)FSHelpers.Read32(data, offset + 0xC);
+                _normalDataOffset = (uint)FSHelpers.Read32(data, offset + 0x10);
+                _normalBinormalTangentDataOffset = (uint)FSHelpers.Read32(data, offset + 0x14);
+                _color0DataOffset = (uint)FSHelpers.Read32(data, offset + 0x18);
+                _color1DataOffset = (uint)FSHelpers.Read32(data, offset + 0x1C);
+                _tex0DataOffset = (uint)FSHelpers.Read32(data, offset + 0x20);
+                _tex1DataOffset = (uint)FSHelpers.Read32(data, offset + 0x24);
+                _tex2DataOffset = (uint)FSHelpers.Read32(data, offset + 0x28);
+                _tex3DataOffset = (uint)FSHelpers.Read32(data, offset + 0x2C);
+                _tex4DataOffset = (uint)FSHelpers.Read32(data, offset + 0x30);
+                _tex5DataOffset = (uint)FSHelpers.Read32(data, offset + 0x34);
+                _tex6DataOffset = (uint)FSHelpers.Read32(data, offset + 0x38);
+                _tex7DataOffset = (uint)FSHelpers.Read32(data, offset + 0x3C);
 
                 offset += ChunkSize;
             }
 
-            public VertexFormat GetVertexFormat(int index)
+            public VertexFormat GetVertexFormat(uint index)
             {
                 VertexFormat vtxFmt = new VertexFormat();
                 vtxFmt.Load(_dataCopy, _vertexFormatsOffset + (index * VertexFormat.Size));
@@ -672,7 +691,7 @@ namespace WindViewer.FileFormats
             {
                 var allFormats = new List<VertexFormat>();
                 VertexFormat vFormat;
-                int dataOffset = _vertexFormatsOffset;
+                uint dataOffset = _vertexFormatsOffset;
                 do
                 {
                     vFormat = new VertexFormat();
@@ -685,23 +704,23 @@ namespace WindViewer.FileFormats
                 return allFormats;
             }
 
-            public Vector3 GetPosition(int index)
+            public Vector3 GetPosition(uint index)
             {
                 Vector3 newPos = new Vector3();
                 for (int i = 0; i < 3; i++)
-                    newPos[i] = FSHelpers.ReadFloat(_dataCopy, VertexDataOffsets[(int)VertexDataTypes.Position] + (index * Vector3.SizeInBytes) + (i * 4));
+                    newPos[i] = FSHelpers.ReadFloat(_dataCopy, (int)(_positionDataOffset + (index * Vector3.SizeInBytes) + (i * 4)));
 
                 return newPos;
             }
 
-            public Vector3 GetNormal(int index, int decimalPlace)
+            public Vector3 GetNormal(uint index, int decimalPlace)
             {
                 Vector3 newNormal = new Vector3();
                 float scaleFactor = (float)Math.Pow(0.5, decimalPlace);
 
                 for (int i = 0; i < 3; i++)
                     newNormal[i] = FSHelpers.Read16(_dataCopy,
-                        VertexDataOffsets[(int)VertexDataTypes.Normal] + (index * 6) + (i * 2)) * scaleFactor;
+                        (int)(_normalDataOffset + (index * 6) + (i * 2))) * scaleFactor;
 
                 return newNormal;
             }
@@ -710,7 +729,7 @@ namespace WindViewer.FileFormats
             {
                 Vector4 newColor = new Vector4();
                 for (int i = 0; i < 4; i++)
-                    newColor[i] = FSHelpers.Read8(_dataCopy, VertexDataOffsets[(int)VertexDataTypes.Color0] + (index * 4) + i) / 255f;
+                    newColor[i] = FSHelpers.Read8(_dataCopy, (int)_color0DataOffset + (index * 4) + i) / 255f;
 
                 return newColor;
             }
@@ -721,8 +740,7 @@ namespace WindViewer.FileFormats
                 float scaleFactor = (float)Math.Pow(0.5, decimalPlace);
 
                 for (int i = 0; i < 2; i++)
-                    newTexCoord[i] = FSHelpers.Read16(_dataCopy,
-                        VertexDataOffsets[(int)VertexDataTypes.Tex0] + (index * 4) + (i * 0x2)) * scaleFactor;
+                    newTexCoord[i] = FSHelpers.Read16(_dataCopy, (int)_tex0DataOffset + (index * 4) + (i * 0x2)) * scaleFactor;
 
                 return newTexCoord;
             }
