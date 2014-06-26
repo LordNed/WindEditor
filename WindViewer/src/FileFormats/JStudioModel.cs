@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
@@ -288,6 +289,26 @@ namespace WindViewer.FileFormats
                         GL.DrawArrays(prim.DrawType, prim.VertexStart, prim.VertexCount);
                     }
                     break;
+                case HierarchyDataTypes.Joint:
+                    Jnt1Chunk jnt1Chunk = GetChunkByType<Jnt1Chunk>();
+                    var joint = jnt1Chunk.GetJoint(curNode.DataIndex);
+                    Vector3 jointRot = joint.GetRotation().ToDegrees();
+
+                    Matrix4 tranMatrix = Matrix4.CreateTranslation(joint.GetTranslation());
+                    Matrix4 rotMatrix = Matrix4.CreateRotationX(jointRot.X)*Matrix4.CreateRotationY(jointRot.Y)*
+                                        Matrix4.CreateRotationZ(jointRot.Z);
+                    Matrix4 scaleMatrix = Matrix4.CreateScale(joint.GetScale());
+
+                    Matrix4 modelMatrix = tranMatrix*rotMatrix*scaleMatrix;
+
+                    int uniformId;
+                    Matrix4 viewProj;
+                    J3DRenderer.Instance.GetCamMatrix(out uniformId, out viewProj);
+                    Matrix4 finalMatrix = modelMatrix*viewProj;
+
+                    GL.UniformMatrix4(uniformId, false, ref finalMatrix);
+
+                    break;
             }
 
             foreach (SceneGraph subNode in curNode.Children)
@@ -426,13 +447,35 @@ namespace WindViewer.FileFormats
             List<VertexFormatLayout> finalData = new List<VertexFormatLayout>();
 
             Shp1Chunk shp1Chunk = GetChunkByType<Shp1Chunk>();
-
+            Drw1Chunk drw1Chunk = GetChunkByType<Drw1Chunk>();
+            Jnt1Chunk jnt1Chunk = GetChunkByType<Jnt1Chunk>();
 
             //Now, let's try to get our data.
             for (uint i = 0; i < shp1Chunk.GetBatchCount(); i++)
             {
                 Shp1Chunk.Batch batch = shp1Chunk.GetBatch(i);
+
+                Console.WriteLine("[{0}] Mtx Type: {1} Packet Count/Index:{2}[{3}] Matrix Index: {4}", i, batch.MatrixType, batch.PacketCount, batch.PacketIndex, batch.FirstMatrixIndex);
                 Shp1Chunk.BatchPacketLocation packetLoc = shp1Chunk.GetBatchPacketLocation(i);
+
+                uint attributeCount = 0;
+                for (uint attribIndex = batch.AttribOffset; attribIndex < 13; attribIndex++)
+                {
+                    Shp1Chunk.BatchAttribute attrib = shp1Chunk.GetAttribute(attribIndex);
+                    if (attrib.AttribType == ArrayTypes.NullAttr)
+                        break;
+
+                    attributeCount++;
+                }
+
+                bool isWeighted = drw1Chunk.IsWeighted(batch.FirstMatrixIndex);
+                if (!isWeighted)
+                {
+                    ushort jointIndex = drw1Chunk.GetIndex(batch.FirstMatrixIndex);
+                    var joint = jnt1Chunk.GetJoint(jointIndex);
+                    Console.WriteLine(joint);
+                }
+                
 
                 _renderList[(int)i] = new List<PrimitiveList>();
                 for (int p = 0; p < batch.PacketCount; p++)
@@ -472,33 +515,33 @@ namespace WindViewer.FileFormats
                         for (int vert = 0; vert < primitive.VertexCount; vert++)
                         {
                             VertexFormatLayout newVertex = new VertexFormatLayout();
-                            for (uint vertIndex = 0; vertIndex < _enabledVertexAttribs.Count; vertIndex++)
+                            for (uint vertIndex = 0; vertIndex < attributeCount; vertIndex++)
                             {
                                 ushort curIndex =
                                     (ushort)FSHelpers.Read16(shp1Chunk._dataCopy, (int)(shp1Chunk._primitiveDataOffset + numPrimitiveBytesRead));
 
 
-                                VertexDataTypes attribType = _enabledVertexAttribs[(int)vertIndex];
+                                ArrayTypes attribType = shp1Chunk.GetAttribute(vertIndex).AttribType;
 
                                 switch (attribType)
                                 {
-                                    case VertexDataTypes.Position:
+                                    case ArrayTypes.Position:
                                         newVertex.Position = vtxChunk.GetPosition(curIndex);
                                         break;
-                                    case VertexDataTypes.Normal:
+                                    case ArrayTypes.Normal:
                                         newVertex.Color = new Vector4(vtxChunk.GetNormal(curIndex, 14), 1); //temp
                                         break;
-                                    case VertexDataTypes.Color0:
+                                    case ArrayTypes.Color0:
                                         newVertex.Color = vtxChunk.GetColor0(curIndex);
                                         break;
-                                    case VertexDataTypes.Tex0:
+                                    case ArrayTypes.Tex0:
                                         newVertex.TexCoord = vtxChunk.GetTex0(curIndex, 8);
                                         break;
 
 
                                 }
 
-                                numPrimitiveBytesRead += 2; //Should be element size, but w/e.
+                                numPrimitiveBytesRead += GetAttribElementSize(shp1Chunk.GetAttribute(vertIndex).DataType);
                             }
 
                             //Add our vertex to our list of Vertexes
@@ -507,7 +550,7 @@ namespace WindViewer.FileFormats
                     }
                 }
 
-                Console.WriteLine("Finished batch {0}, triangleStrip count: {1}", i, _renderList.Count);
+                //Console.WriteLine("Finished batch {0}, triangleStrip count: {1}", i, _renderList.Count);
             }
 
             return finalData;
@@ -658,7 +701,7 @@ namespace WindViewer.FileFormats
             {
                 base.Load(data, ref offset);
 
-                _vertexFormatsOffset = (uint) FSHelpers.Read32(data, offset + 0x8);
+                _vertexFormatsOffset = (uint)FSHelpers.Read32(data, offset + 0x8);
                 _positionDataOffset = (uint)FSHelpers.Read32(data, offset + 0xC);
                 _normalDataOffset = (uint)FSHelpers.Read32(data, offset + 0x10);
                 _normalBinormalTangentDataOffset = (uint)FSHelpers.Read32(data, offset + 0x14);
@@ -768,17 +811,17 @@ namespace WindViewer.FileFormats
 
             public byte GetCount(uint index)
             {
-                return FSHelpers.Read8(_dataCopy, (int) (_countsArrayOffset + index));
+                return FSHelpers.Read8(_dataCopy, (int)(_countsArrayOffset + index));
             }
 
             public ushort GetIndex(uint index)
             {
-                return (ushort) FSHelpers.Read16(_dataCopy, (int) (_indicesOffset + (index*0x2)));
+                return (ushort)FSHelpers.Read16(_dataCopy, (int)(_indicesOffset + (index * 0x2)));
             }
 
             public float GetWeight(uint index)
             {
-                return FSHelpers.ReadFloat(_dataCopy, (int) (_weightsOffset + (index*0x4)));
+                return FSHelpers.ReadFloat(_dataCopy, (int)(_weightsOffset + (index * 0x4)));
             }
 
             public Matrix3x4 GetMatrix(ushort index)
@@ -788,7 +831,7 @@ namespace WindViewer.FileFormats
                 {
                     for (int col = 0; col < 4; col++)
                     {
-                        float rawFloat = FSHelpers.ReadFloat(_dataCopy, (int)_matrixDataOffset + (index*(3*4*4)) + ((row*4*4) + (col*4)));
+                        float rawFloat = FSHelpers.ReadFloat(_dataCopy, (int)_matrixDataOffset + (index * (3 * 4 * 4)) + ((row * 4 * 4) + (col * 4)));
                         matrix[row, col] = (float)Math.Round(rawFloat, 4);
                     }
                 }
@@ -807,15 +850,15 @@ namespace WindViewer.FileFormats
             {
                 base.Load(data, ref offset);
 
-                _sectionCount = (ushort) FSHelpers.Read16(data, offset + 0x8);
-                _isWeightedOffset = (uint) FSHelpers.Read32(data, offset + 0xC);
-                _dataOffset = (uint) FSHelpers.Read32(data, offset + 0x10);
+                _sectionCount = (ushort)FSHelpers.Read16(data, offset + 0x8);
+                _isWeightedOffset = (uint)FSHelpers.Read32(data, offset + 0xC);
+                _dataOffset = (uint)FSHelpers.Read32(data, offset + 0x10);
 
                 offset += ChunkSize;
 
                 for (ushort i = 0; i < _sectionCount; i++)
                 {
-                    //Console.WriteLine("weighted: {0} index: {1}", IsWeighted(i), GetIndex(i));
+                    Console.WriteLine("[{0}] - {1} / {2}", i, IsWeighted(i), GetIndex(i));
                 }
             }
 
@@ -826,13 +869,13 @@ namespace WindViewer.FileFormats
 
             public ushort GetIndex(ushort index)
             {
-                return (ushort) FSHelpers.Read16(_dataCopy, (int) _dataOffset + (index*0x2));
+                return (ushort)FSHelpers.Read16(_dataCopy, (int)_dataOffset + (index * 0x2));
             }
         }
 
         private class Jnt1Chunk : BaseChunk
         {
-            private ushort _sectionCount;
+            private ushort _jointCount;
             private uint _entryOffset;
             private uint _stringIdTableOffset;
             private uint _stringTableOffset;
@@ -841,17 +884,24 @@ namespace WindViewer.FileFormats
             {
                 base.Load(data, ref offset);
 
-                _sectionCount = (ushort)FSHelpers.Read16(data, offset + 0x8);
+                _jointCount = (ushort)FSHelpers.Read16(data, offset + 0x8);
                 _entryOffset = (uint)FSHelpers.Read32(data, offset + 0xC);
                 _stringIdTableOffset = (uint)FSHelpers.Read32(data, offset + 0x10);
                 _stringTableOffset = (uint)FSHelpers.Read32(data, offset + 0x14);
 
                 offset += ChunkSize;
+
+                for (ushort i = 0; i < _jointCount; i++)
+                {
+                    JntEntry jnt = GetJoint(i);
+                    Console.WriteLine("[{0}] - {1} / {2} ({3})", i, jnt.GetUnknown1(), jnt.GetUnknown2(),
+                        GetString(GetStringTableEntry(i)));
+                }
             }
 
             public ushort GetUnknown(ushort index)
             {
-                return (ushort) FSHelpers.Read16(_dataCopy, (int) _stringIdTableOffset + (index*0x2));
+                return (ushort)FSHelpers.Read16(_dataCopy, (int)_stringIdTableOffset + (index * 0x2));
             }
 
             public JntEntry GetJoint(ushort index)
@@ -869,14 +919,14 @@ namespace WindViewer.FileFormats
 
             public ushort GetStringTableSize()
             {
-                return (ushort) FSHelpers.Read16(_dataCopy, (int) _stringTableOffset);
+                return (ushort)FSHelpers.Read16(_dataCopy, (int)_stringTableOffset);
             }
 
             public StringTableEntry GetStringTableEntry(ushort index)
             {
                 var ste = new StringTableEntry();
-                                                                                        /* String Table Header */
-                ste.UnknownIndex = (ushort) FSHelpers.Read16(_dataCopy, (int) _stringTableOffset + 0x4 + (index*0x4));
+                /* String Table Header */
+                ste.UnknownIndex = (ushort)FSHelpers.Read16(_dataCopy, (int)_stringTableOffset + 0x4 + (index * 0x4));
                 ste.StringOffset = (ushort)FSHelpers.Read16(_dataCopy, (int)_stringTableOffset + 0x6 + (index * 0x4));
 
                 return ste;
@@ -884,7 +934,7 @@ namespace WindViewer.FileFormats
 
             public string GetString(StringTableEntry entry)
             {
-                return FSHelpers.ReadString(_dataCopy, (int) _stringTableOffset + entry.StringOffset);
+                return FSHelpers.ReadString(_dataCopy, (int)_stringTableOffset + entry.StringOffset);
             }
 
             public struct StringTableEntry
@@ -901,7 +951,7 @@ namespace WindViewer.FileFormats
             public class JntEntry
             {
                 private ushort _unknown1; //0 = has unknown2, bboxmin, bboxmax. 
-                private byte _unknown2; //Seems to match the value of above.
+                private byte _unknown2; //Unknown
                 private Vector3 _scale;
                 private HalfRotation _rotation;
                 private Vector3 _translation;
@@ -911,16 +961,16 @@ namespace WindViewer.FileFormats
 
                 public void Load(byte[] data, uint offset)
                 {
-                    _unknown1 = (ushort) FSHelpers.Read16(data, (int)offset + 0x0);
-                    _unknown2 = (byte)FSHelpers.Read16(data, (int)offset + 0x2);
+                    _unknown1 = (ushort)FSHelpers.Read16(data, (int)offset + 0x0);
                     //One byte padding.
-                    _scale = FSHelpers.ReadVector3(data, (int) offset + 0x4);
+                    _unknown2 = (byte)FSHelpers.Read16(data, (int)offset + 0x3);
+                    _scale = FSHelpers.ReadVector3(data, (int)offset + 0x4);
                     _rotation = FSHelpers.ReadHalfRot(data, offset + 0x10);
                     //2 bytes padding
-                    _translation = FSHelpers.ReadVector3(data, (int) offset + 0x18);
-                    _unknown3 = FSHelpers.ReadFloat(data, (int) offset + 0x24);
-                    _boundingBoxMin = FSHelpers.ReadVector3(data, (int) offset + 0x28);
-                    _boundingBoxMax = FSHelpers.ReadVector3(data, (int) offset + 0x34);
+                    _translation = FSHelpers.ReadVector3(data, (int)offset + 0x18);
+                    _unknown3 = FSHelpers.ReadFloat(data, (int)offset + 0x24);
+                    _boundingBoxMin = FSHelpers.ReadVector3(data, (int)offset + 0x28);
+                    _boundingBoxMax = FSHelpers.ReadVector3(data, (int)offset + 0x34);
                 }
 
                 public ushort GetUnknown1()
@@ -1011,13 +1061,13 @@ namespace WindViewer.FileFormats
                 public ArrayTypes AttribType;
                 public DataTypes DataType;
 
-                public void Load(byte[] data, ref int offset)
+                public void Load(byte[] data, uint offset)
                 {
-                    AttribType = (ArrayTypes)FSHelpers.Read32(data, offset);
-                    DataType = (DataTypes)FSHelpers.Read32(data, offset + 0x4);
-
-                    offset += 0x8;
+                    AttribType = (ArrayTypes)FSHelpers.Read32(data, (int)offset);
+                    DataType = (DataTypes)FSHelpers.Read32(data, (int)offset + 0x4);
                 }
+
+                public const uint Size = 8;
             }
 
             public struct BatchPacketLocation
@@ -1092,6 +1142,14 @@ namespace WindViewer.FileFormats
 
                 return newBp;
             }
+
+            public BatchAttribute GetAttribute(uint attribIndex)
+            {
+                BatchAttribute newAttrib = new BatchAttribute();
+                newAttrib.Load(_dataCopy, _attributeOffset + (attribIndex * BatchAttribute.Size));
+
+                return newAttrib;
+            }
         }
 
         /// <summary>
@@ -1134,7 +1192,7 @@ namespace WindViewer.FileFormats
                 //Before load the texture we need to modify the source byte array, because reasons.
                 uint headerOffset = ((index) * 32);
 
-                tex.Load(_dataCopy, _textureHeaderOffset + headerOffset, headerOffset+32);
+                tex.Load(_dataCopy, _textureHeaderOffset + headerOffset, headerOffset + 32);
 
                 return tex;
             }
@@ -1228,7 +1286,7 @@ namespace WindViewer.FileFormats
                     throw new Exception("Invalid MaterialInit data requested.");
 
                 MaterialInitData initData = new MaterialInitData();
-                initData.Load(_dataCopy, _materialInitDataOffset + (index*MaterialInitData.Size));
+                initData.Load(_dataCopy, _materialInitDataOffset + (index * MaterialInitData.Size));
 
                 return initData;
             }
@@ -1239,7 +1297,7 @@ namespace WindViewer.FileFormats
             }
 
 
-            public const int Size = 132;    
+            public const int Size = 132;
         }
 
         //ToDo: These offsets are a little bit messed up.
@@ -1267,17 +1325,17 @@ namespace WindViewer.FileFormats
             private ushort[] _tevStageInfoIndex = new ushort[16]; //16 ushorts
             private ushort[] _tevSwapModeInfoindex = new ushort[16]; //16 ushorts
             private ushort[] _tevSwapModeTableInfoindex = new ushort[4]; //4 ushorts
-            private ushort[] _unconfirmedIndexes= new ushort[16]; //16 of them!
+            private ushort[] _unconfirmedIndexes = new ushort[16]; //16 of them!
 
             public void Load(byte[] data, uint offset)
             {
-                _unknown1 = FSHelpers.Read8(data, (int) offset + 0x0);
+                _unknown1 = FSHelpers.Read8(data, (int)offset + 0x0);
                 _unknown2 = FSHelpers.Read8(data, (int)offset + 0x1);
-                _padding1 = (ushort) FSHelpers.Read16(data, (int) offset + 0x2);
+                _padding1 = (ushort)FSHelpers.Read16(data, (int)offset + 0x2);
                 _indirectTexturingIndex = (ushort)FSHelpers.Read16(data, (int)offset + 0x4);
                 _cullModeIndex = (ushort)FSHelpers.Read16(data, (int)offset + 0x6);
                 for (int i = 0; i < 2; i++)
-                    _ambientColorIndex[i] = (ushort) FSHelpers.Read16(data, (int) offset + 0x8 + (i*0x2));
+                    _ambientColorIndex[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0x8 + (i * 0x2));
                 for (int i = 0; i < 4; i++)
                     _colorChannelIndex[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0xC + (i * 0x2));
                 for (int i = 0; i < 2; i++)
@@ -1296,7 +1354,7 @@ namespace WindViewer.FileFormats
                     _textureIndex[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0x84 + (i * 0x2));
                 for (int i = 0; i < 4; i++)
                     _tevConstantColorIndex[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0x94 + (i * 0x2));
-                for (int i = 0; i <16; i++)
+                for (int i = 0; i < 16; i++)
                     _constColorSel[i] = FSHelpers.Read8(data, (int)offset + 0x9C + (i * 0x1));
                 for (int i = 0; i < 16; i++)
                     _constAlphaSel[i] = FSHelpers.Read8(data, (int)offset + 0xAC + (i * 0x1));
@@ -1336,8 +1394,8 @@ namespace WindViewer.FileFormats
 
             //Look up the material first.
             Mat3Chunk matChunk = GetChunkByType<Mat3Chunk>();
-            MaterialInitData matData = matChunk.GetMaterialInitData((uint) j3dTextureId);
-            
+            MaterialInitData matData = matChunk.GetMaterialInitData((uint)j3dTextureId);
+
             //If the texture cache doesn't contain the ID, we're going to load it here.
             Tex1Chunk texChunk = GetChunkByType<Tex1Chunk>();
             ushort textureIndex = matData.GetTextureIndex(0);
@@ -1385,6 +1443,25 @@ namespace WindViewer.FileFormats
             {
                 return string.Format("{0} [{1}]", NodeType, Children.Count);
             }
+        }
+
+        private uint GetAttribElementSize(DataTypes dataType)
+        {
+            switch (dataType)
+            {
+                case DataTypes.Unsigned8:
+                case DataTypes.Signed8:
+                    return 1;
+                case DataTypes.Unsigned16:
+                case DataTypes.Signed16:
+                    return 2;
+                case DataTypes.Float32:
+                case DataTypes.Rgba8:
+                    return 4;
+            }
+
+            Console.WriteLine("Unknown attrib datatype {0}, guessing at 2!", dataType);
+            return 2;
         }
 
         #endregion

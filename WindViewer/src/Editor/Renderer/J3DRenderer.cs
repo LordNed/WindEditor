@@ -10,9 +10,11 @@ namespace WindViewer.Editor.Renderer
         public static event Action Draw;
         public static event Action Bind;
 
+        public static J3DRenderer Instance;
         public J3DRenderer()
         {
             InitializeShader("shaders/j3d_vs.glsl", "shaders/j3d_fs.glsl");
+            Instance = this;
         }
 
         public struct VertexFormatLayout
@@ -133,14 +135,14 @@ namespace WindViewer.Editor.Renderer
             GL.VertexAttribPointer((int)ShaderAttributeIds.Color, 4, VertexAttribPointerType.Float, false, 9*4 , 3 *4);
             GL.VertexAttribPointer((int)ShaderAttributeIds.TexCoord, 2, VertexAttribPointerType.Float, false, 9*4, 7* 4);
 
-            Matrix4 projMatrix = Matrix4.CreatePerspectiveFieldOfView((float) Math.PI/4f, aspectRatio, 10f, 8000f);
-            Matrix4 modelMatrix = Matrix4.Identity;
-            Matrix4 viewMatrix = camera.GetViewMatrix();
+            _projMatrix = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4f, aspectRatio, 10f, 8000f);
+            //Matrix4 modelMatrix = Matrix4.Identity;
+            _viewMatrix = camera.GetViewMatrix();
 
-            Matrix4 finalMatrix = modelMatrix*viewMatrix*projMatrix;
+            //Matrix4 finalMatrix = modelMatrix*viewMatrix*projMatrix;
             
             //Upload matrix to the GPU
-            GL.UniformMatrix4(_uniformMVP, false, ref finalMatrix);
+           // GL.UniformMatrix4(_uniformMVP, false, ref finalMatrix);
 
             //FFS
             //GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, 0);
@@ -153,6 +155,13 @@ namespace WindViewer.Editor.Renderer
             GL.DisableVertexAttribArray((int)ShaderAttributeIds.Color);
             GL.DisableVertexAttribArray((int)ShaderAttributeIds.TexCoord);
             GL.Flush();
+        }
+
+        private Matrix4 _projMatrix, _viewMatrix;
+        public void GetCamMatrix(out int uniform, out Matrix4 viewProj)
+        {
+            uniform = _uniformMVP;
+            viewProj = _viewMatrix*_projMatrix;
         }
     }
 }
