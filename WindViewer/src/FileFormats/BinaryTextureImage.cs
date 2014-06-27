@@ -25,7 +25,7 @@ namespace WindViewer.FileFormats
         //This data is mostly a duplicate from the FileHeader but should be accessible
         //without going through the header every time, as they're part of the BTI file
         //and not part of the header specifically.
-        public ImageFormat Format { get; private set; }
+        public TextureFormat Format { get; private set; }
         public ushort Width { get; private set; }
         public ushort Height { get; private set; }
         public WrapMode WrapS { get; private set; }
@@ -49,7 +49,7 @@ namespace WindViewer.FileFormats
         /// the width/height of each block, how many bytes long the
         /// actual block is, and a description of the type of data stored.
         /// </summary>
-        public enum ImageFormat : byte
+        public enum TextureFormat : byte
         {
             //Bits per Pixel | Block Width | Block Height | Block Size | Type / Description
             I4 = 0x00,      // 4 | 8 | 8 | 32 | grey
@@ -149,7 +149,7 @@ namespace WindViewer.FileFormats
             //Not part of the structure, overall size of FileHeader.
             public const int Size = 32;
 
-            public ImageFormat Format { get; private set; }
+            public TextureFormat Format { get; private set; }
             private byte _alphaUnknownSetting; //0 for no alpha, 0x02 (and other values) 
             public ushort Width { get; private set; }
             public ushort Height { get; private set; }
@@ -171,7 +171,7 @@ namespace WindViewer.FileFormats
 
             public void Load(byte[] data, uint offset)
             {
-                Format = (ImageFormat)FSHelpers.Read8(data, (int)offset + 0x00);
+                Format = (TextureFormat)FSHelpers.Read8(data, (int)offset + 0x00);
                 _alphaUnknownSetting = FSHelpers.Read8(data, (int)offset + 0x01);
                 Width = (ushort)FSHelpers.Read16(data, (int)offset + 0x02);
                 Height = (ushort)FSHelpers.Read16(data, (int)offset + 0x04);
@@ -289,17 +289,17 @@ namespace WindViewer.FileFormats
             double bpp;
             switch (Format)
             {
-                case ImageFormat.CMPR:
-                case ImageFormat.C4:
-                case ImageFormat.I4: bpp = 4; break;
-                case ImageFormat.I8:
-                case ImageFormat.C8:
-                case ImageFormat.IA4: bpp = 8; break;
-                case ImageFormat.C14X2:
-                case ImageFormat.IA8:
-                case ImageFormat.RGB565:
-                case ImageFormat.RGB5A3: bpp = 16; break;
-                case ImageFormat.RGBA32: bpp = 32; break;
+                case TextureFormat.CMPR:
+                case TextureFormat.C4:
+                case TextureFormat.I4: bpp = 4; break;
+                case TextureFormat.I8:
+                case TextureFormat.C8:
+                case TextureFormat.IA4: bpp = 8; break;
+                case TextureFormat.C14X2:
+                case TextureFormat.IA8:
+                case TextureFormat.RGB565:
+                case TextureFormat.RGB5A3: bpp = 16; break;
+                case TextureFormat.RGBA32: bpp = 32; break;
                 default:
                     Console.WriteLine("Unknown Header Format for GetFileSize. Assuming 16bpp!");
                     bpp = 16;
@@ -310,24 +310,27 @@ namespace WindViewer.FileFormats
         }
 
         #region Decoding
-        private static byte[] DecodeData(byte[] data, uint width, uint height, uint dataOffset, ImageFormat format, Palette imagePalette, PaletteFormat paletteFormat)
+        private static byte[] DecodeData(byte[] data, uint width, uint height, uint dataOffset, TextureFormat format, Palette imagePalette, PaletteFormat paletteFormat)
         {
             switch (format)
             {
-                case ImageFormat.RGBA32:
+                case TextureFormat.RGBA32:
                     return DecodeRgba32(data, dataOffset, width, height);
 
-                case ImageFormat.C4:
+                case TextureFormat.C4:
                     return DecodeC4(data, dataOffset, width, height, imagePalette, paletteFormat);
 
-                case ImageFormat.RGB565:
+                case TextureFormat.RGB565:
                     return DecodeRgb565(data, dataOffset, width, height);
 
-                case ImageFormat.CMPR:
+                case TextureFormat.CMPR:
                     return DecodeCmpr(data, dataOffset, width, height);
 
-                case ImageFormat.IA8:
+                case TextureFormat.IA8:
                     return DecodeIA8(data, dataOffset, width, height);
+
+                case TextureFormat.I4:
+                    return DecodeI4(data, dataOffset, width, height);
 
                 default:
                     Console.WriteLine("Unknown BTI Format {0}, unable to decode!", format);
@@ -612,6 +615,49 @@ namespace WindViewer.FileFormats
                             decodedData[destIndex + 1] = fileData[dataOffset + 1];
                             decodedData[destIndex + 0] = fileData[dataOffset + 1];
                             dataOffset += 2;
+                        }
+                    }
+                }
+            }
+
+            return decodedData;
+        }
+
+        private static byte[] DecodeI4(byte[] fileData, uint dataOffset, uint width, uint height)
+        {
+            uint numBlocksW = width / 8; //8 byte block width
+            uint numBlocksH = height / 8; //8 byte block height 
+
+            byte[] decodedData = new byte[width * height * 4];
+
+            for (int yBlock = 0; yBlock < numBlocksH; yBlock++)
+            {
+                for (int xBlock = 0; xBlock < numBlocksW; xBlock++)
+                {
+                    //For each block, we're going to examine block width / block height number of 'pixels'
+                    for (int pY = 0; pY < 8; pY++)
+                    {
+                        for (int pX = 0; pX < 8; pX += 2)
+                        {
+                            //Ensure the pixel we're checking is within bounds of the image.
+                            if ((xBlock * 8 + pX >= width) || (yBlock * 8 + pY >= height))
+                                continue;
+
+                            byte t = (byte) (fileData[dataOffset] & 0xF0);
+                            byte t2 = (byte)(fileData[dataOffset] & 0x0F);
+                            uint destIndex = (uint)(4 * (width * ((yBlock * 8) + pY) + (xBlock * 8) + pX));
+
+                            decodedData[destIndex + 3] = (byte) (t*0x11);
+                            decodedData[destIndex + 2] = (byte)(t * 0x11);
+                            decodedData[destIndex + 1] = (byte)(t * 0x11);
+                            decodedData[destIndex + 0] = 0xFF;
+
+                            decodedData[destIndex + 7] = (byte)(t2 * 0x11);
+                            decodedData[destIndex + 6] = (byte)(t2 * 0x11);
+                            decodedData[destIndex + 5] = (byte)(t2 * 0x11);
+                            decodedData[destIndex + 4] = 0xFF;
+
+                            dataOffset++;
                         }
                     }
                 }

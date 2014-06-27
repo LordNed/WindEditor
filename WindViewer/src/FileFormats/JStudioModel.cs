@@ -1124,12 +1124,6 @@ namespace WindViewer.FileFormats
                 _stringTableOffset = (uint)FSHelpers.Read32(data, offset + 0x10);
 
                 offset += ChunkSize;
-
-                for (uint i = 0; i < _textureCount; i++)
-                {
-                    BinaryTextureImage tex = GetTexture(i);
-                }
-
             }
 
             public BinaryTextureImage GetTexture(uint index)
@@ -1357,7 +1351,7 @@ namespace WindViewer.FileFormats
                 return 0;
             }
             BinaryTextureImage image = texChunk.GetTexture(matChunk.GetMaterialIndex(textureIndex));
-            //image.WriteImageToFile("image_" + matChunk.GetMaterialIndex(matData.GetTextureIndex(0)) + ".png");
+            image.WriteImageToFile("image_" + matChunk.GetMaterialIndex(matData.GetTextureIndex(0)) + image.Format + ".png");
 
             int glTextureId;
             GL.GenTextures(1, out glTextureId);
