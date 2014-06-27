@@ -1353,6 +1353,23 @@ namespace WindViewer.FileFormats
             BinaryTextureImage image = texChunk.GetTexture(matChunk.GetMaterialIndex(textureIndex));
             image.WriteImageToFile("image_" + matChunk.GetMaterialIndex(matData.GetTextureIndex(0)) + image.Format + ".png");
 
+            byte[] imageData = image.GetData();
+            ushort imageWidth = image.Width;
+            ushort imageHeight = image.Height;
+
+            //Generate a black and white textureboard if the texture format is not supported.
+            if (imageData.Length == 0)
+            {
+                imageData = new byte[]
+                {
+                    0, 0, 0, 255, 255, 255, 255, 255,
+                    255, 255, 255, 255, 0, 0, 0, 255
+                };
+                imageWidth = 2;
+                imageHeight = 2;
+            }
+
+
             int glTextureId;
             GL.GenTextures(1, out glTextureId);
             GL.BindTexture(TextureTarget.Texture2D, glTextureId);
@@ -1361,7 +1378,7 @@ namespace WindViewer.FileFormats
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)All.Repeat);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)All.Repeat);
 
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, image.Width, image.Height, 0, PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, image.GetData());
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, imageWidth, imageHeight, 0, PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, imageData);
 
 
             _textureCache[j3dTextureId] = glTextureId;

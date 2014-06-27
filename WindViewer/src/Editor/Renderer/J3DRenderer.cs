@@ -86,7 +86,7 @@ namespace WindViewer.Editor.Renderer
 
 
             //Todo: Temp
-            Matrix4 projMatrix = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4f, aspectRatio, 100f, 10000f);
+            Matrix4 projMatrix = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4f, aspectRatio, 250f, 15000f);
             Matrix4 viewMatrix = camera.GetViewMatrix();
             _viewProjMatrix = viewMatrix*projMatrix;
 
