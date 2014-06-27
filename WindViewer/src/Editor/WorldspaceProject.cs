@@ -187,20 +187,18 @@ namespace WindViewer.Editor
                 Directory.CreateDirectory(subFolder);
 
                 //Open the file for Read/Write Access
-                FileStream fs = new FileStream(Path.Combine(subFolder, archiveFile.FileName), FileMode.Create);
-                try
+                using (BinaryWriter bw = new BinaryWriter(File.Open(Path.Combine(subFolder, archiveFile.FileName), FileMode.Create)))
                 {
-                    BinaryWriter bw = new BinaryWriter(fs);
-                    archiveFile.Save(bw);
-                    bw.Flush();
-                    fs.Close();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("Error saving file " + archiveFile.FileName + " to " + subFolder + "! Error: " + ex);
+                    try
+                    {
+                        archiveFile.Save(bw);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error saving file " + archiveFile.FileName + " to " + subFolder + "! Error: " + ex);
+                    }
                 }
             }
-
         }
 
         /// <summary>
@@ -212,7 +210,6 @@ namespace WindViewer.Editor
         {
             //Get all of the sub folders (bdl, btk, etc.)
             string[] subFolders = Directory.GetDirectories(directory);
-
 
             foreach (string folder in subFolders)
             {
