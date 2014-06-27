@@ -332,6 +332,9 @@ namespace WindViewer.FileFormats
                 case TextureFormat.I4:
                     return DecodeI4(data, dataOffset, width, height);
 
+                case TextureFormat.RGB5A3:
+                    return DecodeRgb5A3(data, dataOffset, width, height);
+
                 default:
                     Console.WriteLine("Unknown BTI Format {0}, unable to decode!", format);
                     return new byte[0];
@@ -658,6 +661,39 @@ namespace WindViewer.FileFormats
                             decodedData[destIndex + 4] = 0xFF;
 
                             dataOffset++;
+                        }
+                    }
+                }
+            }
+
+            return decodedData;
+        }
+
+        private static byte[] DecodeRgb5A3(byte[] fileData, uint dataOffset, uint width, uint height)
+        {
+            uint numBlocksW = width / 4; //4 byte block width
+            uint numBlocksH = height / 4; //4 byte block height 
+
+            byte[] decodedData = new byte[width * height * 4];
+
+            for (int yBlock = 0; yBlock < numBlocksH; yBlock++)
+            {
+                for (int xBlock = 0; xBlock < numBlocksW; xBlock++)
+                {
+                    //For each block, we're going to examine block width / block height number of 'pixels'
+                    for (int pY = 0; pY < 4; pY++)
+                    {
+                        for (int pX = 0; pX < 4; pX++)
+                        {
+                            //Ensure the pixel we're checking is within bounds of the image.
+                            if ((xBlock * 4 + pX >= width) || (yBlock * 4 + pY >= height))
+                                continue;
+
+                            ushort sourcePixel = (ushort)FSHelpers.Read16(fileData, (int) dataOffset);
+                            RGB5A3ToRGBA8(sourcePixel, ref decodedData,
+                                (int) (4*(width*((yBlock*4) + pY) + (xBlock*4) + pX)));
+
+                            dataOffset += 2;
                         }
                     }
                 }
