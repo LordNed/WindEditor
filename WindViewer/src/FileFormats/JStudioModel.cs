@@ -251,6 +251,21 @@ namespace WindViewer.FileFormats
 
                     SetVertexAttribArraysForBatch(false, curNode.DataIndex);
                     break;
+
+                case HierarchyDataTypes.Joint:
+                    Jnt1Chunk jnt1Chunk = GetChunkByType<Jnt1Chunk>();
+                    var joint = jnt1Chunk.GetJoint(curNode.DataIndex);
+                    Vector3 jointRot = joint.GetRotation().ToDegrees();
+
+                    Matrix4 tranMatrix = Matrix4.CreateTranslation(joint.GetTranslation());
+                    Matrix4 rotMatrix = Matrix4.CreateRotationX(jointRot.X) * Matrix4.CreateRotationY(jointRot.Y) *
+                                        Matrix4.CreateRotationZ(jointRot.Z);
+                    Matrix4 scaleMatrix = Matrix4.CreateScale(joint.GetScale());
+
+                    Matrix4 modelMatrix = tranMatrix * rotMatrix * scaleMatrix;
+
+                    renderer.SetModelMatrix(modelMatrix);
+                    break;
             }
 
             foreach (SceneGraph subNode in curNode.Children)
@@ -320,11 +335,7 @@ namespace WindViewer.FileFormats
 
                     int uniformId;
                     Matrix4 viewProj;
-                    J3DRenderer.Instance.GetCamMatrix(out uniformId, out viewProj);
-                    Matrix4 finalMatrix = modelMatrix * viewProj;
-
-                    GL.UniformMatrix4(uniformId, false, ref finalMatrix);
-
+                    
                     break;
             }
 

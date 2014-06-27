@@ -88,13 +88,8 @@ namespace WindViewer.Editor.Renderer
 
             //Todo: Temp
             Matrix4 projMatrix = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4f, aspectRatio, 100f, 10000f);
-            Matrix4 modelMatrix = Matrix4.Identity;
             Matrix4 viewMatrix = camera.GetViewMatrix();
-
-            Matrix4 finalMatrix = modelMatrix*viewMatrix*projMatrix;
-
-            //Upload matrix to the GPU
-            GL.UniformMatrix4(_uniformMVP, false, ref finalMatrix);
+            _viewProjMatrix = viewMatrix*projMatrix;
 
             /* Because the J3D models are very complex, we're going to 
              * allow them to completely render themselves, including
@@ -113,11 +108,13 @@ namespace WindViewer.Editor.Renderer
             GL.Flush();
         }
 
-        private Matrix4 _projMatrix, _viewMatrix;
-        public void GetCamMatrix(out int uniform, out Matrix4 viewProj)
+        private Matrix4 _viewProjMatrix;
+
+        public override void SetModelMatrix(Matrix4 modelMatrix)
         {
-            uniform = _uniformMVP;
-            viewProj = _viewMatrix*_projMatrix;
+            //Upload matrix to the GPU
+            Matrix4 finalMatrix = modelMatrix * _viewProjMatrix;
+            GL.UniformMatrix4(_uniformMVP, false, ref finalMatrix);
         }
     }
 }

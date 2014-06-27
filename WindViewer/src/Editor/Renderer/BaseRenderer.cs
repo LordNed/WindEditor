@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
 namespace WindViewer.Editor.Renderer
@@ -21,6 +22,7 @@ namespace WindViewer.Editor.Renderer
         public abstract void Initialize();
         protected abstract void CreateShader(string vertShader, string fragShader);
         public abstract void Render(Camera camera, float aspectRatio);
+        public abstract void SetModelMatrix(Matrix4 matrix);
 
         protected void LoadShader(string fileName, ShaderType type, int program, out int address)
         {
