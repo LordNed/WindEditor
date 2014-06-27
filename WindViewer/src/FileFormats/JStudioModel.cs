@@ -271,7 +271,7 @@ namespace WindViewer.FileFormats
 
         private SceneGraph _sceneGraph;
         private List<VertexDataTypes> _enabledVertexAttribs;
-
+        private int _numPrimsDrawn;
         private void IterateSceneGraphRecursive(SceneGraph curNode)
         {
             switch (curNode.NodeType)
@@ -286,7 +286,9 @@ namespace WindViewer.FileFormats
 
                     foreach (PrimitiveList prim in _renderList[curNode.DataIndex])
                     {
-                        GL.DrawArrays(prim.DrawType, prim.VertexStart, prim.VertexCount);
+                        //if (_numPrimsDrawn < _numPrimToRender)
+                            GL.DrawArrays(prim.DrawType, prim.VertexStart, prim.VertexCount);
+                        _numPrimsDrawn++;
                     }
                     break;
                 case HierarchyDataTypes.Joint:
@@ -295,16 +297,16 @@ namespace WindViewer.FileFormats
                     Vector3 jointRot = joint.GetRotation().ToDegrees();
 
                     Matrix4 tranMatrix = Matrix4.CreateTranslation(joint.GetTranslation());
-                    Matrix4 rotMatrix = Matrix4.CreateRotationX(jointRot.X)*Matrix4.CreateRotationY(jointRot.Y)*
+                    Matrix4 rotMatrix = Matrix4.CreateRotationX(jointRot.X) * Matrix4.CreateRotationY(jointRot.Y) *
                                         Matrix4.CreateRotationZ(jointRot.Z);
                     Matrix4 scaleMatrix = Matrix4.CreateScale(joint.GetScale());
 
-                    Matrix4 modelMatrix = tranMatrix*rotMatrix*scaleMatrix;
+                    Matrix4 modelMatrix = tranMatrix * rotMatrix * scaleMatrix;
 
                     int uniformId;
                     Matrix4 viewProj;
                     J3DRenderer.Instance.GetCamMatrix(out uniformId, out viewProj);
-                    Matrix4 finalMatrix = modelMatrix*viewProj;
+                    Matrix4 finalMatrix = modelMatrix * viewProj;
 
                     GL.UniformMatrix4(uniformId, false, ref finalMatrix);
 
@@ -392,7 +394,7 @@ namespace WindViewer.FileFormats
 
         }
 
-        private int _numPrimRender;
+        private int _numPrimToRender;
         private float _lastChange;
 
         private void J3DRendererOnDraw()
@@ -402,21 +404,22 @@ namespace WindViewer.FileFormats
 
             if (EditorHelpers.GetKey(Keys.O) && Math.Abs(MainEditor.Time - _lastChange) > 0.02f)
             {
-                _numPrimRender++;
-                Console.WriteLine("Rendering: " + _numPrimRender);
+                _numPrimToRender++;
+                Console.WriteLine("Rendering: " + _numPrimToRender);
                 _lastChange = MainEditor.Time;
             }
             if (EditorHelpers.GetKey(Keys.P) && Math.Abs(MainEditor.Time - _lastChange) > 0.02f)
             {
-                _numPrimRender--;
-                if (_numPrimRender < 0)
-                    _numPrimRender = 0;
-                Console.WriteLine("Rendering: " + _numPrimRender);
+                _numPrimToRender--;
+                if (_numPrimToRender < 0)
+                    _numPrimToRender = 0;
+                Console.WriteLine("Rendering: " + _numPrimToRender);
                 _lastChange = MainEditor.Time;
             }
             if (EditorHelpers.GetKey(Keys.I))
-                _numPrimRender = _renderList.Count - 1;
+                _numPrimToRender = _renderList.Count - 1;
 
+            _numPrimsDrawn = 0;
             IterateSceneGraphRecursive(_sceneGraph);
             /*for (int i = 0; i < Math.Min(_numPrimRender, _renderList.Count); i++)
             {
@@ -455,13 +458,13 @@ namespace WindViewer.FileFormats
             {
                 Shp1Chunk.Batch batch = shp1Chunk.GetBatch(i);
 
-                Console.WriteLine("[{0}] Mtx Type: {1} Packet Count/Index:{2}[{3}] Matrix Index: {4}", i, batch.MatrixType, batch.PacketCount, batch.PacketIndex, batch.FirstMatrixIndex);
-                Shp1Chunk.BatchPacketLocation packetLoc = shp1Chunk.GetBatchPacketLocation(i);
+                Console.WriteLine("[{0}] Unk0: {5}, Attb: {6} Mtx Type: {1} #Packets {2}[{3}] Matrix Index: {4}", i, batch.MatrixType, batch.PacketCount, batch.PacketIndex, batch.FirstMatrixIndex, batch.Unknown0, batch.AttribOffset);
+
 
                 uint attributeCount = 0;
-                for (uint attribIndex = batch.AttribOffset; attribIndex < 13; attribIndex++)
+                for (uint attribIndex = 0; attribIndex < 13; attribIndex++)
                 {
-                    Shp1Chunk.BatchAttribute attrib = shp1Chunk.GetAttribute(attribIndex);
+                    Shp1Chunk.BatchAttribute attrib = shp1Chunk.GetAttribute(attribIndex, batch.AttribOffset);
                     if (attrib.AttribType == ArrayTypes.NullAttr)
                         break;
 
@@ -475,11 +478,12 @@ namespace WindViewer.FileFormats
                     var joint = jnt1Chunk.GetJoint(jointIndex);
                     Console.WriteLine(joint);
                 }*/
-                
 
                 _renderList[(int)i] = new List<PrimitiveList>();
-                for (int p = 0; p < batch.PacketCount; p++)
+                for (uint p = 0; p < batch.PacketCount; p++)
                 {
+                    Shp1Chunk.BatchPacketLocation packetLoc = shp1Chunk.GetBatchPacketLocation(batch.PacketIndex + p);
+
                     uint numPrimitiveBytesRead = packetLoc.Offset;
 
                     while (numPrimitiveBytesRead < packetLoc.Offset + packetLoc.PacketSize)
@@ -500,9 +504,10 @@ namespace WindViewer.FileFormats
                         var primList = new PrimitiveList();
                         primList.VertexCount = primitive.VertexCount;
                         primList.VertexStart = finalData.Count;
-                        primList.DrawType = primitive.Type == PrimitiveTypes.TriangleStrip
-                            ? PrimitiveType.TriangleStrip
-                            : PrimitiveType.TriangleFan;
+                        primList.DrawType = primitive.Type == PrimitiveTypes.TriangleStrip ? PrimitiveType.TriangleStrip : PrimitiveType.TriangleFan;
+
+                        if(primitive.Type != PrimitiveTypes.TriangleStrip)
+                            Console.WriteLine("not: " + primitive.Type);
 
                         _renderList[(int)i].Add(primList);
 
@@ -520,8 +525,18 @@ namespace WindViewer.FileFormats
                                 ushort curIndex =
                                     (ushort)FSHelpers.Read16(shp1Chunk._dataCopy, (int)(shp1Chunk._primitiveDataOffset + numPrimitiveBytesRead));
 
+                                var batchAttrib = shp1Chunk.GetAttribute(vertIndex, batch.AttribOffset);
 
-                                ArrayTypes attribType = shp1Chunk.GetAttribute(vertIndex).AttribType;
+                                if (GetAttribElementSize(batchAttrib.DataType) == 1)
+                                {
+                                    curIndex =
+                                        (ushort)
+                                            FSHelpers.Read8(shp1Chunk._dataCopy,
+                                                (int)(shp1Chunk._primitiveDataOffset + numPrimitiveBytesRead));
+                                }
+
+
+                                ArrayTypes attribType = batchAttrib.AttribType;
 
                                 switch (attribType)
                                 {
@@ -541,7 +556,7 @@ namespace WindViewer.FileFormats
 
                                 }
 
-                                numPrimitiveBytesRead += GetAttribElementSize(shp1Chunk.GetAttribute(vertIndex).DataType);
+                                numPrimitiveBytesRead += GetAttribElementSize(batchAttrib.DataType);
                             }
 
                             //Add our vertex to our list of Vertexes
@@ -1028,6 +1043,7 @@ namespace WindViewer.FileFormats
             public class Batch
             {
                 public byte MatrixType;
+                public byte Unknown0;
                 public ushort PacketCount;
                 public ushort AttribOffset;
                 public ushort FirstMatrixIndex;
@@ -1043,6 +1059,7 @@ namespace WindViewer.FileFormats
                 public void Load(byte[] data, uint offset)
                 {
                     MatrixType = FSHelpers.Read8(data, (int)offset);
+                    Unknown0 = FSHelpers.Read8(data, (int)offset + 1);
                     PacketCount = (ushort)FSHelpers.Read16(data, (int)offset + 0x2);
                     AttribOffset = (ushort)FSHelpers.Read16(data, (int)offset + 0x4);
                     FirstMatrixIndex = (ushort)FSHelpers.Read16(data, (int)offset + 0x6);
@@ -1143,12 +1160,17 @@ namespace WindViewer.FileFormats
                 return newBp;
             }
 
-            public BatchAttribute GetAttribute(uint attribIndex)
+            public BatchAttribute GetAttribute(uint attribIndex, uint attribOffset)
             {
                 BatchAttribute newAttrib = new BatchAttribute();
-                newAttrib.Load(_dataCopy, _attributeOffset + (attribIndex * BatchAttribute.Size));
+                newAttrib.Load(_dataCopy, _attributeOffset + attribOffset + (attribIndex * BatchAttribute.Size));
 
                 return newAttrib;
+            }
+
+            public ushort GetUnknown(uint index)
+            {
+                return (ushort)FSHelpers.Read16(_dataCopy, (int)(_unknownTableOffset + (index * 0x2)));
             }
         }
 
@@ -1399,8 +1421,11 @@ namespace WindViewer.FileFormats
             //If the texture cache doesn't contain the ID, we're going to load it here.
             Tex1Chunk texChunk = GetChunkByType<Tex1Chunk>();
             ushort textureIndex = matData.GetTextureIndex(0);
-            if (textureIndex == 0xFFFF)
+            if (textureIndex == 0xFF || textureIndex == 0xFFFF)
+            {
+                _textureCache[j3dTextureId] = 0;
                 return 0;
+            }
             BinaryTextureImage image = texChunk.GetTexture(matChunk.GetMaterialIndex(textureIndex));
             //image.WriteImageToFile("image_" + matChunk.GetMaterialIndex(matData.GetTextureIndex(0)) + ".png");
 

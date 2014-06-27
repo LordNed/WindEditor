@@ -210,6 +210,9 @@ namespace WindViewer.Editor
         /// <param name="directory">Absolute file path to a folder containing a bdl/btk/etc. files(s)</param>
         public void LoadFromDirectory(string directory)
         {
+            if (!Directory.Exists(directory))
+                new Exception("Invalid directory specified for WorldspaceProject.");
+
             //Get all of the sub folders (bdl, btk, etc.)
             string[] subFolders = Directory.GetDirectories(directory);
 
