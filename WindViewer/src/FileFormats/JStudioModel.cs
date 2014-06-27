@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Drawing.Drawing2D;
 using System.IO;
@@ -197,6 +198,11 @@ namespace WindViewer.FileFormats
             J3DRenderer.Instance.AddRenderable(this);
         }
 
+        public void Bind()
+        {
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
+        }
+
         public void Draw(BaseRenderer renderer)
         {
             /* Since our VertexFormat doesn't change, we're going to bind our global
@@ -205,23 +211,21 @@ namespace WindViewer.FileFormats
              * they use. */
 
             //ToDo: Move this to the J3DREnderer
-            GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
 
-            GL.VertexAttribPointer((int)BaseRenderer.ShaderAttributeIds.Position, 3, VertexAttribPointerType.Float, false, 9 * 4, 0);
-            GL.VertexAttribPointer((int)BaseRenderer.ShaderAttributeIds.Color, 4, VertexAttribPointerType.Float, false, 9 * 4, 3 * 4);
-            GL.VertexAttribPointer((int)BaseRenderer.ShaderAttributeIds.TexCoord, 2, VertexAttribPointerType.Float, false, 9 * 4, 7 * 4);
 
-            GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Position);
+
+
+            /*GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Position);
             GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Color);
-            GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.TexCoord);
+            GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.TexCoord);*/
 
             /* Recursively iterate through the J3D scene graph to bind and draw all
              * of the batches within the J3D model. */
             DrawModelRecursive(_sceneGraph, renderer);
 
-            GL.DisableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Position);
+            /*GL.DisableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Position);
             GL.DisableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Color);
-            GL.DisableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.TexCoord);
+            GL.DisableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.TexCoord);*/
         }
 
         private void DrawModelRecursive(SceneGraph curNode, BaseRenderer renderer)
@@ -229,7 +233,7 @@ namespace WindViewer.FileFormats
             switch (curNode.NodeType)
             {
                 case HierarchyDataTypes.Material:
-                    //ToDo: Pull the correct material and bind it.
+                    GL.BindTexture(TextureTarget.Texture2D, GetGLTexIdFromCache(curNode.DataIndex));
                     break;
 
                 case HierarchyDataTypes.Batch:
@@ -238,17 +242,48 @@ namespace WindViewer.FileFormats
                          * and set default values for vertex attribs that
                          * the batch doesn't use, then draw all primitives
                          * within it.*/
+                    SetVertexAttribArraysForBatch(true, curNode.DataIndex);
 
                     foreach (var primitive in _renderList[curNode.DataIndex])
                     {
                         GL.DrawArrays(primitive.DrawType, primitive.VertexStart, primitive.VertexCount);
                     }
+
+                    SetVertexAttribArraysForBatch(false, curNode.DataIndex);
                     break;
             }
-            
+
             foreach (SceneGraph subNode in curNode.Children)
             {
                 DrawModelRecursive(subNode, renderer);
+            }
+        }
+
+        private void SetVertexAttribArraysForBatch(bool bEnabled, ushort batchIndex)
+        {
+            Shp1Chunk shp1 = GetChunkByType<Shp1Chunk>();
+            List<Shp1Chunk.BatchAttribute> attributes = shp1.GetAttributesForBatch(batchIndex);
+
+            foreach (var attribute in attributes)
+            {
+                if (bEnabled)
+                {
+                    switch (attribute.AttribType)
+                    {
+                        case ArrayTypes.Position: GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Position); break;
+                        case ArrayTypes.Color0: GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Color); break;
+                        case ArrayTypes.Tex0: GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.TexCoord); break;
+                    }
+                }
+                else
+                {
+                    switch (attribute.AttribType)
+                    {
+                        case ArrayTypes.Position: GL.DisableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Position); break;
+                        case ArrayTypes.Color0: GL.DisableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Color); break;
+                        case ArrayTypes.Tex0: GL.DisableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.TexCoord); break;
+                    }
+                }
             }
         }
 
@@ -373,7 +408,7 @@ namespace WindViewer.FileFormats
         private SceneGraph _sceneGraph;
         private List<VertexDataTypes> _enabledVertexAttribs;
         private int _numPrimsDrawn;
-        
+
 
         private SceneGraph BuildSceneGraphFromInfo(Inf1Chunk info)
         {
@@ -561,7 +596,7 @@ namespace WindViewer.FileFormats
                         primList.VertexStart = finalData.Count;
                         primList.DrawType = primitive.Type == PrimitiveTypes.TriangleStrip ? PrimitiveType.TriangleStrip : PrimitiveType.TriangleFan;
 
-                        if(primitive.Type != PrimitiveTypes.TriangleStrip)
+                        if (primitive.Type != PrimitiveTypes.TriangleStrip)
                             Console.WriteLine("not: " + primitive.Type);
 
                         _renderList[(int)i].Add(primList);
@@ -1226,6 +1261,24 @@ namespace WindViewer.FileFormats
             public ushort GetUnknown(uint index)
             {
                 return (ushort)FSHelpers.Read16(_dataCopy, (int)(_unknownTableOffset + (index * 0x2)));
+            }
+
+            public List<BatchAttribute> GetAttributesForBatch(ushort batchIndex)
+            {
+                Batch batch = GetBatch(batchIndex);
+                List<BatchAttribute> attribs = new List<BatchAttribute>();
+
+                BatchAttribute curAttrib;
+                uint i = 0;
+                do
+                {
+                    curAttrib = GetAttribute(i, batch.AttribOffset);
+                    attribs.Add(curAttrib);
+                    i++;
+
+                } while (curAttrib.AttribType != ArrayTypes.NullAttr);
+
+                return attribs;
             }
         }
 

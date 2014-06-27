@@ -61,7 +61,6 @@ namespace WindViewer.Editor.Renderer
             //don't exist until the context is destroyed.
             GL.DeleteShader(vertShaderId);
             GL.DeleteShader(fragShaderId);
-
             
             GL.BindAttribLocation(_programId, (int) ShaderAttributeIds.Position, "vertexPos");
             GL.BindAttribLocation(_programId, (int) ShaderAttributeIds.Color, "inColor");
@@ -102,39 +101,15 @@ namespace WindViewer.Editor.Renderer
              * binding buffers, enabling vertex attribs, etc. */
             foreach (var renderable in _renderList)
             {
+                renderable.Bind();
+
+                GL.VertexAttribPointer((int)ShaderAttributeIds.Position, 3, VertexAttribPointerType.Float, false, 9 * 4, 0);
+                GL.VertexAttribPointer((int)ShaderAttributeIds.Color, 4, VertexAttribPointerType.Float, false, 9 * 4, 3 * 4);
+                GL.VertexAttribPointer((int)ShaderAttributeIds.TexCoord, 2, VertexAttribPointerType.Float, false, 9 * 4, 7 * 4);
+
                 renderable.Draw(this);
             }
 
-            /*if (Bind != null)
-                Bind();
-
-            GL.EnableVertexAttribArray((int) ShaderAttributeIds.Position);
-            GL.EnableVertexAttribArray((int)ShaderAttributeIds.Color);
-            GL.EnableVertexAttribArray((int)ShaderAttributeIds.TexCoord);
-
-            GL.VertexAttribPointer((int)ShaderAttributeIds.Position, 3, VertexAttribPointerType.Float, false, 9*4 , 0);
-            GL.VertexAttribPointer((int)ShaderAttributeIds.Color, 4, VertexAttribPointerType.Float, false, 9*4 , 3 *4);
-            GL.VertexAttribPointer((int)ShaderAttributeIds.TexCoord, 2, VertexAttribPointerType.Float, false, 9*4, 7* 4);
-
-            _projMatrix = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4f, aspectRatio, 100f, 10000f);
-            //Matrix4 modelMatrix = Matrix4.Identity;
-            _viewMatrix = camera.GetViewMatrix();
-
-            //Matrix4 finalMatrix = modelMatrix*viewMatrix*projMatrix;
-            
-            //Upload matrix to the GPU
-           // GL.UniformMatrix4(_uniformMVP, false, ref finalMatrix);
-
-            //FFS
-            //GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, 0);
-
-            if (Draw != null)
-                Draw();
-           
-
-            GL.DisableVertexAttribArray((int) ShaderAttributeIds.Position);
-            GL.DisableVertexAttribArray((int)ShaderAttributeIds.Color);
-            GL.DisableVertexAttribArray((int)ShaderAttributeIds.TexCoord);*/
             GL.Flush();
         }
 
