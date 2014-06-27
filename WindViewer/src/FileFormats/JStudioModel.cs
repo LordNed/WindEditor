@@ -16,12 +16,10 @@ namespace WindViewer.FileFormats
     /// The behemoth of file formats, the JStudioModel. Well I think it's a JStudioModel, it's a J3D and their tools are called JStudio, 
     /// so good enough. Anyways. It renders things.
     /// 
-    /// Many thanks to @Drakonite, shuffle2, JMC47, and phire for helping me understand the various
+    /// Many thanks to @Drakonite, shuffle2, JMC47, Sage of Mirrors, Jasper, and phire for helping me understand the various
     /// bits and pieces of the format, and some debugging ideas!
-    /// 
-    /// Test extra commit. 
     /// </summary>
-    public class JStudioModel : BaseArchiveFile
+    public class JStudioModel : BaseArchiveFile, IRenderable
     {
         public enum ArrayTypes
         {
@@ -66,7 +64,7 @@ namespace WindViewer.FileFormats
         public enum HierarchyDataTypes : ushort
         {
             Finish = 0x0, NewNode = 0x01, EndNode = 0x02,
-            Joint = 0x10, Material = 0x11, Shape = 0x12,
+            Joint = 0x10, Material = 0x11, Batch = 0x12,
         }
 
         public class HierarchyData
@@ -196,6 +194,109 @@ namespace WindViewer.FileFormats
             _sceneGraph = BuildSceneGraphFromInfo(GetChunkByType<Inf1Chunk>());
 
             //IterateSceneGraphRecursive(_sceneGraph);
+            J3DRenderer.Instance.AddRenderable(this);
+        }
+
+        public void Draw(BaseRenderer renderer)
+        {
+            /* Since our VertexFormat doesn't change, we're going to bind our global
+             * buffer for the object, and then set the VertexAttribPointers for the 
+             * VertexFormat. Each batch can then enable/disable the VertexAttribs
+             * they use. */
+
+            //ToDo: Move this to the J3DREnderer
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
+
+            GL.VertexAttribPointer((int)BaseRenderer.ShaderAttributeIds.Position, 3, VertexAttribPointerType.Float, false, 9 * 4, 0);
+            GL.VertexAttribPointer((int)BaseRenderer.ShaderAttributeIds.Color, 4, VertexAttribPointerType.Float, false, 9 * 4, 3 * 4);
+            GL.VertexAttribPointer((int)BaseRenderer.ShaderAttributeIds.TexCoord, 2, VertexAttribPointerType.Float, false, 9 * 4, 7 * 4);
+
+            GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Position);
+            GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Color);
+            GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.TexCoord);
+
+            /* Recursively iterate through the J3D scene graph to bind and draw all
+             * of the batches within the J3D model. */
+            DrawModelRecursive(_sceneGraph, renderer);
+
+            GL.DisableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Position);
+            GL.DisableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Color);
+            GL.DisableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.TexCoord);
+        }
+
+        private void DrawModelRecursive(SceneGraph curNode, BaseRenderer renderer)
+        {
+            switch (curNode.NodeType)
+            {
+                case HierarchyDataTypes.Material:
+                    //ToDo: Pull the correct material and bind it.
+                    break;
+
+                case HierarchyDataTypes.Batch:
+                    /* For each batch, we're going to enable the
+                         * appropriate Vertex Attributes for that batch
+                         * and set default values for vertex attribs that
+                         * the batch doesn't use, then draw all primitives
+                         * within it.*/
+
+                    foreach (var primitive in _renderList[curNode.DataIndex])
+                    {
+                        GL.DrawArrays(primitive.DrawType, primitive.VertexStart, primitive.VertexCount);
+                    }
+                    break;
+            }
+            
+            foreach (SceneGraph subNode in curNode.Children)
+            {
+                DrawModelRecursive(subNode, renderer);
+            }
+        }
+
+        private void IterateSceneGraphRecursive(SceneGraph curNode)
+        {
+            switch (curNode.NodeType)
+            {
+                case HierarchyDataTypes.Material:
+                    //Console.WriteLine("Bind material index {0}", curNode.DataIndex);
+                    //lol this is so wrong, but maybe something will not explode.
+                    GL.BindTexture(TextureTarget.Texture2D, GetGLTexIdFromCache(curNode.DataIndex));
+                    break;
+                case HierarchyDataTypes.Batch:
+                    //Console.WriteLine("Draw shape index {0}", curNode.DataIndex);
+
+                    foreach (PrimitiveList prim in _renderList[curNode.DataIndex])
+                    {
+                        //if (_numPrimsDrawn < _numPrimToRender)
+                        GL.DrawArrays(prim.DrawType, prim.VertexStart, prim.VertexCount);
+                        _numPrimsDrawn++;
+                    }
+                    break;
+                case HierarchyDataTypes.Joint:
+                    Jnt1Chunk jnt1Chunk = GetChunkByType<Jnt1Chunk>();
+                    var joint = jnt1Chunk.GetJoint(curNode.DataIndex);
+                    Vector3 jointRot = joint.GetRotation().ToDegrees();
+
+                    Matrix4 tranMatrix = Matrix4.CreateTranslation(joint.GetTranslation());
+                    Matrix4 rotMatrix = Matrix4.CreateRotationX(jointRot.X) * Matrix4.CreateRotationY(jointRot.Y) *
+                                        Matrix4.CreateRotationZ(jointRot.Z);
+                    Matrix4 scaleMatrix = Matrix4.CreateScale(joint.GetScale());
+
+                    Matrix4 modelMatrix = tranMatrix * rotMatrix * scaleMatrix;
+
+                    int uniformId;
+                    Matrix4 viewProj;
+                    J3DRenderer.Instance.GetCamMatrix(out uniformId, out viewProj);
+                    Matrix4 finalMatrix = modelMatrix * viewProj;
+
+                    GL.UniformMatrix4(uniformId, false, ref finalMatrix);
+
+                    break;
+            }
+
+            foreach (SceneGraph subNode in curNode.Children)
+            {
+                IterateSceneGraphRecursive(subNode);
+            }
         }
 
         private List<VertexDataTypes> GetEnabledVertexAttribs()
@@ -272,52 +373,7 @@ namespace WindViewer.FileFormats
         private SceneGraph _sceneGraph;
         private List<VertexDataTypes> _enabledVertexAttribs;
         private int _numPrimsDrawn;
-        private void IterateSceneGraphRecursive(SceneGraph curNode)
-        {
-            switch (curNode.NodeType)
-            {
-                case HierarchyDataTypes.Material:
-                    //Console.WriteLine("Bind material index {0}", curNode.DataIndex);
-                    //lol this is so wrong, but maybe something will not explode.
-                    GL.BindTexture(TextureTarget.Texture2D, GetGLTexIdFromCache(curNode.DataIndex));
-                    break;
-                case HierarchyDataTypes.Shape:
-                    //Console.WriteLine("Draw shape index {0}", curNode.DataIndex);
-
-                    foreach (PrimitiveList prim in _renderList[curNode.DataIndex])
-                    {
-                        //if (_numPrimsDrawn < _numPrimToRender)
-                            GL.DrawArrays(prim.DrawType, prim.VertexStart, prim.VertexCount);
-                        _numPrimsDrawn++;
-                    }
-                    break;
-                case HierarchyDataTypes.Joint:
-                    Jnt1Chunk jnt1Chunk = GetChunkByType<Jnt1Chunk>();
-                    var joint = jnt1Chunk.GetJoint(curNode.DataIndex);
-                    Vector3 jointRot = joint.GetRotation().ToDegrees();
-
-                    Matrix4 tranMatrix = Matrix4.CreateTranslation(joint.GetTranslation());
-                    Matrix4 rotMatrix = Matrix4.CreateRotationX(jointRot.X) * Matrix4.CreateRotationY(jointRot.Y) *
-                                        Matrix4.CreateRotationZ(jointRot.Z);
-                    Matrix4 scaleMatrix = Matrix4.CreateScale(joint.GetScale());
-
-                    Matrix4 modelMatrix = tranMatrix * rotMatrix * scaleMatrix;
-
-                    int uniformId;
-                    Matrix4 viewProj;
-                    J3DRenderer.Instance.GetCamMatrix(out uniformId, out viewProj);
-                    Matrix4 finalMatrix = modelMatrix * viewProj;
-
-                    GL.UniformMatrix4(uniformId, false, ref finalMatrix);
-
-                    break;
-            }
-
-            foreach (SceneGraph subNode in curNode.Children)
-            {
-                IterateSceneGraphRecursive(subNode);
-            }
-        }
+        
 
         private SceneGraph BuildSceneGraphFromInfo(Inf1Chunk info)
         {
@@ -355,7 +411,7 @@ namespace WindViewer.FileFormats
                     //If it's a material, joint, or shape, just produce them.
                     case HierarchyDataTypes.Material:
                     case HierarchyDataTypes.Joint:
-                    case HierarchyDataTypes.Shape:
+                    case HierarchyDataTypes.Batch:
                     case HierarchyDataTypes.Finish:
                         break;
                     default:
@@ -391,7 +447,6 @@ namespace WindViewer.FileFormats
         {
             GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
             BindEnabledVertexAttribs();
-
         }
 
         private int _numPrimToRender;

@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.IO;
-using System.Linq;
 using System.Windows.Forms;
 using FolderSelect;
 using JWC;
@@ -12,7 +10,6 @@ using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using WindViewer.Editor;
 using WindViewer.Editor.Renderer;
-using WindViewer.Editor.Tools;
 using WindViewer.FileFormats;
 using WindViewer.Forms.Dialogs;
 using WindViewer.Forms.EntityEditors;

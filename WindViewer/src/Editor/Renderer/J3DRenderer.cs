@@ -11,12 +11,12 @@ namespace WindViewer.Editor.Renderer
         public static event Action Bind;
         public static event Action Draw;
 
-        //private List<IRenderable> _renderList; 
+        private readonly List<IRenderable> _renderList; 
         public static J3DRenderer Instance;
         public J3DRenderer()
         {
             Instance = this;
-            //_renderList = new List<IRenderable>();
+            _renderList = new List<IRenderable>();
         }
 
         public override void Initialize()
@@ -36,6 +36,16 @@ namespace WindViewer.Editor.Renderer
                 Color = color;
                 TexCoord = tex;
             }
+        }
+
+        public void AddRenderable(IRenderable renderable)
+        {
+            _renderList.Add(renderable);
+        }
+
+        public void RemoveRenderable(IRenderable renderable)
+        {
+            _renderList.Remove(renderable);
         }
 
         protected override void CreateShader(string vertShader, string fragShader)
@@ -64,74 +74,38 @@ namespace WindViewer.Editor.Renderer
 
             if (GL.GetError() != ErrorCode.NoError)
                 Console.WriteLine(GL.GetProgramInfoLog(_programId));
-
-            //Temp
-
-            VertexFormatLayout[] vertices =
-            {
-                new VertexFormatLayout(new Vector3( -0.5f,  0.5f, 0f), new Vector4(1.0f, 0.0f, 0.0f, 1f), new Vector2(0.0f, 1.0f)),
-                new VertexFormatLayout(new Vector3( 0.5f,  0.5f, 0f), new Vector4(0.0f, 1.0f, 0.0f, 1f), new Vector2(1.0f, 1.0f)),
-                new VertexFormatLayout(new Vector3( 0.5f,  -0.5f, 0f), new Vector4(0.0f, 0.0f, 1.0f, 1f), new Vector2(1.0f, 0.0f)),
-                new VertexFormatLayout(new Vector3( -0.5f,  -0.5f, 0f), new Vector4(1.0f, 0.0f, 1.0f, 1f), new Vector2(0.0f, 0.0f)),
-                
-            };
-
-            uint[] indexes = {0, 1, 2, 2, 3, 0};
-
-
-            //Generate the VBO, Bind, and Upload Data
-            GL.GenBuffers(1, out _glVbo);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
-            
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr) (vertices.Length*4*9), vertices, BufferUsageHint.StaticDraw);
-
-            //Generate the EBO, Bind, and Upload Data
-            GL.GenBuffers(1, out _glEbo);
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, _glEbo);
-
-            GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr) (indexes.Length*4), indexes,
-                BufferUsageHint.StaticDraw);
-
-            //Generate the texture, Bind, and Upload Data
-            GL.GenTextures(1, out _glTex);
-            GL.BindTexture(TextureTarget.Texture2D, _glTex);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Nearest);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Nearest);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)All.Repeat);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)All.Repeat);
-
-            // Black/white checkerboard
-            float[] pixels =
-            {
-                0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-                1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f
-            };
-
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb, 2, 2, 0, PixelFormat.Rgb, PixelType.Float,
-                pixels);
         }
-
-        
-
-        //Holy temporary batmans
-        private int _glVbo;
-        private int _glEbo;
-        private int _glTex;
 
         public override void Render(Camera camera, float aspectRatio)
         {
+            GL.UseProgram(_programId);
+
             //State Muckin'
             GL.Enable(EnableCap.DepthTest);
 
-            GL.UseProgram(_programId);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, 0); //Clear any previously bound buffer
+            //Clear any previously bound buffer
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0); 
 
-            //Enable Attributes for Shader
-            GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, _glEbo);
-            GL.BindTexture(TextureTarget.Texture2D, _glTex);
 
-            if (Bind != null)
+            //Todo: Temp
+            Matrix4 projMatrix = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4f, aspectRatio, 100f, 10000f);
+            Matrix4 modelMatrix = Matrix4.Identity;
+            Matrix4 viewMatrix = camera.GetViewMatrix();
+
+            Matrix4 finalMatrix = modelMatrix*viewMatrix*projMatrix;
+
+            //Upload matrix to the GPU
+            GL.UniformMatrix4(_uniformMVP, false, ref finalMatrix);
+
+            /* Because the J3D models are very complex, we're going to 
+             * allow them to completely render themselves, including
+             * binding buffers, enabling vertex attribs, etc. */
+            foreach (var renderable in _renderList)
+            {
+                renderable.Draw(this);
+            }
+
+            /*if (Bind != null)
                 Bind();
 
             GL.EnableVertexAttribArray((int) ShaderAttributeIds.Position);
@@ -160,7 +134,7 @@ namespace WindViewer.Editor.Renderer
 
             GL.DisableVertexAttribArray((int) ShaderAttributeIds.Position);
             GL.DisableVertexAttribArray((int)ShaderAttributeIds.Color);
-            GL.DisableVertexAttribArray((int)ShaderAttributeIds.TexCoord);
+            GL.DisableVertexAttribArray((int)ShaderAttributeIds.TexCoord);*/
             GL.Flush();
         }
 
