@@ -177,20 +177,16 @@ namespace WindViewer.FileFormats
                 _chunkList.Add(baseChunk);
             }
 
-            _enabledVertexAttribs = GetEnabledVertexAttribs();
 
             //STEP 2: Once all of the data is loaded, we're going to pull different data from
             //different chunks to transform the data into something
-            vertData = BuildVertexArraysFromFile(data);
+            _vertData = BuildVertexArraysFromFile(data);
 
 
             //Haaaaaaaack there goes my lung. Generate a vbo, bind and upload data.
             GL.GenBuffers(1, out _glVbo);
             GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(vertData.Count * 36), vertData.ToArray(), BufferUsageHint.StaticDraw);
-
-            J3DRenderer.Draw += J3DRendererOnDraw;
-            J3DRenderer.Bind += J3DRendererOnBind;
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(_vertData.Count * 36), _vertData.ToArray(), BufferUsageHint.StaticDraw);
 
             _sceneGraph = BuildSceneGraphFromInfo(GetChunkByType<Inf1Chunk>());
 
@@ -205,27 +201,9 @@ namespace WindViewer.FileFormats
 
         public void Draw(BaseRenderer renderer)
         {
-            /* Since our VertexFormat doesn't change, we're going to bind our global
-             * buffer for the object, and then set the VertexAttribPointers for the 
-             * VertexFormat. Each batch can then enable/disable the VertexAttribs
-             * they use. */
-
-            //ToDo: Move this to the J3DREnderer
-
-
-
-
-            /*GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Position);
-            GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Color);
-            GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.TexCoord);*/
-
             /* Recursively iterate through the J3D scene graph to bind and draw all
              * of the batches within the J3D model. */
             DrawModelRecursive(_sceneGraph, renderer);
-
-            /*GL.DisableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Position);
-            GL.DisableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Color);
-            GL.DisableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.TexCoord);*/
         }
 
         private void DrawModelRecursive(SceneGraph curNode, BaseRenderer renderer)
@@ -302,124 +280,7 @@ namespace WindViewer.FileFormats
             }
         }
 
-        private void IterateSceneGraphRecursive(SceneGraph curNode)
-        {
-            switch (curNode.NodeType)
-            {
-                case HierarchyDataTypes.Material:
-                    //Console.WriteLine("Bind material index {0}", curNode.DataIndex);
-                    //lol this is so wrong, but maybe something will not explode.
-                    GL.BindTexture(TextureTarget.Texture2D, GetGLTexIdFromCache(curNode.DataIndex));
-                    break;
-                case HierarchyDataTypes.Batch:
-                    //Console.WriteLine("Draw shape index {0}", curNode.DataIndex);
-
-                    foreach (PrimitiveList prim in _renderList[curNode.DataIndex])
-                    {
-                        //if (_numPrimsDrawn < _numPrimToRender)
-                        GL.DrawArrays(prim.DrawType, prim.VertexStart, prim.VertexCount);
-                        _numPrimsDrawn++;
-                    }
-                    break;
-                case HierarchyDataTypes.Joint:
-                    Jnt1Chunk jnt1Chunk = GetChunkByType<Jnt1Chunk>();
-                    var joint = jnt1Chunk.GetJoint(curNode.DataIndex);
-                    Vector3 jointRot = joint.GetRotation().ToDegrees();
-
-                    Matrix4 tranMatrix = Matrix4.CreateTranslation(joint.GetTranslation());
-                    Matrix4 rotMatrix = Matrix4.CreateRotationX(jointRot.X) * Matrix4.CreateRotationY(jointRot.Y) *
-                                        Matrix4.CreateRotationZ(jointRot.Z);
-                    Matrix4 scaleMatrix = Matrix4.CreateScale(joint.GetScale());
-
-                    Matrix4 modelMatrix = tranMatrix * rotMatrix * scaleMatrix;
-
-                    int uniformId;
-                    Matrix4 viewProj;
-                    
-                    break;
-            }
-
-            foreach (SceneGraph subNode in curNode.Children)
-            {
-                IterateSceneGraphRecursive(subNode);
-            }
-        }
-
-        private List<VertexDataTypes> GetEnabledVertexAttribs()
-        {
-            var vtxChunk = GetChunkByType<Vtx1Chunk>();
-
-            var enabledVertexAttribs = new List<VertexDataTypes>();
-            /*for (int i = 0; i < vtxChunk.GetAllVertexFormats().Count; i++)
-            {
-                //if (vtxChunk.VertexDataOffsets[i] == 0)
-                    //continue;
-                enabledVertexAttribs.Add((VertexDataTypes)i);
-            }*/
-
-            return enabledVertexAttribs;
-        }
-
-
-        private void BindEnabledVertexAttribs()
-        {
-            //Pre-build the stride size.
-            int stride = 0;
-
-            for (int i = 0; i < _enabledVertexAttribs.Count; i++)
-            {
-                stride += GetElementSizeFromAttrib(_enabledVertexAttribs[i]);
-            }
-
-            int ongoingOffset = 0;
-
-            foreach (var attrib in _enabledVertexAttribs)
-            {
-                switch (attrib)
-                {
-                    case VertexDataTypes.Position:
-                        GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Position);
-                        GL.VertexAttribPointer((int)BaseRenderer.ShaderAttributeIds.Position, 3,
-                            VertexAttribPointerType.Float, false, stride, ongoingOffset);
-                        ongoingOffset += GetElementSizeFromAttrib(attrib);
-                        break;
-
-                    case VertexDataTypes.Color0:
-                        GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Color);
-                        GL.VertexAttribPointer((int)BaseRenderer.ShaderAttributeIds.Color, 4,
-                            VertexAttribPointerType.Float, false, stride, ongoingOffset);
-                        ongoingOffset += GetElementSizeFromAttrib(attrib);
-                        break;
-
-                    case VertexDataTypes.Tex0:
-                        GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.TexCoord);
-                        GL.VertexAttribPointer((int)BaseRenderer.ShaderAttributeIds.TexCoord, 2,
-                            VertexAttribPointerType.Float, false, stride, ongoingOffset);
-                        ongoingOffset += GetElementSizeFromAttrib(attrib);
-                        break;
-                }
-            }
-        }
-
-        private int GetElementSizeFromAttrib(VertexDataTypes attrib)
-        {
-            switch (attrib)
-            {
-                case VertexDataTypes.Position: return 3 * 4;
-                case VertexDataTypes.Normal: return 3 * 4;
-                case VertexDataTypes.Color0: return 4 * 4;
-                case VertexDataTypes.Tex0: return 2 * 4;
-                default:
-                    Console.WriteLine("Unknown vertex attrib type {0}!", attrib);
-                    return 0;
-            }
-        }
-
-
         private SceneGraph _sceneGraph;
-        private List<VertexDataTypes> _enabledVertexAttribs;
-        private int _numPrimsDrawn;
-
 
         private SceneGraph BuildSceneGraphFromInfo(Inf1Chunk info)
         {
@@ -473,7 +334,7 @@ namespace WindViewer.FileFormats
             return 0;
         }
 
-        private List<VertexFormatLayout> vertData;
+        private List<J3DRenderer.VertexFormatLayout> _vertData;
 
         public override void Save(BinaryWriter stream)
         {
@@ -488,47 +349,6 @@ namespace WindViewer.FileFormats
         }
 
         private Dictionary<int, List<PrimitiveList>> _renderList = new Dictionary<int, List<PrimitiveList>>();
-
-        private void J3DRendererOnBind()
-        {
-            GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
-            BindEnabledVertexAttribs();
-        }
-
-        private int _numPrimToRender;
-        private float _lastChange;
-
-        private void J3DRendererOnDraw()
-        {
-            //GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
-            //GL.DrawArrays(PrimitiveType.TriangleStrip, 0, 10);
-
-            if (EditorHelpers.GetKey(Keys.O) && Math.Abs(MainEditor.Time - _lastChange) > 0.02f)
-            {
-                _numPrimToRender++;
-                Console.WriteLine("Rendering: " + _numPrimToRender);
-                _lastChange = MainEditor.Time;
-            }
-            if (EditorHelpers.GetKey(Keys.P) && Math.Abs(MainEditor.Time - _lastChange) > 0.02f)
-            {
-                _numPrimToRender--;
-                if (_numPrimToRender < 0)
-                    _numPrimToRender = 0;
-                Console.WriteLine("Rendering: " + _numPrimToRender);
-                _lastChange = MainEditor.Time;
-            }
-            if (EditorHelpers.GetKey(Keys.I))
-                _numPrimToRender = _renderList.Count - 1;
-
-            _numPrimsDrawn = 0;
-            IterateSceneGraphRecursive(_sceneGraph);
-            /*for (int i = 0; i < Math.Min(_numPrimRender, _renderList.Count); i++)
-            {
-                PrimitiveList primitive = _renderList[i];
-                GL.DrawArrays(PrimitiveType.TriangleStrip, primitive.VertexStart, primitive.VertexCount);
-            }*/
-        }
-
         private int _glVbo;
 
         public T GetChunkByType<T>() where T : class
@@ -536,19 +356,10 @@ namespace WindViewer.FileFormats
             return _chunkList.OfType<T>().Select(file => file).FirstOrDefault();
         }
 
-        public struct VertexFormatLayout
-        {
-            public Vector3 Position;
-            // Vector3 Normal;
-            public Vector4 Color;
-            public Vector2 TexCoord;
-        }
-
-
-        private List<VertexFormatLayout> BuildVertexArraysFromFile(byte[] data)
+        private List<J3DRenderer.VertexFormatLayout> BuildVertexArraysFromFile(byte[] data)
         {
             Vtx1Chunk vtxChunk = GetChunkByType<Vtx1Chunk>();
-            List<VertexFormatLayout> finalData = new List<VertexFormatLayout>();
+            List<J3DRenderer.VertexFormatLayout> finalData = new List<J3DRenderer.VertexFormatLayout>();
 
             Shp1Chunk shp1Chunk = GetChunkByType<Shp1Chunk>();
             Drw1Chunk drw1Chunk = GetChunkByType<Drw1Chunk>();
@@ -620,7 +431,7 @@ namespace WindViewer.FileFormats
 
                         for (int vert = 0; vert < primitive.VertexCount; vert++)
                         {
-                            VertexFormatLayout newVertex = new VertexFormatLayout();
+                            J3DRenderer.VertexFormatLayout newVertex = new J3DRenderer.VertexFormatLayout();
                             for (uint vertIndex = 0; vertIndex < attributeCount; vertIndex++)
                             {
                                 ushort curIndex =

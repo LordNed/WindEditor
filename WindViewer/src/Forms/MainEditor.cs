@@ -723,16 +723,10 @@ namespace WindViewer.Forms
 
         public void UnloadLoadedWorldspaceProject()
         {
-            //Clear our Renderers
-            /*foreach (var renderer in _renderers)
-            {
-                renderer.ClearRenderableList();
-            }*/
-
-            //Then unload the worldspace project
             _loadedWorldspaceProject = null;
             _selectedEntityFile = null;
             _selectedEntityLayer = EditorHelpers.EntityLayer.DefaultLayer;
+            _renderer.OnSceneUnload();
             UpdateProjectFolderTreeview();
             UpdateEntityTreeview();
             UpdateLayersView();

@@ -8,11 +8,18 @@ namespace WindViewer.Editor.Renderer
 {
     public sealed class J3DRenderer : BaseRenderer
     {
-        public static event Action Bind;
-        public static event Action Draw;
+        public struct VertexFormatLayout
+        {
+            public Vector3 Position;
+            public Vector4 Color;
+            public Vector2 TexCoord;
+        }
 
-        private readonly List<IRenderable> _renderList; 
         public static J3DRenderer Instance;
+
+        private readonly List<IRenderable> _renderList;
+        private Matrix4 _viewProjMatrix; //ToDo: Not a good solution.
+
         public J3DRenderer()
         {
             Instance = this;
@@ -24,18 +31,9 @@ namespace WindViewer.Editor.Renderer
             CreateShader("shaders/j3d_vs.glsl", "shaders/j3d_fs.glsl");
         }
 
-        public struct VertexFormatLayout
+        public override void OnSceneUnload()
         {
-            public Vector3 Position;
-            public Vector4 Color;
-            public Vector2 TexCoord;
-
-            public VertexFormatLayout(Vector3 pos, Vector4 color, Vector2 tex)
-            {
-                Position = pos;
-                Color = color;
-                TexCoord = tex;
-            }
+            _renderList.Clear();
         }
 
         public void AddRenderable(IRenderable renderable)
@@ -47,6 +45,7 @@ namespace WindViewer.Editor.Renderer
         {
             _renderList.Remove(renderable);
         }
+        
 
         protected override void CreateShader(string vertShader, string fragShader)
         {
@@ -107,8 +106,6 @@ namespace WindViewer.Editor.Renderer
 
             GL.Flush();
         }
-
-        private Matrix4 _viewProjMatrix;
 
         public override void SetModelMatrix(Matrix4 modelMatrix)
         {
