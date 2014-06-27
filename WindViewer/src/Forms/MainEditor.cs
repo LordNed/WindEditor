@@ -34,9 +34,6 @@ namespace WindViewer.Forms
         //Rendering stuffs
         private J3DRenderer _renderer;
 
-        //Editor stuffs
-        private List<IEditorTool> _editorTools; 
-
         //Events
         public static event Action<WindWakerEntityData> SelectedEntityFileChanged;
         public static event Action<WindWakerEntityData.BaseChunk> SelectedEntityChanged;
@@ -69,10 +66,10 @@ namespace WindViewer.Forms
             _loadedWorldspaceProject = null;
 
             _camera = new Camera();
-            _editorTools = new List<IEditorTool>();
 
             //Add our renderers to the list 
             _renderer = new J3DRenderer();
+            _renderer.Initialize();
 
             _glControlInitalized = true;
         }

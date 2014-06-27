@@ -59,7 +59,7 @@
     <Compile Include="src\Editor\EditorAttributes.cs" />
     <Compile Include="src\Editor\EditorHelpers.cs" />
     <Compile Include="src\Editor\FSHelpers.cs" />
-    <Compile Include="src\Editor\Renderer\IRenderer.cs" />
+    <Compile Include="src\Editor\Renderer\BaseRenderer.cs" />
     <Compile Include="src\Editor\MathExtensions.cs" />
     <Compile Include="src\Editor\Transform.cs" />
     <Compile Include="src\Editor\WorldspaceProject.cs" />

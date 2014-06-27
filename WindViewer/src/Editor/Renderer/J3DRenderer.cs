@@ -1,20 +1,27 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing.Drawing2D;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
 namespace WindViewer.Editor.Renderer
 {
-    public sealed class J3DRenderer : IRenderer
+    public sealed class J3DRenderer : BaseRenderer
     {
-        public static event Action Draw;
         public static event Action Bind;
+        public static event Action Draw;
 
+        //private List<IRenderable> _renderList; 
         public static J3DRenderer Instance;
         public J3DRenderer()
         {
-            InitializeShader("shaders/j3d_vs.glsl", "shaders/j3d_fs.glsl");
             Instance = this;
+            //_renderList = new List<IRenderable>();
+        }
+
+        public override void Initialize()
+        {
+            CreateShader("shaders/j3d_vs.glsl", "shaders/j3d_fs.glsl");
         }
 
         public struct VertexFormatLayout
@@ -31,7 +38,7 @@ namespace WindViewer.Editor.Renderer
             }
         }
 
-        protected override void InitializeShader(string vertShader, string fragShader)
+        protected override void CreateShader(string vertShader, string fragShader)
         {
             //Initialize the OpenGL Program
             _programId = GL.CreateProgram();

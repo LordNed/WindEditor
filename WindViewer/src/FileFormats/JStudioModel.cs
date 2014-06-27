@@ -231,22 +231,22 @@ namespace WindViewer.FileFormats
                 switch (attrib)
                 {
                     case VertexDataTypes.Position:
-                        GL.EnableVertexAttribArray((int)IRenderer.ShaderAttributeIds.Position);
-                        GL.VertexAttribPointer((int)IRenderer.ShaderAttributeIds.Position, 3,
+                        GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Position);
+                        GL.VertexAttribPointer((int)BaseRenderer.ShaderAttributeIds.Position, 3,
                             VertexAttribPointerType.Float, false, stride, ongoingOffset);
                         ongoingOffset += GetElementSizeFromAttrib(attrib);
                         break;
 
                     case VertexDataTypes.Color0:
-                        GL.EnableVertexAttribArray((int)IRenderer.ShaderAttributeIds.Color);
-                        GL.VertexAttribPointer((int)IRenderer.ShaderAttributeIds.Color, 4,
+                        GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Color);
+                        GL.VertexAttribPointer((int)BaseRenderer.ShaderAttributeIds.Color, 4,
                             VertexAttribPointerType.Float, false, stride, ongoingOffset);
                         ongoingOffset += GetElementSizeFromAttrib(attrib);
                         break;
 
                     case VertexDataTypes.Tex0:
-                        GL.EnableVertexAttribArray((int)IRenderer.ShaderAttributeIds.TexCoord);
-                        GL.VertexAttribPointer((int)IRenderer.ShaderAttributeIds.TexCoord, 2,
+                        GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.TexCoord);
+                        GL.VertexAttribPointer((int)BaseRenderer.ShaderAttributeIds.TexCoord, 2,
                             VertexAttribPointerType.Float, false, stride, ongoingOffset);
                         ongoingOffset += GetElementSizeFromAttrib(attrib);
                         break;
