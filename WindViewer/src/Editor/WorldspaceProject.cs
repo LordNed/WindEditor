@@ -10,23 +10,23 @@ namespace WindViewer.Editor
     /// <summary>
     /// A Worldspace Project refers to a collection of Stages and Rooms. This class acts as meta-data about
     /// a project the user is working on as nothing in here will get compiled into the actual archive. However
-    /// it allows us to easily ekep track of which stages/rooms the user has open and their associated file
+    /// it allows us to easily keep track of which stages/rooms the user has open and their associated file
     /// structure.
     /// </summary>
     public class WorldspaceProject
     {
-        //This refers to the Stage these files belong too. NULL if no stage exists.
+        /// <summary> This refers to the Stage these files belong too. NULL if no stage exists. </summary>
         public ZArchive Stage { get; private set; }
 
-        //This is a list of currently loaded Rooms. Returns a list of length zero if no rooms are loaded.
-        //Does not include the Stage archive. If you wish to include the Stage archive, call GetAllArchives()
+        /// <summary> This is a list of currently loaded Rooms. Returns a list of length zero if no rooms are loaded. 
+        /// Does not include the Stage archive. If you wish to include the Stage archive, call GetAllArchives() </summary>
         public List<ZArchive> Rooms { get; private set; }
 
-        //This is the name of Worldspace Project, sans .wrkDir extension. Max 8 chars.
-        //Used by game to hold Stage/Room .arcs
+        /// <summary> This is the name of Worldspace Project, sans .wrkDir extension. Max 8 chars.
+        /// Used by game to hold Stage/Room .arcs </summary>
         public string Name;
 
-        //Absolute file path (ie: C:\..MiniHyo.wrkDir) of the project director
+        /// <summary> Absolute file path (ie: C:\..\Wind Viewer\MiniHyo.wrkDir) of the project directory. </summary>
         public string ProjectFilePath;
 
         public WorldspaceProject()
@@ -58,7 +58,11 @@ namespace WindViewer.Editor
         /// <param name="dirFilePath">A filepath that ends in ".wrkDir" that is the root folder of the project.</param>
         public void LoadFromDirectory(string dirFilePath)
         {
-            //Name (sans .wrkDir)
+            if (!Directory.Exists(dirFilePath))
+                throw new FileNotFoundException("Cannot load worldspace project from nonexistant directory!",
+                    dirFilePath);
+
+            //Name of folder (sans .wrkDir)
             string wrkDirName = new DirectoryInfo(dirFilePath).Name;
             Name = wrkDirName.Substring(0, wrkDirName.LastIndexOf(".wrkDir"));
 
@@ -143,13 +147,13 @@ namespace WindViewer.Editor
     /// </summary>
     public class ZArchive
     {
-        //This is a list of all loaded files from the Archive.
+        /// <summary> This is a list of all loaded files from the Archive. </summary>
         private readonly List<BaseArchiveFile> _archiveFiles;
 
-        //This is the name of the Archive, ie: "Room0" "Stage", etc.
+        /// <summary> This is the name of the Archive, ie: "Room0" "Stage", etc. </summary>
         public string Name;
 
-        //If this is a Room, the Room number, -1 if stage.
+        /// <summary> If this is a Room, the Room number, -1 if stage. </summary>
         public int RoomNumber;
 
         public ZArchive()
@@ -205,11 +209,11 @@ namespace WindViewer.Editor
         /// Pass this a Room&lt;x&gt; folder or a Stage folder directory! This will look for specific subfolders 
         /// (bdl, btk, dzb, dzr, dzs, dat, etc.) and load each file within them as appropriate.
         /// </summary>
-        /// <param name="directory">Absolute file path to a folder containing a bdl/btk/etc. files(s)</param>
+        /// <param name="directory">Absolute file path to a folder containing a bdl/btk/etc. files(s).</param>
         public void LoadFromDirectory(string directory)
         {
             if (!Directory.Exists(directory))
-                new Exception("Invalid directory specified for WorldspaceProject.");
+                throw new Exception("Invalid directory specified for WorldspaceProject.");
 
             //Get all of the sub folders (bdl, btk, etc.)
             string[] subFolders = Directory.GetDirectories(directory);
@@ -309,13 +313,13 @@ namespace WindViewer.Editor
 
     public abstract class BaseArchiveFile
     {
-        //What folder does this get saved into (dzb, dzr, etc.)
+        /// <summary> What folder does this get saved into (dzb, dzr, etc.) </summary>
         public string FolderName;
 
-        //What the file name was (room.dzb, model1.btk, etc.)
+        /// <summary> What the file name was (room.dzb, model1.btk, etc.) </summary>
         public string FileName;
 
-        //Reference to the parent ZArchive that this file belongs to
+        /// <summary> Reference to the parent ZArchive that this file belongs to </summary>
         public ZArchive ParentArchive;
 
         public abstract void Load(byte[] data);
