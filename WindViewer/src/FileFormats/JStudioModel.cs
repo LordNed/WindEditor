@@ -1244,6 +1244,11 @@ namespace WindViewer.FileFormats
 
 
             public const int Size = 132;
+
+            public ushort GetMaterialRemapTable(ushort index)
+            {
+                return (ushort) FSHelpers.Read16(_dataCopy, (int) (_materialIndexOffset + (index*0x2)));
+            }
         }
 
         //ToDo: These offsets are a little bit messed up.
@@ -1340,7 +1345,8 @@ namespace WindViewer.FileFormats
 
             //Look up the material first.
             Mat3Chunk matChunk = GetChunkByType<Mat3Chunk>();
-            MaterialInitData matData = matChunk.GetMaterialInitData((uint)j3dTextureId);
+            matChunk.GetMaterialRemapTable((ushort) j3dTextureId);
+            MaterialInitData matData = matChunk.GetMaterialInitData(matChunk.GetMaterialRemapTable((ushort) j3dTextureId));
 
             //If the texture cache doesn't contain the ID, we're going to load it here.
             Tex1Chunk texChunk = GetChunkByType<Tex1Chunk>();

@@ -20,7 +20,7 @@ namespace WindViewer.Forms
     public partial class MainEditor : Form
     {
         //Currently loaded Worldspace Project. Null if no project loaded.
-        private WorldspaceProject _loadedWorldspaceProject; 
+        private WorldspaceProject _loadedWorldspaceProject;
 
         //Currently selected Entity data file for Worldspace Project. Null if none selected.
         private WindWakerEntityData _selectedEntityFile;
@@ -30,6 +30,7 @@ namespace WindViewer.Forms
 
         //Rendering stuffs
         private J3DRenderer _renderer;
+        private DebugRenderer _debugRenderer;
 
         //Events
         public static event Action<WindWakerEntityData> SelectedEntityFileChanged;
@@ -68,6 +69,9 @@ namespace WindViewer.Forms
             _renderer = new J3DRenderer();
             _renderer.Initialize();
 
+            _debugRenderer = new DebugRenderer();
+            _debugRenderer.Initialize();
+
             _glControlInitalized = true;
         }
 
@@ -105,7 +109,7 @@ namespace WindViewer.Forms
         {
             EditorHelpers.KeysDown[e.KeyValue] = true;
 
-           //Console.WriteLine("cam pos: " + _camera.transform.Position);
+            //Console.WriteLine("cam pos: " + _camera.transform.Position);
         }
 
         void glControl_KeyUp(object sender, KeyEventArgs e)
@@ -184,10 +188,10 @@ namespace WindViewer.Forms
 
             _loadedWorldspaceProject = new WorldspaceProject();
             _loadedWorldspaceProject.LoadFromDirectory(workDir);
-            
+
             UpdateProjectFolderTreeview();
 
-            if(!surpressMRU)
+            if (!surpressMRU)
                 _mruMenu.AddFile(_loadedWorldspaceProject.ProjectFilePath);
 
             //Temp
@@ -229,7 +233,7 @@ namespace WindViewer.Forms
 
         private void saveAllToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if(_loadedWorldspaceProject != null)
+            if (_loadedWorldspaceProject != null)
                 _loadedWorldspaceProject.SaveAllArchives();
         }
 
@@ -339,13 +343,15 @@ namespace WindViewer.Forms
 
 
             //Actual render stuff
-            GL.ClearColor(Color.SteelBlue);
+            GL.ClearColor(Color.YellowGreen);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             GL.Viewport(0, 0, glControl.Width, glControl.Height);
 
             _renderer.Render(_camera, (float)glControl.Width / (float)glControl.Height);
+            _debugRenderer.Render(_camera, (float)glControl.Width / (float)glControl.Height);
 
+            DebugRenderer.DrawWireCube(Vector3.Zero, Color.Green, Quaternion.Identity, Vector3.One);
 
             if (EditorHelpers.KeysDown[(int)Keys.W])
                 _camera.Move(0f, 0f, 1);
@@ -389,7 +395,7 @@ namespace WindViewer.Forms
 
                 foreach (var chunk in kvPair.Value)
                 {
-                    if(chunk.ChunkLayer != EditorHelpers.EntityLayer.DefaultLayer && chunk.ChunkLayer != _selectedEntityLayer)
+                    if (chunk.ChunkLayer != EditorHelpers.EntityLayer.DefaultLayer && chunk.ChunkLayer != _selectedEntityLayer)
                         continue;
 
                     TreeNode curParentNode = topLevelNode;
@@ -399,7 +405,7 @@ namespace WindViewer.Forms
                     {
                         if (topLevelNodeLayer == null)
                             topLevelNodeLayer = EntityTreeview.Nodes.Add("ChunkHeaderLayer");
-                        topLevelNodeLayer.Text = "[" + chunk.ChunkName.ToUpper() + "] " + chunk.ChunkDescription + " [" + EditorHelpers.LayerIdToString(chunk.ChunkLayer)+ "]";
+                        topLevelNodeLayer.Text = "[" + chunk.ChunkName.ToUpper() + "] " + chunk.ChunkDescription + " [" + EditorHelpers.LayerIdToString(chunk.ChunkLayer) + "]";
                         topLevelNodeLayer.BackColor = EditorHelpers.LayerIdToColor(chunk.ChunkLayer);
                         curParentNode = topLevelNodeLayer;
                     }
@@ -407,7 +413,7 @@ namespace WindViewer.Forms
                     {
                         topLevelNode.Text = "[" + chunk.ChunkName.ToUpper() + "] " + chunk.ChunkDescription;
                     }
-  
+
                     string displayName = string.Empty;
                     //Now generate the name for our current node. If it doesn't have a DisplayName attribute then we'll just
                     //use an index, otherwise we'll use the display name + index.
@@ -425,7 +431,7 @@ namespace WindViewer.Forms
                     newNode.Tag = chunk;
 
 
-                    if(chunk.ChunkLayer != EditorHelpers.EntityLayer.DefaultLayer)
+                    if (chunk.ChunkLayer != EditorHelpers.EntityLayer.DefaultLayer)
                         newNode.BackColor = EditorHelpers.LayerIdToColor(chunk.ChunkLayer);
                     i++;
                 }
@@ -490,16 +496,16 @@ namespace WindViewer.Forms
 
             if (SelectedEntityFileChanged != null)
             {
-                var entData = (WindWakerEntityData) e.Node.Tag;
+                var entData = (WindWakerEntityData)e.Node.Tag;
                 _selectedEntityFile = entData;
-                
+
 
                 UpdateLayersView(); //Updates the Entity view for us.
                 SelectedEntityFileChanged(entData); //Broadcast event.
             }
         }
 
-        
+
 
         private void UpdateLayersView()
         {
@@ -523,21 +529,21 @@ namespace WindViewer.Forms
             {
                 foreach (WindWakerEntityData.BaseChunk chunk in kvPair.Value)
                 {
-                    if(validLayers.Contains(chunk.ChunkLayer))
+                    if (validLayers.Contains(chunk.ChunkLayer))
                         continue;
 
                     validLayers.Add(chunk.ChunkLayer);
                 }
             }
 
-            for(int i = validLayers.Count-1; i >= 0; i--)
+            for (int i = validLayers.Count - 1; i >= 0; i--)
             {
                 LayersListBox.Items.Add(EditorHelpers.LayerIdToString(validLayers[i]));
             }
 
             //Select the Default layer by uh... default.
-            if(LayersListBox.Items.Count > 0)
-                LayersListBox.SetSelected(LayersListBox.Items.Count-1, true);
+            if (LayersListBox.Items.Count > 0)
+                LayersListBox.SetSelected(LayersListBox.Items.Count - 1, true);
 
             LayersListBox.ResumeLayout();
             LayersListBox.EndUpdate();
@@ -545,7 +551,7 @@ namespace WindViewer.Forms
 
         private void LayersListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            _selectedEntityLayer = EditorHelpers.ConvertStringToLayerId((string)((ListBox) sender).SelectedItem);
+            _selectedEntityLayer = EditorHelpers.ConvertStringToLayerId((string)((ListBox)sender).SelectedItem);
             UpdateEntityTreeview();
         }
 
@@ -569,25 +575,25 @@ namespace WindViewer.Forms
 
                 //Find the Editor Type attribute.
                 EntEditorType editorType = null;
-                WindWakerEntityData.PlyrChunk plyr = chunk as WindWakerEntityData.PlyrChunk;;
+                WindWakerEntityData.PlyrChunk plyr = chunk as WindWakerEntityData.PlyrChunk; ;
 
                 if (chunk.GetType().IsDefined(typeof(EntEditorType), true))
                 {
                     Console.WriteLine("Yes!");
-                    editorType = (EntEditorType) chunk.GetType().GetCustomAttributes(typeof (EntEditorType), false)[0];
+                    editorType = (EntEditorType)chunk.GetType().GetCustomAttributes(typeof(EntEditorType), false)[0];
                 }
 
                 Type editType = null;
                 if (editorType == null)
                 {
-                    editType = typeof (UnsupportedEntity);
+                    editType = typeof(UnsupportedEntity);
                 }
                 else
                 {
                     editType = editorType.EditorType();
                 }
                 UserControl obj = Activator.CreateInstance(editType) as UserControl;
-                
+
 
                 obj.Dock = DockStyle.Fill;
 
@@ -620,7 +626,7 @@ namespace WindViewer.Forms
                 FileStream fs = new FileStream(saveFileDialog1.FileName, FileMode.Create);
                 BinaryWriter stream = new BinaryWriter(fs);
 
-                WindWakerEntityData.BaseChunk chunk = (WindWakerEntityData.BaseChunk) contextEntityTreeRoot.Tag;
+                WindWakerEntityData.BaseChunk chunk = (WindWakerEntityData.BaseChunk)contextEntityTreeRoot.Tag;
                 chunk.WriteData(stream);
 
                 fs.Flush();
@@ -633,7 +639,7 @@ namespace WindViewer.Forms
             string[] filePaths = EditorHelpers.ShowOpenFileDialog("Wind Waker Archives (*.arc; *.rarc)|*.arc; *.rarc|All Files (*.*)|*.*", true);
 
             //A canceled OFD returns an empty array.
-            if(filePaths.Length == 0)
+            if (filePaths.Length == 0)
                 return;
 
             //A canceled CWDRFA returns an empty string
@@ -667,7 +673,7 @@ namespace WindViewer.Forms
             if (workDirName == "")
             {
                 NewWorldspaceDialog dialog = new NewWorldspaceDialog();
-            
+
                 DialogResult result = dialog.ShowDialog();
                 if (result == DialogResult.Cancel)
                     return string.Empty;
@@ -676,21 +682,21 @@ namespace WindViewer.Forms
             }
 
 
-            
+
 
             workingDir = Path.Combine(outputFolder, worldspaceName + ".wrkDir");
             foreach (string filePath in archiveFilePaths)
             {
                 string arcExtractorFileName = Path.Combine(Application.StartupPath, "ExternalTools/arcExtract.exe");
                 string folderName = Path.Combine(workingDir, Path.GetFileNameWithoutExtension(filePath));
-                
+
                 //ArcExtractor can't seem to output to a specified location, so we're going to cheat
                 //here, and copy the arc over, then extract it, and then delete it. Yay!
                 string newFileName = Path.Combine(folderName, Path.GetFileName(filePath));
                 Directory.CreateDirectory(folderName);
                 File.Copy(filePath, newFileName);
 
-              
+
                 Console.WriteLine("Invoking external tool arcExtract on {0}", filePath);
                 ProcessStartInfo arcExtract = new ProcessStartInfo(arcExtractorFileName);
                 arcExtract.WorkingDirectory = folderName;
@@ -774,7 +780,7 @@ namespace WindViewer.Forms
                 }
                 Console.WriteLine("arcPack processes complete.");
             }
-            
+
 
             //We're going to delete the old Stage.arc and rename the Yaz0 compressed one for easier/less confusing inclusion.
             string stageFilePath = Path.Combine(_loadedWorldspaceProject.ProjectFilePath, "Stage.arc");
@@ -791,7 +797,7 @@ namespace WindViewer.Forms
                     }
                     Console.WriteLine("yaz0enc compression complete. Replacing Stage.arc with compressed file.");
                 }
-                
+
                 FileInfo fInfo = new FileInfo(stageFilePath);
                 fInfo.Replace(compressedStageFilePath, null);
             }

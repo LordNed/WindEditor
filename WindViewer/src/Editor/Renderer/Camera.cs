@@ -1,4 +1,5 @@
 ﻿using OpenTK;
+using OpenTK.Input;
 using WindViewer.Forms;
 
 namespace WindViewer.Editor
@@ -22,7 +23,11 @@ namespace WindViewer.Editor
             offset.Y += y;
 
             offset.NormalizeFast();
-            transform.Position += Vector3.Multiply(offset, MoveSpeed * MainEditor.DeltaTime);
+
+            float moveSpeed = MoveSpeed;
+            if (EditorHelpers.KeysDown[(int) Key.ShiftLeft])
+                moveSpeed *= 2;
+            transform.Position += Vector3.Multiply(offset, moveSpeed * MainEditor.DeltaTime);
         }
 
         public void Rotate(float x, float y)

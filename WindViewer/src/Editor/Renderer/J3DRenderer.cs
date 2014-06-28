@@ -17,18 +17,14 @@ namespace WindViewer.Editor.Renderer
 
         public static J3DRenderer Instance;
 
-        private readonly List<IRenderable> _renderList;
+        private List<IRenderable> _renderList;
         private Matrix4 _viewProjMatrix; //ToDo: Not a good solution.
-
-        public J3DRenderer()
-        {
-            Instance = this;
-            _renderList = new List<IRenderable>();
-        }
 
         public override void Initialize()
         {
-            CreateShader("shaders/j3d_vs.glsl", "shaders/j3d_fs.glsl");
+            Instance = this;
+            _renderList = new List<IRenderable>();
+            CreateShaderFromFile("shaders/j3d_vs.glsl", "shaders/j3d_fs.glsl");
         }
 
         public override void OnSceneUnload()
@@ -47,7 +43,7 @@ namespace WindViewer.Editor.Renderer
         }
         
 
-        protected override void CreateShader(string vertShader, string fragShader)
+        protected override void CreateShaderFromFile(string vertShader, string fragShader)
         {
             //Initialize the OpenGL Program
             _programId = GL.CreateProgram();

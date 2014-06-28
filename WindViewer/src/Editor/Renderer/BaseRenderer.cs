@@ -24,7 +24,7 @@ namespace WindViewer.Editor.Renderer
        
         public abstract void Render(Camera camera, float aspectRatio);
         public abstract void SetModelMatrix(Matrix4 matrix);
-        protected abstract void CreateShader(string vertShader, string fragShader);
+        protected abstract void CreateShaderFromFile(string vertShader, string fragShader);
 
         protected void LoadShader(string fileName, ShaderType type, int program, out int address)
         {
@@ -35,8 +35,11 @@ namespace WindViewer.Editor.Renderer
             }
             GL.CompileShader(address);
             GL.AttachShader(program, address);
-            
-            if(GL.GetError() != ErrorCode.NoError)
+
+            int compileSuccess;
+            GL.GetShader(address, ShaderParameter.CompileStatus, out compileSuccess);
+
+            if (compileSuccess == 0)
                 Console.WriteLine(GL.GetShaderInfoLog(address));
         }
 

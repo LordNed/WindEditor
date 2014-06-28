@@ -52,6 +52,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\Editor\Renderer\CubeMesh.cs" />
+    <Compile Include="src\Editor\Renderer\DebugRenderer.cs" />
     <Compile Include="src\Editor\Renderer\IRenderable.cs" />
     <Compile Include="src\Editor\Renderer\J3DRenderer.cs" />
     <Compile Include="src\Editor\Tools\IEditorTool.cs" />
@@ -435,13 +437,10 @@
     <None Include="Shaders\j3d_vs.glsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Shaders\fs_solid.glsl">
+    <None Include="Shaders\debug_fs.glsl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Shaders\fs.glsl">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Shaders\vs.glsl">
+    <None Include="Shaders\debug_vs.glsl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

@@ -2,8 +2,7 @@
 in vec4 color;
 out vec4 outputColor;
 
-void
-main()
+void main()
 {
 	outputColor = color;
 }
