@@ -370,7 +370,7 @@ namespace WindViewer.FileFormats
             {
                 Shp1Chunk.Batch batch = shp1Chunk.GetBatch(i);
 
-                Console.WriteLine("[{0}] Unk0: {5}, Attb: {6} Mtx Type: {1} #Packets {2}[{3}] Matrix Index: {4}", i, batch.MatrixType, batch.PacketCount, batch.PacketIndex, batch.FirstMatrixIndex, batch.Unknown0, batch.AttribOffset);
+                //Console.WriteLine("[{0}] Unk0: {5}, Attb: {6} Mtx Type: {1} #Packets {2}[{3}] Matrix Index: {4}", i, batch.MatrixType, batch.PacketCount, batch.PacketIndex, batch.FirstMatrixIndex, batch.Unknown0, batch.AttribOffset);
 
 
                 uint attributeCount = 0;
@@ -417,9 +417,6 @@ namespace WindViewer.FileFormats
                         primList.VertexCount = primitive.VertexCount;
                         primList.VertexStart = finalData.Count;
                         primList.DrawType = primitive.Type == PrimitiveTypes.TriangleStrip ? PrimitiveType.TriangleStrip : PrimitiveType.TriangleFan;
-
-                        if (primitive.Type != PrimitiveTypes.TriangleStrip)
-                            Console.WriteLine("not: " + primitive.Type);
 
                         _renderList[(int)i].Add(primList);
 
@@ -785,7 +782,7 @@ namespace WindViewer.FileFormats
 
                 for (ushort i = 0; i < _sectionCount; i++)
                 {
-                    Console.WriteLine("[{0}] - {1} / {2}", i, IsWeighted(i), GetIndex(i));
+                    //Console.WriteLine("[{0}] - {1} / {2}", i, IsWeighted(i), GetIndex(i));
                 }
             }
 
@@ -820,9 +817,9 @@ namespace WindViewer.FileFormats
 
                 for (ushort i = 0; i < _jointCount; i++)
                 {
-                    JntEntry jnt = GetJoint(i);
+                    /*JntEntry jnt = GetJoint(i);
                     Console.WriteLine("[{0}] - {1} / {2} ({3})", i, jnt.GetUnknown1(), jnt.GetUnknown2(),
-                        GetString(GetStringTableEntry(i)));
+                        GetString(GetStringTableEntry(i)));*/
                 }
             }
 
@@ -1341,7 +1338,7 @@ namespace WindViewer.FileFormats
             if (_textureCache.ContainsKey(j3dTextureId))
                 return _textureCache[j3dTextureId];
 
-            Console.WriteLine("Generating GL texture for id: " + j3dTextureId);
+            //Console.WriteLine("Generating GL texture for id: " + j3dTextureId);
 
             //Look up the material first.
             Mat3Chunk matChunk = GetChunkByType<Mat3Chunk>();
@@ -1357,7 +1354,7 @@ namespace WindViewer.FileFormats
                 return 0;
             }
             BinaryTextureImage image = texChunk.GetTexture(matChunk.GetMaterialIndex(textureIndex));
-            image.WriteImageToFile("image_" + matChunk.GetMaterialIndex(matData.GetTextureIndex(0)) + image.Format + ".png");
+            //image.WriteImageToFile("image_" + matChunk.GetMaterialIndex(matData.GetTextureIndex(0)) + image.Format + ".png");
 
             byte[] imageData = image.GetData();
             ushort imageWidth = image.Width;

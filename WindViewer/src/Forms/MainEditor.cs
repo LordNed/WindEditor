@@ -72,6 +72,10 @@ namespace WindViewer.Forms
             _debugRenderer = new DebugRenderer();
             _debugRenderer.Initialize();
 
+
+            DebugRenderer.DrawWireCube(Vector3.Zero, Color.Snow, Quaternion.Identity, Vector3.One);
+
+
             _glControlInitalized = true;
         }
 
@@ -350,8 +354,6 @@ namespace WindViewer.Forms
 
             _renderer.Render(_camera, (float)glControl.Width / (float)glControl.Height);
             _debugRenderer.Render(_camera, (float)glControl.Width / (float)glControl.Height);
-
-            DebugRenderer.DrawWireCube(Vector3.Zero, Color.Green, Quaternion.Identity, Vector3.One);
 
             if (EditorHelpers.KeysDown[(int)Keys.W])
                 _camera.Move(0f, 0f, 1);

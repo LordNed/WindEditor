@@ -60,9 +60,12 @@ namespace WindViewer.Editor.Renderer
             //Link shaders 
             GL.LinkProgram(_programId);
 
-            _uniformMVP = GL.GetUniformLocation(_programId, "modelview");
-            _uniformColor = GL.GetUniformLocation(_programId, "color"); //Returns -1
+            if (GL.GetError() != ErrorCode.NoError)
+                Console.WriteLine(GL.GetProgramInfoLog(_programId));
 
+            _uniformMVP = GL.GetUniformLocation(_programId, "modelview");
+            _uniformColor = GL.GetUniformLocation(_programId, "inColor");
+     
             if (GL.GetError() != ErrorCode.NoError)
                 Console.WriteLine(GL.GetProgramInfoLog(_programId));
         }

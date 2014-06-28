@@ -1,8 +1,8 @@
 ﻿#version 330
-in vec4 color;
+in vec4 outColor;
 out vec4 outputColor;
 
 void main()
 {
-	outputColor = color;
+	outputColor = outColor;
 }

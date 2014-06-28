@@ -2,7 +2,7 @@
 using OpenTK.Input;
 using WindViewer.Forms;
 
-namespace WindViewer.Editor
+namespace WindViewer.Editor.Renderer
 {
     public class Camera
     {
