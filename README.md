@@ -1,9 +1,7 @@
 Wind Editor
 ==========
-Wind Editor is a map viewer and editing toolkit for The Legend of Zelda: The Wind Waker. It is based off of the work of [@xdanieldzd](http://twitter.com/xdanieldzd)'s original "Wind Viewer". A fork of the original project can be found [here](https://github.com/pho/windviewer). Wind Editor can **currently view and edit a fair portion of the Wind Waker specific file formats**. Feature List:
+Wind Editor is a map viewer and editing toolkit for The Legend of Zelda: The Wind Waker. It is based off of the work of [@xdanieldzd](http://twitter.com/xdanieldzd)'s original "Wind Viewer". A fork of the original project can be found [here](https://github.com/pho/windviewer). Wind Editor can **currently view and edit a fair portion of the Wind Waker specific file formats**.
 
-* View Wind Waker maps.
-* View and edit entity data for Wind Waker maps.
 
 Map rendering support is rudimentary at best. It shouldn't crash while loading many maps (and if it does, grab the Wind Viewer fork linked above). Some maps have [bizzare texturing issues](http://i.imgur.com/ObV3uMH.jpg), and others (namely dungeons) show each room stacked ontop of each other. Currently all per-room and per-stage data can be viewed and edited, though there are some unknown fields that still exist for certain types of entities... that, and there's no guidelines on how to use it at all!
 
