@@ -161,7 +161,7 @@ namespace WindViewer.FileFormats
             }
         }
 
-        public class RenderData : IRenderable
+        /*public class RenderData : IRenderable
         {
             public RenderData(int vertexCount, int indexCount)
             {
@@ -180,10 +180,21 @@ namespace WindViewer.FileFormats
             {
                 return Vertexes;
             }
-        }
+
+            public override float[] GetTexCoords()
+            {
+                return new[]
+                {
+                    0f, 0f,
+                    1f, 0f,
+                    1f, 1f,
+                    0f, 1f,
+                };
+            }
+        }*/
         #endregion
 
-        public RenderData Renderable;
+        //public RenderData Renderable;
         private byte[] _byteCopy;
 
         public override void Load(byte[] data)
@@ -210,9 +221,9 @@ namespace WindViewer.FileFormats
                 for(int k = 0; k < 3; k++)
                     tris.Add(tri.Vertices[k]);
 
-                Renderable = new RenderData(verts.Count, tris.Count);
+                /*Renderable = new RenderData(verts.Count, tris.Count);
                 Renderable.Vertexes = verts.ToArray();
-                Renderable.Indexes = tris.ToArray();
+                Renderable.Indexes = tris.ToArray();*/
             }
 
             _byteCopy = data;

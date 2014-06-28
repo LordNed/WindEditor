@@ -1,18 +1,32 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Drawing.Drawing2D;
 using System.IO;
+using System.Linq;
+using System.Windows.Forms;
 using OpenTK;
+using OpenTK.Graphics.OpenGL;
 using WindViewer.Editor;
+using WindViewer.Editor.Renderer;
+using WindViewer.Forms;
 
 namespace WindViewer.FileFormats
 {
-    public class JStudioModel : BaseArchiveFile
+    /// <summary>
+    /// The behemoth of file formats, the JStudioModel. Well I think it's a JStudioModel, it's a J3D and their tools are called JStudio, 
+    /// so good enough. Anyways. It renders things.
+    /// 
+    /// Many thanks to @Drakonite, shuffle2, JMC47, Sage of Mirrors, Jasper, and phire for helping me understand the various
+    /// bits and pieces of the format, and some debugging ideas!
+    /// </summary>
+    public class JStudioModel : BaseArchiveFile, IRenderable
     {
         public enum ArrayTypes
         {
             PositionMatrixIndex, Tex0MatrixIndex, Tex1MatrixIndex, Tex2MatrixIndex, Tex3MatrixIndex,
             Tex4MatrixIndex, Tex5MatrixIndex, Tex6MatrixIndex, Tex7MatrixIndex,
-            Position, Normal, Color0, Color1, Tex0, Tex1, Tex2, Tex3, Tex4, Tex5, Tex6,Tex7,
+            Position, Normal, Color0, Color1, Tex0, Tex1, Tex2, Tex3, Tex4, Tex5, Tex6, Tex7,
             PositionMatrixArray, NormalMatrixArray, TextureMatrixArray, LitMatrixArray, NormalBinormalTangent,
             MaxAttr, NullAttr = 0xFF,
         }
@@ -20,21 +34,21 @@ namespace WindViewer.FileFormats
         public enum DataTypes
         {
             Unsigned8 = 0x0,
-            Signed8 = 0x1, 
+            Signed8 = 0x1,
             Unsigned16 = 0x2,
             Signed16 = 0x3,
             Float32 = 0x4,
-            RGBA8 = 0x5,
+            Rgba8 = 0x5,
         }
 
         public enum TextureFormats
         {
-            RGB565 = 0x0,
-            RGB888  = 0x1,
-            RGBX8 = 0x2,
-            RGBA4 = 0x3,
-            RGBA6 = 0x4,
-            RGBA8 = 0x5,
+            Rgb565 = 0x0,
+            Rgb888 = 0x1,
+            Rgbx8 = 0x2,
+            Rgba4 = 0x3,
+            Rgba6 = 0x4,
+            Rgba8 = 0x5,
         }
 
         public enum PrimitiveTypes
@@ -48,17 +62,72 @@ namespace WindViewer.FileFormats
             Quads = 0x80,
         }
 
+        public enum HierarchyDataTypes : ushort
+        {
+            Finish = 0x0, NewNode = 0x01, EndNode = 0x02,
+            Joint = 0x10, Material = 0x11, Batch = 0x12,
+        }
+
+        public class HierarchyData
+        {
+            public HierarchyDataTypes Type { get; private set; }
+            public ushort Index { get; private set; }
+
+            public void Load(byte[] data, uint offset)
+            {
+                Type = (HierarchyDataTypes)FSHelpers.Read16(data, (int)offset);
+                Index = (ushort)FSHelpers.Read16(data, (int)offset + 0x2);
+            }
+
+            public override string ToString()
+            {
+                return string.Format("{0} [{1}]", Type, Index);
+            }
+
+            public const uint Size = 4;
+        }
+
+        public class VertexFormat
+        {
+            public ArrayTypes ArrayType { get; private set; }
+            public uint ArrayCount { get; private set; }
+            public DataTypes DataType { get; private set; }
+            public byte DecimalPoint { get; private set; }
+
+            public void Load(byte[] data, uint offset)
+            {
+                ArrayType = (ArrayTypes)FSHelpers.Read32(data, (int)offset);
+                ArrayCount = (uint)FSHelpers.Read32(data, (int)offset + 4);
+                DataType = (DataTypes)FSHelpers.Read32(data, (int)offset + 8);
+                DecimalPoint = FSHelpers.Read8(data, (int)offset + 12);
+            }
+
+            public const int Size = 16;
+        }
+
+        public enum VertexDataTypes
+        {
+            Position = 0,
+            Normal = 1,
+            Color0 = 3,
+            Tex0 = 5,
+        }
+
+
         //Temp in case I fuck up
         private byte[] _origDataCache;
 
+        private List<BaseChunk> _chunkList;
 
         public override void Load(byte[] data)
         {
             _origDataCache = data;
 
+            _chunkList = new List<BaseChunk>();
+
             int dataOffset = 0;
 
-            Header header = new Header();
+            var header = new Header();
             header.Load(data, ref dataOffset);
 
             //STEP 1: We're going to load all of the data out of memory straight into the chunks that
@@ -66,8 +135,8 @@ namespace WindViewer.FileFormats
             //the Wiki is probably a better place to draw that information from.
             for (int i = 0; i < header.ChunkCount; i++)
             {
-                BaseChunk baseChunk = null;
-                
+                BaseChunk baseChunk;
+
                 //Read the first four bytes to get the tag.
                 string tagName = FSHelpers.ReadString(data, dataOffset, 4);
 
@@ -92,24 +161,323 @@ namespace WindViewer.FileFormats
                         baseChunk = new Shp1Chunk();
                         break;
                     case "TEX1":
+                        baseChunk = new Tex1Chunk();
+                        break;
                     case "MAT3":
+                        baseChunk = new Mat3Chunk();
+                        break;
                     case "ANK1":
                     default:
                         Console.WriteLine("Found unknown chunk {0}!", tagName);
-                        baseChunk = new BaseChunk();
+                        baseChunk = new DefaultChunk();
                         break;
                 }
 
                 baseChunk.Load(data, ref dataOffset);
+                _chunkList.Add(baseChunk);
             }
 
+
             //STEP 2: Once all of the data is loaded, we're going to pull different data from
-            //different chunks to transform the data into something 
+            //different chunks to transform the data into something
+            _vertData = BuildVertexArraysFromFile(data);
+
+
+            //Haaaaaaaack there goes my lung. Generate a vbo, bind and upload data.
+            GL.GenBuffers(1, out _glVbo);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(_vertData.Count * 36), _vertData.ToArray(), BufferUsageHint.StaticDraw);
+
+            _sceneGraph = BuildSceneGraphFromInfo(GetChunkByType<Inf1Chunk>());
+
+            //IterateSceneGraphRecursive(_sceneGraph);
+            J3DRenderer.Instance.AddRenderable(this);
         }
+
+        public void Bind()
+        {
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
+        }
+
+        public void Draw(BaseRenderer renderer)
+        {
+            /* Recursively iterate through the J3D scene graph to bind and draw all
+             * of the batches within the J3D model. */
+            DrawModelRecursive(_sceneGraph, renderer);
+        }
+
+        private void DrawModelRecursive(SceneGraph curNode, BaseRenderer renderer)
+        {
+            switch (curNode.NodeType)
+            {
+                case HierarchyDataTypes.Material:
+                    GL.BindTexture(TextureTarget.Texture2D, GetGLTexIdFromCache(curNode.DataIndex));
+                    break;
+
+                case HierarchyDataTypes.Batch:
+                    /* For each batch, we're going to enable the
+                         * appropriate Vertex Attributes for that batch
+                         * and set default values for vertex attribs that
+                         * the batch doesn't use, then draw all primitives
+                         * within it.*/
+                    SetVertexAttribArraysForBatch(true, curNode.DataIndex);
+
+                    foreach (var primitive in _renderList[curNode.DataIndex])
+                    {
+                        GL.DrawArrays(primitive.DrawType, primitive.VertexStart, primitive.VertexCount);
+                    }
+
+                    SetVertexAttribArraysForBatch(false, curNode.DataIndex);
+                    break;
+
+                case HierarchyDataTypes.Joint:
+                    Jnt1Chunk jnt1Chunk = GetChunkByType<Jnt1Chunk>();
+                    var joint = jnt1Chunk.GetJoint(curNode.DataIndex);
+                    Vector3 jointRot = joint.GetRotation().ToDegrees();
+
+                    Matrix4 tranMatrix = Matrix4.CreateTranslation(joint.GetTranslation());
+                    Matrix4 rotMatrix = Matrix4.CreateRotationX(jointRot.X) * Matrix4.CreateRotationY(jointRot.Y) *
+                                        Matrix4.CreateRotationZ(jointRot.Z);
+                    Matrix4 scaleMatrix = Matrix4.CreateScale(joint.GetScale());
+
+                    Matrix4 modelMatrix = tranMatrix * rotMatrix * scaleMatrix;
+
+                    renderer.SetModelMatrix(modelMatrix);
+                    break;
+            }
+
+            foreach (SceneGraph subNode in curNode.Children)
+            {
+                DrawModelRecursive(subNode, renderer);
+            }
+        }
+
+        private void SetVertexAttribArraysForBatch(bool bEnabled, ushort batchIndex)
+        {
+            Shp1Chunk shp1 = GetChunkByType<Shp1Chunk>();
+            List<Shp1Chunk.BatchAttribute> attributes = shp1.GetAttributesForBatch(batchIndex);
+
+            foreach (var attribute in attributes)
+            {
+                if (bEnabled)
+                {
+                    switch (attribute.AttribType)
+                    {
+                        case ArrayTypes.Position: GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Position); break;
+                        case ArrayTypes.Color0: GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Color); break;
+                        case ArrayTypes.Tex0: GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.TexCoord); break;
+                    }
+                }
+                else
+                {
+                    switch (attribute.AttribType)
+                    {
+                        case ArrayTypes.Position: GL.DisableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Position); break;
+                        case ArrayTypes.Color0: GL.DisableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Color); break;
+                        case ArrayTypes.Tex0: GL.DisableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.TexCoord); break;
+                    }
+                }
+            }
+        }
+
+        private SceneGraph _sceneGraph;
+
+        private SceneGraph BuildSceneGraphFromInfo(Inf1Chunk info)
+        {
+            if (info == null)
+                return null;
+
+            SceneGraph root = new SceneGraph();
+            var hierarchyData = info.GetHierarchyData();
+
+            BuildNodeRecursive(ref root, hierarchyData, 0);
+
+            return root;
+        }
+
+        private int BuildNodeRecursive(ref SceneGraph parent, List<HierarchyData> nodeList, int listIndex)
+        {
+            for (int i = listIndex; i < nodeList.Count; ++i)
+            {
+                HierarchyData node = nodeList[i];
+                SceneGraph newNode;
+
+                switch (node.Type)
+                {
+                    //If it's a new node, push down in the stack one.
+                    case HierarchyDataTypes.NewNode:
+                        newNode = new SceneGraph(node.Type, node.Index);
+                        i += BuildNodeRecursive(ref newNode, nodeList, i + 1);
+                        parent.Children.Add(newNode);
+                        break;
+
+                    //If it's the end node, we need to go up.
+                    case HierarchyDataTypes.EndNode:
+                        return i - listIndex + 1;
+
+                    //If it's a material, joint, or shape, just produce them.
+                    case HierarchyDataTypes.Material:
+                    case HierarchyDataTypes.Joint:
+                    case HierarchyDataTypes.Batch:
+                    case HierarchyDataTypes.Finish:
+                        break;
+                    default:
+                        Console.WriteLine("You broke something.");
+                        break;
+                }
+
+                //Update what we're about to add, because NewNodes can change it.
+                node = nodeList[i];
+                parent.Children.Add(new SceneGraph(node.Type, node.Index));
+            }
+
+            return 0;
+        }
+
+        private List<J3DRenderer.VertexFormatLayout> _vertData;
 
         public override void Save(BinaryWriter stream)
         {
             stream.Write(_origDataCache);
+        }
+
+        private struct PrimitiveList
+        {
+            public int VertexStart;
+            public int VertexCount;
+            public PrimitiveType DrawType;
+        }
+
+        private Dictionary<int, List<PrimitiveList>> _renderList = new Dictionary<int, List<PrimitiveList>>();
+        private int _glVbo;
+
+        public T GetChunkByType<T>() where T : class
+        {
+            return _chunkList.OfType<T>().Select(file => file).FirstOrDefault();
+        }
+
+        private List<J3DRenderer.VertexFormatLayout> BuildVertexArraysFromFile(byte[] data)
+        {
+            Vtx1Chunk vtxChunk = GetChunkByType<Vtx1Chunk>();
+            List<J3DRenderer.VertexFormatLayout> finalData = new List<J3DRenderer.VertexFormatLayout>();
+
+            Shp1Chunk shp1Chunk = GetChunkByType<Shp1Chunk>();
+            Drw1Chunk drw1Chunk = GetChunkByType<Drw1Chunk>();
+            Jnt1Chunk jnt1Chunk = GetChunkByType<Jnt1Chunk>();
+
+            //Now, let's try to get our data.
+            for (uint i = 0; i < shp1Chunk.GetBatchCount(); i++)
+            {
+                Shp1Chunk.Batch batch = shp1Chunk.GetBatch(i);
+
+                //Console.WriteLine("[{0}] Unk0: {5}, Attb: {6} Mtx Type: {1} #Packets {2}[{3}] Matrix Index: {4}", i, batch.MatrixType, batch.PacketCount, batch.PacketIndex, batch.FirstMatrixIndex, batch.Unknown0, batch.AttribOffset);
+
+
+                uint attributeCount = 0;
+                for (uint attribIndex = 0; attribIndex < 13; attribIndex++)
+                {
+                    Shp1Chunk.BatchAttribute attrib = shp1Chunk.GetAttribute(attribIndex, batch.AttribOffset);
+                    if (attrib.AttribType == ArrayTypes.NullAttr)
+                        break;
+
+                    attributeCount++;
+                }
+
+                /*bool isWeighted = drw1Chunk.IsWeighted(batch.FirstMatrixIndex);
+                if (!isWeighted)
+                {
+                    ushort jointIndex = drw1Chunk.GetIndex(batch.FirstMatrixIndex);
+                    var joint = jnt1Chunk.GetJoint(jointIndex);
+                    Console.WriteLine(joint);
+                }*/
+
+                _renderList[(int)i] = new List<PrimitiveList>();
+                for (uint p = 0; p < batch.PacketCount; p++)
+                {
+                    Shp1Chunk.BatchPacketLocation packetLoc = shp1Chunk.GetBatchPacketLocation(batch.PacketIndex + p);
+
+                    uint numPrimitiveBytesRead = packetLoc.Offset;
+
+                    while (numPrimitiveBytesRead < packetLoc.Offset + packetLoc.PacketSize)
+                    {
+                        //The data is going to be stored as:
+                        //[Primitive][Primitive.VertexCount * (AttributeType.ElementCount * sizeof(AttributeType.DataType))]
+
+                        Shp1Chunk.BatchPrimitive primitive = new Shp1Chunk.BatchPrimitive();
+                        primitive.Load(shp1Chunk._dataCopy, shp1Chunk._primitiveDataOffset + numPrimitiveBytesRead);
+                        numPrimitiveBytesRead += Shp1Chunk.BatchPrimitive.Size;
+
+                        //Game pads the chunks out with zeros, so this is signal for early break.
+                        if (primitive.Type == 0)
+                        {
+                            break;
+                        }
+
+                        var primList = new PrimitiveList();
+                        primList.VertexCount = primitive.VertexCount;
+                        primList.VertexStart = finalData.Count;
+                        primList.DrawType = primitive.Type == PrimitiveTypes.TriangleStrip ? PrimitiveType.TriangleStrip : PrimitiveType.TriangleFan;
+
+                        _renderList[(int)i].Add(primList);
+
+
+                        //Todo: that's pretty shitty too.
+
+                        //Now, for each Vertex we're going to read the right number of bytes... we're hacking it in this case
+                        //to fixed amount of 8...
+
+                        for (int vert = 0; vert < primitive.VertexCount; vert++)
+                        {
+                            J3DRenderer.VertexFormatLayout newVertex = new J3DRenderer.VertexFormatLayout();
+                            for (uint vertIndex = 0; vertIndex < attributeCount; vertIndex++)
+                            {
+                                ushort curIndex =
+                                    (ushort)FSHelpers.Read16(shp1Chunk._dataCopy, (int)(shp1Chunk._primitiveDataOffset + numPrimitiveBytesRead));
+
+                                var batchAttrib = shp1Chunk.GetAttribute(vertIndex, batch.AttribOffset);
+
+                                if (GetAttribElementSize(batchAttrib.DataType) == 1)
+                                {
+                                    curIndex =
+                                        (ushort)
+                                            FSHelpers.Read8(shp1Chunk._dataCopy,
+                                                (int)(shp1Chunk._primitiveDataOffset + numPrimitiveBytesRead));
+                                }
+
+
+                                ArrayTypes attribType = batchAttrib.AttribType;
+
+                                switch (attribType)
+                                {
+                                    case ArrayTypes.Position:
+                                        newVertex.Position = vtxChunk.GetPosition(curIndex);
+                                        break;
+                                    case ArrayTypes.Normal:
+                                        newVertex.Color = new Vector4(vtxChunk.GetNormal(curIndex, 14), 1); //temp
+                                        break;
+                                    case ArrayTypes.Color0:
+                                        newVertex.Color = vtxChunk.GetColor0(curIndex);
+                                        break;
+                                    case ArrayTypes.Tex0:
+                                        newVertex.TexCoord = vtxChunk.GetTex0(curIndex, 8);
+                                        break;
+
+
+                                }
+
+                                numPrimitiveBytesRead += GetAttribElementSize(batchAttrib.DataType);
+                            }
+
+                            //Add our vertex to our list of Vertexes
+                            finalData.Add(newVertex);
+                        }
+                    }
+                }
+
+                //Console.WriteLine("Finished batch {0}, triangleStrip count: {1}", i, _renderList.Count);
+            }
+
+            return finalData;
         }
 
         #region File Formats
@@ -152,10 +520,14 @@ namespace WindViewer.FileFormats
             public string Type;
             public int ChunkSize;
 
+            public byte[] _dataCopy;
+
             public virtual void Load(byte[] data, ref int offset)
             {
                 Type = FSHelpers.ReadString(data, offset, 4);
                 ChunkSize = FSHelpers.Read32(data, offset + 4);
+
+                _dataCopy = FSHelpers.ReadN(data, offset, ChunkSize);
             }
 
             public virtual void Save(BinaryWriter stream)
@@ -165,193 +537,407 @@ namespace WindViewer.FileFormats
             }
         }
 
+        /// <summary>
+        /// Used for undefined chunks to properly incriment the data stream
+        /// as we read in.
+        /// </summary>
+        private class DefaultChunk : BaseChunk
+        {
+            public override void Load(byte[] data, ref int offset)
+            {
+                base.Load(data, ref offset);
+
+                offset += ChunkSize;
+            }
+        }
+
         private class Inf1Chunk : BaseChunk
         {
-            public short Unknown1;
-            public int Unknown2;
-            public int VertexCount;
-            public int DataOffset;
+            /* All other chunks have a 4 byte tag, a 4 byte chunk size, and then
+             * a 2 byte "entry" count (+ 2 more bytes padding) at the start. This
+             * chunk doesn't seem to ever initialize the entry count and the only 
+             * varying data in this chunk seems uses a different method of finding
+             * the last entry. */
+            private ushort _unusedEntryCount; //Not unused, a lot of Links models have it.
+            private uint _batchCount;
+            private uint _vertexCount;
+            private uint _hierarchyDataOffset;
 
             public override void Load(byte[] data, ref int offset)
             {
                 base.Load(data, ref offset);
 
-                Unknown1 = FSHelpers.Read16(data, offset+8);
-                Unknown2 = FSHelpers.Read32(data, offset+12); //2 bytes padding after Unknown1
-                VertexCount = FSHelpers.Read32(data, offset+16);
-                DataOffset = FSHelpers.Read32(data, offset+20);
-
-                var hierarchyDataList = new List<HierarchyData>();
-                int dataOffsetCpy = DataOffset;
-
-                //Nintendo doesn't seem to define how many of these there are anywhere,
-                //so we're going to have to sort of guess at the maximum (since the struct
-                //is padded to 32 byte alignment) and then break early. Bleh.
-                int maxHierarchyData = (ChunkSize - 24)/4; //24 bytes for the header, 4 bytes per HierarchyData
-                for (int i = 0; i < maxHierarchyData; i++)
-                {
-                    HierarchyData hData = new HierarchyData();
-                    hData.Load(data, ref dataOffsetCpy);
-
-                    hierarchyDataList.Add(hData);
-
-                    //Anything after the Finish command is just "This is padding data to " padding.
-                    if (hData.Type == HierarchyData.HierarchyDataTypes.Finish)
-                        break;
-                }
+                _unusedEntryCount = (ushort)FSHelpers.Read16(data, offset + 8);
+                _batchCount = (uint)FSHelpers.Read32(data, offset + 12); //2 bytes padding after _unusedEntryCount
+                _vertexCount = (uint)FSHelpers.Read32(data, offset + 16);
+                _hierarchyDataOffset = (uint)FSHelpers.Read32(data, offset + 20);
 
                 offset += ChunkSize;
             }
 
-            //"SceneGraphRaw"
-            private class HierarchyData
+            public uint GetVertexCount()
             {
-                public enum HierarchyDataTypes : ushort
+                return _vertexCount;
+            }
+
+            public uint GetBatchCount()
+            {
+                return _batchCount;
+            }
+
+            public List<HierarchyData> GetHierarchyData()
+            {
+                var data = new List<HierarchyData>();
+                HierarchyData curNode;
+                uint readOffset = 0;
+
+                do
                 {
-                    Finish = 0x0, NewNode = 0x01, EndNode = 0x02,
-                    Joint = 0x10, Material = 0x11, Shape = 0x12,
-                }
+                    curNode = new HierarchyData();
+                    curNode.Load(_dataCopy, _hierarchyDataOffset + readOffset);
+                    data.Add(curNode);
 
-                public HierarchyDataTypes Type;
-                public ushort Index;
+                    readOffset += HierarchyData.Size;
+                } while (curNode.Type != HierarchyDataTypes.Finish);
 
-                public void Load(byte[] data, ref int offset)
-                {
-                    Type = (HierarchyDataTypes)FSHelpers.Read16(data, offset);
-                    Index = (ushort) FSHelpers.Read16(data, offset + 2);
-
-                    offset += 4;
-                }
+                return data;
             }
         }
 
         private class Vtx1Chunk : BaseChunk
         {
-            public class VertexFormat
-            {
-                public ArrayTypes ArrayType;
-                public uint ArrayCount;
-                public DataTypes DataType;
-                public byte DecimalPoint;
-
-                public void Load(byte[] data, ref int offset)
-                {
-                    ArrayType = (ArrayTypes)FSHelpers.Read32(data, offset);
-                    ArrayCount = (uint)FSHelpers.Read32(data, offset + 4);
-                    DataType = (DataTypes)FSHelpers.Read32(data, offset + 8);
-                    DecimalPoint = FSHelpers.Read8(data, offset + 12);
-
-                    offset += 16; //3 bytes padding after DecimalPoint
-                }
-            }
-
-            enum VertexDataTypes
-            {
-                Position = 0,
-                Color0 = 3,
-                Tex0 = 5,
-            }
-
-            public int DataOffset;
-            public int[] VertexDataOffsets = new int[13];
-
-            //Not part of the header
-            public List<VertexFormat> VertexFormats = new List<VertexFormat>();
+            private uint _vertexFormatsOffset;
+            private uint _positionDataOffset;
+            private uint _normalDataOffset;
+            private uint _normalBinormalTangentDataOffset; //Presumed
+            private uint _color0DataOffset;
+            private uint _color1DataOffset; //Presumed
+            private uint _tex0DataOffset;
+            private uint _tex1DataOffset; //Presumed
+            private uint _tex2DataOffset; //Presumed
+            private uint _tex3DataOffset; //Presumed
+            private uint _tex4DataOffset; //Presumed
+            private uint _tex5DataOffset; //Presumed
+            private uint _tex6DataOffset; //Presumed
+            private uint _tex7DataOffset; //Presumed
 
             public override void Load(byte[] data, ref int offset)
             {
                 base.Load(data, ref offset);
 
-                DataOffset = FSHelpers.Read32(data, offset + 0x8);
-                for (int i = 0; i < 13; i++)
-                    VertexDataOffsets[i] = FSHelpers.Read32(data, (offset + 0x8) + (i*0x4));
+                _vertexFormatsOffset = (uint)FSHelpers.Read32(data, offset + 0x8);
+                _positionDataOffset = (uint)FSHelpers.Read32(data, offset + 0xC);
+                _normalDataOffset = (uint)FSHelpers.Read32(data, offset + 0x10);
+                _normalBinormalTangentDataOffset = (uint)FSHelpers.Read32(data, offset + 0x14);
+                _color0DataOffset = (uint)FSHelpers.Read32(data, offset + 0x18);
+                _color1DataOffset = (uint)FSHelpers.Read32(data, offset + 0x1C);
+                _tex0DataOffset = (uint)FSHelpers.Read32(data, offset + 0x20);
+                _tex1DataOffset = (uint)FSHelpers.Read32(data, offset + 0x24);
+                _tex2DataOffset = (uint)FSHelpers.Read32(data, offset + 0x28);
+                _tex3DataOffset = (uint)FSHelpers.Read32(data, offset + 0x2C);
+                _tex4DataOffset = (uint)FSHelpers.Read32(data, offset + 0x30);
+                _tex5DataOffset = (uint)FSHelpers.Read32(data, offset + 0x34);
+                _tex6DataOffset = (uint)FSHelpers.Read32(data, offset + 0x38);
+                _tex7DataOffset = (uint)FSHelpers.Read32(data, offset + 0x3C);
 
-                //Load the VertexFormats 
-                int dataOffsetCpy = DataOffset;
+                offset += ChunkSize;
+            }
+
+            public VertexFormat GetVertexFormat(uint index)
+            {
+                VertexFormat vtxFmt = new VertexFormat();
+                vtxFmt.Load(_dataCopy, _vertexFormatsOffset + (index * VertexFormat.Size));
+                return vtxFmt;
+            }
+
+
+            public List<VertexFormat> GetAllVertexFormats()
+            {
+                var allFormats = new List<VertexFormat>();
                 VertexFormat vFormat;
+                uint dataOffset = _vertexFormatsOffset;
                 do
                 {
                     vFormat = new VertexFormat();
-                    vFormat.Load(data, ref dataOffsetCpy);
-                    VertexFormats.Add(vFormat);
+                    vFormat.Load(_dataCopy, dataOffset);
+                    allFormats.Add(vFormat);
+
+                    dataOffset += VertexFormat.Size;
                 } while (vFormat.ArrayType != ArrayTypes.NullAttr);
 
-                offset += ChunkSize;
-
+                return allFormats;
             }
+
+            public Vector3 GetPosition(uint index)
+            {
+                Vector3 newPos = new Vector3();
+                for (int i = 0; i < 3; i++)
+                    newPos[i] = FSHelpers.ReadFloat(_dataCopy, (int)(_positionDataOffset + (index * Vector3.SizeInBytes) + (i * 4)));
+
+                return newPos;
+            }
+
+            public Vector3 GetNormal(uint index, int decimalPlace)
+            {
+                Vector3 newNormal = new Vector3();
+                float scaleFactor = (float)Math.Pow(0.5, decimalPlace);
+
+                for (int i = 0; i < 3; i++)
+                    newNormal[i] = FSHelpers.Read16(_dataCopy,
+                        (int)(_normalDataOffset + (index * 6) + (i * 2))) * scaleFactor;
+
+                return newNormal;
+            }
+
+            public Vector4 GetColor0(int index)
+            {
+                Vector4 newColor = new Vector4();
+                for (int i = 0; i < 4; i++)
+                    newColor[i] = FSHelpers.Read8(_dataCopy, (int)_color0DataOffset + (index * 4) + i) / 255f;
+
+                return newColor;
+            }
+
+            public Vector2 GetTex0(int index, int decimalPlace)
+            {
+                Vector2 newTexCoord = new Vector2();
+                float scaleFactor = (float)Math.Pow(0.5, decimalPlace);
+
+                for (int i = 0; i < 2; i++)
+                    newTexCoord[i] = FSHelpers.Read16(_dataCopy, (int)_tex0DataOffset + (index * 4) + (i * 0x2)) * scaleFactor;
+
+                return newTexCoord;
+            }
+
         }
 
         private class Evp1Chunk : BaseChunk
         {
-            public ushort SectionCount;
-            public uint CountsArrayOffset;
-            public uint IndicesOffset;
-            public uint WeightsOffset;
-            public uint MatrixDataOffset;
+            private ushort _sectionCount; //BST has 3 
+            private uint _countsArrayOffset; //BST values: 2, 2, 2
+            private uint _indicesOffset; //BST's is 12 bytes in length. (six shorts) 06 07 00 06 00 07 (pairs?)
+            private uint _weightsOffset; //24 bytes length, 6 floats. (one per indice) (pairs + weights to each side of the pair)
+            private uint _matrixDataOffset; //3x4 float array. Indeded into by something else. 15 in BST
 
             public override void Load(byte[] data, ref int offset)
             {
                 base.Load(data, ref offset);
 
-                SectionCount = (ushort) FSHelpers.Read16(data, offset + 0x8);
-                CountsArrayOffset = (uint)FSHelpers.Read32(data, offset + 0xC);
-                IndicesOffset = (uint)FSHelpers.Read32(data, offset + 0x10);
-                WeightsOffset = (uint)FSHelpers.Read32(data, offset + 0x14);
-                MatrixDataOffset = (uint) FSHelpers.Read32(data, offset + 0x18);
+                _sectionCount = (ushort)FSHelpers.Read16(data, offset + 0x8);
+                _countsArrayOffset = (uint)FSHelpers.Read32(data, offset + 0xC);
+                _indicesOffset = (uint)FSHelpers.Read32(data, offset + 0x10);
+                _weightsOffset = (uint)FSHelpers.Read32(data, offset + 0x14);
+                _matrixDataOffset = (uint)FSHelpers.Read32(data, offset + 0x18);
 
 
                 offset += ChunkSize;
+            }
+
+            public byte GetCount(uint index)
+            {
+                return FSHelpers.Read8(_dataCopy, (int)(_countsArrayOffset + index));
+            }
+
+            public ushort GetIndex(uint index)
+            {
+                return (ushort)FSHelpers.Read16(_dataCopy, (int)(_indicesOffset + (index * 0x2)));
+            }
+
+            public float GetWeight(uint index)
+            {
+                return FSHelpers.ReadFloat(_dataCopy, (int)(_weightsOffset + (index * 0x4)));
+            }
+
+            public Matrix3x4 GetMatrix(ushort index)
+            {
+                Matrix3x4 matrix = new Matrix3x4();
+                for (int row = 0; row < 3; row++)
+                {
+                    for (int col = 0; col < 4; col++)
+                    {
+                        float rawFloat = FSHelpers.ReadFloat(_dataCopy, (int)_matrixDataOffset + (index * (3 * 4 * 4)) + ((row * 4 * 4) + (col * 4)));
+                        matrix[row, col] = (float)Math.Round(rawFloat, 4);
+                    }
+                }
+
+                return matrix;
             }
         }
 
         private class Drw1Chunk : BaseChunk
         {
-            public ushort SectionCount;
-            public uint IsWeightedOffset;
-            public uint DataOffset;
-
-            //Not part of header
-            public bool[] IsWeighted;
-            public ushort[] Data; //Related to that thing in collision perhaps?
+            private ushort _sectionCount;
+            private uint _isWeightedOffset;
+            private uint _dataOffset;
 
             public override void Load(byte[] data, ref int offset)
             {
                 base.Load(data, ref offset);
 
-                SectionCount = (ushort) FSHelpers.Read16(data, offset+ 0x8);
-                IsWeightedOffset = (uint) FSHelpers.Read32(data, offset + 0xC);
-                DataOffset = (uint) FSHelpers.Read32(data, offset + 0x10);
-
-                IsWeighted = new bool[SectionCount];
-                Data = new ushort[SectionCount];
-
-                for (int i = 0; i < SectionCount; i++)
-                {
-                    IsWeighted[i] = Convert.ToBoolean(FSHelpers.Read8(data, (int)(offset + IsWeightedOffset + i)));
-                    Data[i] = (ushort) FSHelpers.Read16(data, (int) (offset + DataOffset + (i * 2)));
-                }
+                _sectionCount = (ushort)FSHelpers.Read16(data, offset + 0x8);
+                _isWeightedOffset = (uint)FSHelpers.Read32(data, offset + 0xC);
+                _dataOffset = (uint)FSHelpers.Read32(data, offset + 0x10);
 
                 offset += ChunkSize;
+
+                for (ushort i = 0; i < _sectionCount; i++)
+                {
+                    //Console.WriteLine("[{0}] - {1} / {2}", i, IsWeighted(i), GetIndex(i));
+                }
+            }
+
+            public bool IsWeighted(ushort index)
+            {
+                return Convert.ToBoolean(FSHelpers.Read8(_dataCopy, (int)_isWeightedOffset + index));
+            }
+
+            public ushort GetIndex(ushort index)
+            {
+                return (ushort)FSHelpers.Read16(_dataCopy, (int)_dataOffset + (index * 0x2));
             }
         }
 
         private class Jnt1Chunk : BaseChunk
         {
-            public ushort SectionCount;
-            public uint EntryOffset;
-            public uint UnknownOffset;
-            public uint StringTableOffset;
+            private ushort _jointCount;
+            private uint _entryOffset;
+            private uint _stringIdTableOffset;
+            private uint _stringTableOffset;
 
             public override void Load(byte[] data, ref int offset)
             {
                 base.Load(data, ref offset);
 
-                SectionCount = (ushort) FSHelpers.Read16(data, offset + 0x8);
-                EntryOffset = (uint) FSHelpers.Read32(data, offset + 0xC);
-                UnknownOffset = (uint) FSHelpers.Read32(data, offset + 0x10);
-                StringTableOffset = (uint) FSHelpers.Read32(data, offset + 0x14);
+                _jointCount = (ushort)FSHelpers.Read16(data, offset + 0x8);
+                _entryOffset = (uint)FSHelpers.Read32(data, offset + 0xC);
+                _stringIdTableOffset = (uint)FSHelpers.Read32(data, offset + 0x10);
+                _stringTableOffset = (uint)FSHelpers.Read32(data, offset + 0x14);
 
                 offset += ChunkSize;
+
+                for (ushort i = 0; i < _jointCount; i++)
+                {
+                    /*JntEntry jnt = GetJoint(i);
+                    Console.WriteLine("[{0}] - {1} / {2} ({3})", i, jnt.GetUnknown1(), jnt.GetUnknown2(),
+                        GetString(GetStringTableEntry(i)));*/
+                }
+            }
+
+            public ushort GetUnknown(ushort index)
+            {
+                return (ushort)FSHelpers.Read16(_dataCopy, (int)_stringIdTableOffset + (index * 0x2));
+            }
+
+            public JntEntry GetJoint(ushort index)
+            {
+                JntEntry joint = new JntEntry();
+                joint.Load(_dataCopy, _entryOffset + (index * JntEntry.Size));
+
+                return joint;
+            }
+
+            public ushort GetStringIndex(ushort index)
+            {
+                return (ushort)FSHelpers.Read16(_dataCopy, (int)_stringIdTableOffset + (index * 0x2));
+            }
+
+            public ushort GetStringTableSize()
+            {
+                return (ushort)FSHelpers.Read16(_dataCopy, (int)_stringTableOffset);
+            }
+
+            public StringTableEntry GetStringTableEntry(ushort index)
+            {
+                var ste = new StringTableEntry();
+                /* String Table Header */
+                ste.UnknownIndex = (ushort)FSHelpers.Read16(_dataCopy, (int)_stringTableOffset + 0x4 + (index * 0x4));
+                ste.StringOffset = (ushort)FSHelpers.Read16(_dataCopy, (int)_stringTableOffset + 0x6 + (index * 0x4));
+
+                return ste;
+            }
+
+            public string GetString(StringTableEntry entry)
+            {
+                return FSHelpers.ReadString(_dataCopy, (int)_stringTableOffset + entry.StringOffset);
+            }
+
+            public struct StringTableEntry
+            {
+                public ushort UnknownIndex;
+                public ushort StringOffset;
+
+                public override string ToString()
+                {
+                    return string.Format("[{0}] - {1}", UnknownIndex, StringOffset);
+                }
+            }
+
+            public class JntEntry
+            {
+                private ushort _unknown1; //0 = has unknown2, bboxmin, bboxmax. 
+                private byte _unknown2; //Unknown
+                private Vector3 _scale;
+                private HalfRotation _rotation;
+                private Vector3 _translation;
+                private float _unknown3;
+                private Vector3 _boundingBoxMin;
+                private Vector3 _boundingBoxMax;
+
+                public void Load(byte[] data, uint offset)
+                {
+                    _unknown1 = (ushort)FSHelpers.Read16(data, (int)offset + 0x0);
+                    //One byte padding.
+                    _unknown2 = (byte)FSHelpers.Read16(data, (int)offset + 0x3);
+                    _scale = FSHelpers.ReadVector3(data, (int)offset + 0x4);
+                    _rotation = FSHelpers.ReadHalfRot(data, offset + 0x10);
+                    //2 bytes padding
+                    _translation = FSHelpers.ReadVector3(data, (int)offset + 0x18);
+                    _unknown3 = FSHelpers.ReadFloat(data, (int)offset + 0x24);
+                    _boundingBoxMin = FSHelpers.ReadVector3(data, (int)offset + 0x28);
+                    _boundingBoxMax = FSHelpers.ReadVector3(data, (int)offset + 0x34);
+                }
+
+                public ushort GetUnknown1()
+                {
+                    return _unknown1;
+                }
+
+                public byte GetUnknown2()
+                {
+                    return _unknown2;
+                }
+
+                public Vector3 GetScale()
+                {
+                    return _scale;
+                }
+
+                public HalfRotation GetRotation()
+                {
+                    return _rotation;
+                }
+
+                public Vector3 GetTranslation()
+                {
+                    return _translation;
+                }
+
+                public float GetUnknownFloat()
+                {
+                    return _unknown3;
+                }
+
+                public Vector3 GetBoundingBoxMin()
+                {
+                    return _boundingBoxMin;
+                }
+
+                public Vector3 GetBoundingBoxMax()
+                {
+                    return _boundingBoxMax;
+                }
+
+                public const uint Size = 64;
             }
 
         }
@@ -366,6 +952,7 @@ namespace WindViewer.FileFormats
             public class Batch
             {
                 public byte MatrixType;
+                public byte Unknown0;
                 public ushort PacketCount;
                 public ushort AttribOffset;
                 public ushort FirstMatrixIndex;
@@ -376,22 +963,23 @@ namespace WindViewer.FileFormats
                 public Vector3 BoundingBoxMax;
 
                 //Bleh
-                public List<BatchAttribute> BatchAttributes = new List<BatchAttribute>(); 
+                public List<BatchAttribute> BatchAttributes = new List<BatchAttribute>();
 
-                public void Load(byte[] data, ref int offset)
+                public void Load(byte[] data, uint offset)
                 {
-                    MatrixType = FSHelpers.Read8(data, offset);
-                    PacketCount = (ushort)FSHelpers.Read16(data, offset + 0x2);
-                    AttribOffset = (ushort)FSHelpers.Read16(data, offset + 0x4);
-                    FirstMatrixIndex = (ushort)FSHelpers.Read16(data, offset + 0x6);
-                    PacketIndex = (ushort)FSHelpers.Read16(data, offset + 0x8);
+                    MatrixType = FSHelpers.Read8(data, (int)offset);
+                    Unknown0 = FSHelpers.Read8(data, (int)offset + 1);
+                    PacketCount = (ushort)FSHelpers.Read16(data, (int)offset + 0x2);
+                    AttribOffset = (ushort)FSHelpers.Read16(data, (int)offset + 0x4);
+                    FirstMatrixIndex = (ushort)FSHelpers.Read16(data, (int)offset + 0x6);
+                    PacketIndex = (ushort)FSHelpers.Read16(data, (int)offset + 0x8);
 
-                    Unknown = FSHelpers.ReadFloat(data, offset + 0xC);
-                    BoundingBoxMin = FSHelpers.ReadVector3(data, offset + 0x10);
-                    BoundingBoxMax = FSHelpers.ReadVector3(data, offset + 0x1C);
-
-                    offset += 40;
+                    Unknown = FSHelpers.ReadFloat(data, (int)offset + 0xC);
+                    BoundingBoxMin = FSHelpers.ReadVector3(data, (int)offset + 0x10);
+                    BoundingBoxMax = FSHelpers.ReadVector3(data, (int)offset + 0x1C);
                 }
+
+                public const uint Size = 40;
             }
 
             public class BatchAttribute
@@ -399,19 +987,22 @@ namespace WindViewer.FileFormats
                 public ArrayTypes AttribType;
                 public DataTypes DataType;
 
-                public void Load(byte[] data, ref int offset)
+                public void Load(byte[] data, uint offset)
                 {
-                    AttribType = (ArrayTypes) FSHelpers.Read32(data, offset);
-                    DataType = (DataTypes) FSHelpers.Read32(data, offset + 0x4);
-
-                    offset += 0x8;
+                    AttribType = (ArrayTypes)FSHelpers.Read32(data, (int)offset);
+                    DataType = (DataTypes)FSHelpers.Read32(data, (int)offset + 0x4);
                 }
+
+                public const uint Size = 8;
             }
 
             public struct BatchPacketLocation
             {
-                public uint Size;
+                public uint PacketSize;
                 public uint Offset;
+
+                //Not part of the BPLocation header
+                public const uint Size = 8;
             }
 
             public class BatchPrimitive
@@ -419,95 +1010,429 @@ namespace WindViewer.FileFormats
                 public PrimitiveTypes Type;
                 public ushort VertexCount;
 
-                public void Load(byte[] data, int offset)
+                public void Load(byte[] data, uint offset)
                 {
-                    Type = (PrimitiveTypes)FSHelpers.Read8(data, offset);
-
-                    VertexCount = (ushort)FSHelpers.Read16(data, offset + 0x1);
+                    Type = (PrimitiveTypes)FSHelpers.Read8(data, (int)offset);
+                    VertexCount = (ushort)FSHelpers.Read16(data, (int)offset + 0x1);
                 }
+
+                public const uint Size = 3;
             }
 
-            public ushort SectionCount;
-            public uint BatchOffset;
-            public uint Unknown1Offset;
-            public uint UnknownPadding;
-            public uint AttributeOffset;
-            public uint MatrixTableOffset;
-            public uint PrimitiveDataOffset;
-            public uint MatrixDataOffset;
-            public uint PacketOffset;
-
-            //Bleh
-            public List<Batch> LoadedBatches = new List<Batch>();
+            private ushort _batchCount;
+            private uint _batchDataOffset;
+            private uint _unknownTableOffset;
+            private uint _zero;
+            private uint _attributeOffset;
+            private uint _matrixTableOffset;
+            public uint _primitiveDataOffset;
+            private uint _matrixDataOffset;
+            private uint _packetLocationOffset;
 
             public override void Load(byte[] data, ref int offset)
             {
                 base.Load(data, ref offset);
 
                 //Load information from header
-                SectionCount = (ushort) FSHelpers.Read16(data, offset + 0x8);
-                BatchOffset = (uint) FSHelpers.Read32(data, offset + 0xC);
-                Unknown1Offset = (uint) FSHelpers.Read32(data, offset + 0x10);
-                UnknownPadding = (uint) FSHelpers.Read32(data, offset + 0x14);
-                AttributeOffset = (uint) FSHelpers.Read32(data, offset + 0x18);
-                MatrixTableOffset = (uint) FSHelpers.Read32(data, offset + 0x1C);
-                PrimitiveDataOffset = (uint) FSHelpers.Read32(data, offset + 0x20);
-                MatrixDataOffset = (uint) FSHelpers.Read32(data, offset + 0x24);
-                PacketOffset = (uint) FSHelpers.Read32(data, offset + 0x28);
-
-                //Load Batches
-                int dataOffset = (int) (offset + BatchOffset);
-                for (int i = 0; i < SectionCount; i++)
-                {
-                    Batch batch = new Batch();
-                    batch.Load(data, ref dataOffset);
-
-                    //Get the Batch Attribute
-                    BatchAttribute batchAttrib = new BatchAttribute();
-                    int batchAttribOffset = (int) (offset + AttributeOffset + batch.AttribOffset); //I think AttribOffset is an index...
-                    batchAttrib.Load(data, ref batchAttribOffset);
-                    
-                    //Now get the batch's packets.
-                    for (int k = 0; k < batch.PacketCount; k++)
-                    {
-                        //Let's get the packet location
-                        BatchPacketLocation packetLoc = new BatchPacketLocation();
-                        packetLoc.Size = (uint) FSHelpers.Read32(data, (int) (offset + PacketOffset + (batch.PacketIndex*4)));
-                        packetLoc.Offset = (uint) FSHelpers.Read32(data, (int) (offset + PacketOffset + (batch.PacketIndex*4)+4));
-
-                        //Now that we know where the packet is, we can finally get the data from it.
-                        int packetReadCount = 0;
-                        int primitiveOffset = 0;
-                        while (packetReadCount < packetLoc.Size)
-                        {
-                            BatchPrimitive primitive = new BatchPrimitive();
-                            primitive.Load(data, (int)(offset + PrimitiveDataOffset + packetLoc.Offset + primitiveOffset));
-
-                            List<ushort> primitiveIndexes = new List<ushort>();
-                            //Immediately following the primitive is BatchPrimitive.VertexCount * (numElements * elementSize) bytes
-                            int primitiveDataOffset = (int)(offset + PrimitiveDataOffset + packetLoc.Offset + 3); //3 bytes for the BatchPrimitive
-                            for (int v = 0; v < primitive.VertexCount; v++)
-                            {
-                                for (int u = 0; u < 3; u++)
-                                {
-                                    primitiveIndexes.Add((ushort)FSHelpers.Read16(data, primitiveDataOffset));
-                                    primitiveDataOffset += 2;
-                                }
-                            }
-
-                            packetReadCount += primitive.VertexCount*6;
-                            primitiveOffset += primitive.VertexCount*6 + 3;
-                        }
-                    }
-
-                    LoadedBatches.Add(batch);
-                }
-
-                
+                _batchCount = (ushort)FSHelpers.Read16(data, offset + 0x8);
+                _batchDataOffset = (uint)FSHelpers.Read32(data, offset + 0xC);
+                _unknownTableOffset = (uint)FSHelpers.Read32(data, offset + 0x10);
+                _zero = (uint)FSHelpers.Read32(data, offset + 0x14);
+                _attributeOffset = (uint)FSHelpers.Read32(data, offset + 0x18);
+                _matrixTableOffset = (uint)FSHelpers.Read32(data, offset + 0x1C);
+                _primitiveDataOffset = (uint)FSHelpers.Read32(data, offset + 0x20);
+                _matrixDataOffset = (uint)FSHelpers.Read32(data, offset + 0x24);
+                _packetLocationOffset = (uint)FSHelpers.Read32(data, offset + 0x28);
 
                 offset += ChunkSize;
             }
+
+            public Batch GetBatch(uint index)
+            {
+                Batch newBatch = new Batch();
+                newBatch.Load(_dataCopy, _batchDataOffset + (index * Batch.Size));
+
+                return newBatch;
+            }
+
+            public ushort GetBatchCount()
+            {
+                return _batchCount;
+            }
+
+            public BatchPacketLocation GetBatchPacketLocation(uint index)
+            {
+                BatchPacketLocation newBp = new BatchPacketLocation();
+                newBp.PacketSize = (uint)FSHelpers.Read32(_dataCopy, (int)(_packetLocationOffset + (index * BatchPacketLocation.Size) + 0x0));
+                newBp.Offset = (uint)FSHelpers.Read32(_dataCopy, (int)(_packetLocationOffset + (index * BatchPacketLocation.Size) + 0x4));
+
+                return newBp;
+            }
+
+            public BatchAttribute GetAttribute(uint attribIndex, uint attribOffset)
+            {
+                BatchAttribute newAttrib = new BatchAttribute();
+                newAttrib.Load(_dataCopy, _attributeOffset + attribOffset + (attribIndex * BatchAttribute.Size));
+
+                return newAttrib;
+            }
+
+            public ushort GetUnknown(uint index)
+            {
+                return (ushort)FSHelpers.Read16(_dataCopy, (int)(_unknownTableOffset + (index * 0x2)));
+            }
+
+            public List<BatchAttribute> GetAttributesForBatch(ushort batchIndex)
+            {
+                Batch batch = GetBatch(batchIndex);
+                List<BatchAttribute> attribs = new List<BatchAttribute>();
+
+                BatchAttribute curAttrib;
+                uint i = 0;
+                do
+                {
+                    curAttrib = GetAttribute(i, batch.AttribOffset);
+                    attribs.Add(curAttrib);
+                    i++;
+
+                } while (curAttrib.AttribType != ArrayTypes.NullAttr);
+
+                return attribs;
+            }
         }
+
+        /// <summary>
+        /// The Tex1 chunk stores a series of BTI images within the BMD/BDL format.
+        /// The BMD/BDL also stores a string table which contains the file name for
+        /// each image. The TEX1 chunk stores _textureCount headers immediately after
+        /// the chunk, and then the data for those textures comes.
+        /// </summary>
+        private class Tex1Chunk : BaseChunk
+        {
+            private ushort _textureCount;
+            private uint _textureHeaderOffset;
+            private uint _stringTableOffset;
+
+            public override void Load(byte[] data, ref int offset)
+            {
+                base.Load(data, ref offset);
+                _textureCount = (ushort)FSHelpers.Read16(data, offset + 0x08);
+                _textureHeaderOffset = (uint)FSHelpers.Read32(data, offset + 0xC);
+                _stringTableOffset = (uint)FSHelpers.Read32(data, offset + 0x10);
+
+                offset += ChunkSize;
+            }
+
+            public BinaryTextureImage GetTexture(uint index)
+            {
+                if (index > _textureCount)
+                {
+                    new Exception("Invalid index provided to GetTexture!");
+                }
+
+                BinaryTextureImage tex = new BinaryTextureImage();
+
+                //Before load the texture we need to modify the source byte array, because reasons.
+                uint headerOffset = ((index) * 32);
+
+                tex.Load(_dataCopy, _textureHeaderOffset + headerOffset, headerOffset + 32);
+
+                return tex;
+            }
+
+            public ushort GetTextureCount()
+            {
+                return _textureCount;
+            }
+        }
+
+        private class Mat3Chunk : BaseChunk
+        {
+            private ushort _materialCount;
+            private uint _materialInitDataOffset;
+            private uint _materialIndexOffset; //"Us" ? Seems to index tex coords.
+            private uint _stringTableOffset;
+            private uint _indirectTextureOffset; //Indirect textures is using the output of of one TEV stage as tex coords for another.
+            private uint _gxCullModeOffset;
+            private uint _gxColorOffset;
+            private uint _colorChannelNumOffset; //UC?
+            private uint _colorChannelInfoOffset;
+            private uint _gxColor2Offset;
+            private uint _lightInfoOffset;
+            private uint _texGenNumberOffset; //UC?
+            private uint _texCoordInfoOffset;
+            private uint _texCoordInfo2Offset;
+            private uint _texMatrixInfoOffset;
+            private uint _texMatrix2InfoOffset;
+            private uint _texCoordOrMatrixOffset; //US? Related to _materialIndexOffsetS? Unknown.
+            private uint _tevOrderInfoOffset;
+            private uint _gxColorS10Offset; //(Signed 10-bit value)
+            private uint _gxColor3Offset;
+            private uint _tevStageNumInfoOffset; //UC?
+            private uint _tevStageInfoOffset;
+            private uint _tevSwapModeInfoOffset;
+            private uint _tevSwapModeTableInfoOffset;
+            private uint _fogInfoOffset;
+            private uint _alphaCompareInfoOffset;
+            private uint _blendInfoOffset;
+            private uint _zModeInfoOffset; //Depth mode
+            private uint _zCompareInfoOffset; //UC?
+            private uint _ditherINfoOffset;
+            private uint _nbtScaleInfoOffset;
+
+            public override void Load(byte[] data, ref int offset)
+            {
+                base.Load(data, ref offset);
+
+                _materialCount = (ushort)FSHelpers.Read16(data, offset + 0x8);
+                //Two bytes padding
+                _materialInitDataOffset = (uint)FSHelpers.Read32(data, offset + 0xC);
+                _materialIndexOffset = (uint)FSHelpers.Read32(data, offset + 0x10);
+                _stringTableOffset = (uint)FSHelpers.Read32(data, offset + 0x14);
+                _indirectTextureOffset = (uint)FSHelpers.Read32(data, offset + 0x18);
+                _gxCullModeOffset = (uint)FSHelpers.Read32(data, offset + 0x1C);
+                _gxColorOffset = (uint)FSHelpers.Read32(data, offset + 0x20);
+                _colorChannelNumOffset = (uint)FSHelpers.Read32(data, offset + 0x24);
+                _colorChannelInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x28);
+                _gxColor2Offset = (uint)FSHelpers.Read32(data, offset + 0x2C);
+                _lightInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x30);
+                _texGenNumberOffset = (uint)FSHelpers.Read32(data, offset + 0x34);
+                _texCoordInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x38);
+                _texCoordInfo2Offset = (uint)FSHelpers.Read32(data, offset + 0x3C);
+                _texMatrixInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x40);
+                _texMatrix2InfoOffset = (uint)FSHelpers.Read32(data, offset + 0x44);
+                _texCoordOrMatrixOffset = (uint)FSHelpers.Read32(data, offset + 0x48);
+                _tevOrderInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x4C);
+                _gxColorS10Offset = (uint)FSHelpers.Read32(data, offset + 0x50);
+                _gxColor3Offset = (uint)FSHelpers.Read32(data, offset + 0x54);
+                _tevStageNumInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x58);
+                _tevStageInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x5C);
+                _tevSwapModeInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x60);
+                _tevSwapModeTableInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x64);
+                _fogInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x68);
+                _alphaCompareInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x6C);
+                _blendInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x70);
+                _zModeInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x74);
+                _zCompareInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x78);
+                _ditherINfoOffset = (uint)FSHelpers.Read32(data, offset + 0x7C);
+                _nbtScaleInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x80);
+
+                offset += ChunkSize;
+
+
+                GetMaterialInitData(0);
+            }
+
+            public MaterialInitData GetMaterialInitData(uint index)
+            {
+                if (index > _materialCount)
+                    throw new Exception("Invalid MaterialInit data requested.");
+
+                MaterialInitData initData = new MaterialInitData();
+                initData.Load(_dataCopy, _materialInitDataOffset + (index * MaterialInitData.Size));
+
+                return initData;
+            }
+
+            public ushort GetMaterialIndex(uint index)
+            {
+                return (ushort)FSHelpers.Read16(_dataCopy, (int)(_texCoordOrMatrixOffset + (index * 0x2)));
+            }
+
+
+            public const int Size = 132;
+
+            public ushort GetMaterialRemapTable(ushort index)
+            {
+                return (ushort) FSHelpers.Read16(_dataCopy, (int) (_materialIndexOffset + (index*0x2)));
+            }
+        }
+
+        //ToDo: These offsets are a little bit messed up.
+        public class MaterialInitData
+        {
+            private byte _unknown1; //Read by PatchedMaterial, always 1?
+            private byte _unknown2; //Mostly 0, sometimes 2.
+            private ushort _padding1; //Always 0
+            private ushort _indirectTexturingIndex;
+            private ushort _cullModeIndex;
+            private ushort[] _ambientColorIndex = new ushort[2]; //2 ushorts
+            private ushort[] _colorChannelIndex = new ushort[4]; //4 ushorts
+            private ushort[] _materialColorIndex = new ushort[2]; //2 ushorts
+            private ushort[] _lightingIndex = new ushort[8]; //8 ushorts
+            private ushort[] _texCoordIndex = new ushort[8]; //8 ushorts
+            private ushort[] _texCoord2Index = new ushort[8]; //8 ushorts
+            private ushort[] _texMatrixIndex = new ushort[8]; //8 ushorts
+            private ushort[] _texMatrix2Index = new ushort[8]; //8 ushorts
+            private ushort[] _textureIndex = new ushort[8]; //8 ushorts (diffuse textures)
+            private ushort[] _tevConstantColorIndex = new ushort[4]; //4 ushorts
+            private byte[] _constColorSel = new byte[16]; //16 (4 * RGBA?)
+            private byte[] _constAlphaSel = new byte[16]; //16 (4 * RGBA?)
+            private ushort[] _tevOrderIndex = new ushort[16]; //16 ushorts
+            private ushort[] _tevColorIndex = new ushort[4]; //4 ushorts
+            private ushort[] _tevStageInfoIndex = new ushort[16]; //16 ushorts
+            private ushort[] _tevSwapModeInfoindex = new ushort[16]; //16 ushorts
+            private ushort[] _tevSwapModeTableInfoindex = new ushort[4]; //4 ushorts
+            private ushort[] _unconfirmedIndexes = new ushort[16]; //16 of them!
+
+            public void Load(byte[] data, uint offset)
+            {
+                _unknown1 = FSHelpers.Read8(data, (int)offset + 0x0);
+                _unknown2 = FSHelpers.Read8(data, (int)offset + 0x1);
+                _padding1 = (ushort)FSHelpers.Read16(data, (int)offset + 0x2);
+                _indirectTexturingIndex = (ushort)FSHelpers.Read16(data, (int)offset + 0x4);
+                _cullModeIndex = (ushort)FSHelpers.Read16(data, (int)offset + 0x6);
+                for (int i = 0; i < 2; i++)
+                    _ambientColorIndex[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0x8 + (i * 0x2));
+                for (int i = 0; i < 4; i++)
+                    _colorChannelIndex[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0xC + (i * 0x2));
+                for (int i = 0; i < 2; i++)
+                    _materialColorIndex[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0x14 + (i * 0x2));
+                for (int i = 0; i < 8; i++)
+                    _lightingIndex[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0x18 + (i * 0x2));
+                for (int i = 0; i < 8; i++)
+                    _texCoordIndex[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0x28 + (i * 0x2));
+                for (int i = 0; i < 8; i++)
+                    _texCoord2Index[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0x38 + (i * 0x2));
+                for (int i = 0; i < 8; i++)
+                    _texMatrixIndex[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0x48 + (i * 0x2));
+                for (int i = 0; i < 8; i++)
+                    _texMatrix2Index[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0x58 + (i * 0x2));
+                for (int i = 0; i < 8; i++)
+                    _textureIndex[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0x84 + (i * 0x2));
+                for (int i = 0; i < 4; i++)
+                    _tevConstantColorIndex[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0x94 + (i * 0x2));
+                for (int i = 0; i < 16; i++)
+                    _constColorSel[i] = FSHelpers.Read8(data, (int)offset + 0x9C + (i * 0x1));
+                for (int i = 0; i < 16; i++)
+                    _constAlphaSel[i] = FSHelpers.Read8(data, (int)offset + 0xAC + (i * 0x1));
+                for (int i = 0; i < 16; i++)
+                    _tevOrderIndex[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0xBC + (i * 0x2));
+                for (int i = 0; i < 4; i++)
+                    _tevColorIndex[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0xDC + (i * 0x2));
+                for (int i = 0; i < 16; i++)
+                    _tevStageInfoIndex[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0xE4 + (i * 0x2));
+                for (int i = 0; i < 16; i++)
+                    _tevSwapModeInfoindex[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0x104 + (i * 0x2));
+                for (int i = 0; i < 4; i++)
+                    _tevSwapModeTableInfoindex[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0x124 + (i * 0x2));
+                for (int i = 0; i < 16; i++)
+                    _unconfirmedIndexes[i] = (ushort)FSHelpers.Read16(data, (int)offset + 0x12C + (i * 0x2));
+            }
+
+            public ushort GetTextureIndex(ushort index)
+            {
+                return _textureIndex[index];
+            }
+
+            public const int Size = 332;
+        }
+
+        #endregion
+
+        #region Editor stuff to figure out later
+
+        private Dictionary<int, int> _textureCache = new Dictionary<int, int>();
+        private int GetGLTexIdFromCache(int j3dTextureId)
+        {
+            if (_textureCache.ContainsKey(j3dTextureId))
+                return _textureCache[j3dTextureId];
+
+            //Console.WriteLine("Generating GL texture for id: " + j3dTextureId);
+
+            //Look up the material first.
+            Mat3Chunk matChunk = GetChunkByType<Mat3Chunk>();
+            matChunk.GetMaterialRemapTable((ushort) j3dTextureId);
+            MaterialInitData matData = matChunk.GetMaterialInitData(matChunk.GetMaterialRemapTable((ushort) j3dTextureId));
+
+            //If the texture cache doesn't contain the ID, we're going to load it here.
+            Tex1Chunk texChunk = GetChunkByType<Tex1Chunk>();
+            ushort textureIndex = matData.GetTextureIndex(0);
+            if (textureIndex == 0xFF || textureIndex == 0xFFFF)
+            {
+                _textureCache[j3dTextureId] = 0;
+                return 0;
+            }
+            BinaryTextureImage image = texChunk.GetTexture(matChunk.GetMaterialIndex(textureIndex));
+            //image.WriteImageToFile("image_" + matChunk.GetMaterialIndex(matData.GetTextureIndex(0)) + image.Format + ".png");
+
+            byte[] imageData = image.GetData();
+            ushort imageWidth = image.Width;
+            ushort imageHeight = image.Height;
+
+            //Generate a black and white textureboard if the texture format is not supported.
+            if (imageData.Length == 0)
+            {
+                imageData = new byte[]
+                {
+                    0, 0, 0, 255, 255, 255, 255, 255,
+                    255, 255, 255, 255, 0, 0, 0, 255
+                };
+                imageWidth = 2;
+                imageHeight = 2;
+            }
+
+
+            int glTextureId;
+            GL.GenTextures(1, out glTextureId);
+            GL.BindTexture(TextureTarget.Texture2D, glTextureId);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Nearest);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Nearest);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)All.Repeat);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)All.Repeat);
+
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, imageWidth, imageHeight, 0, PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, imageData);
+
+
+            _textureCache[j3dTextureId] = glTextureId;
+            return glTextureId;
+        }
+
+        private class SceneGraph
+        {
+            public List<SceneGraph> Children;
+            public HierarchyDataTypes NodeType { get; private set; }
+            public ushort DataIndex { get; private set; }
+
+            public SceneGraph(HierarchyDataTypes type, ushort index)
+            {
+                Children = new List<SceneGraph>();
+                NodeType = type;
+                DataIndex = index;
+            }
+
+            public SceneGraph()
+            {
+                Children = new List<SceneGraph>();
+                NodeType = 0;
+                DataIndex = 0;
+            }
+
+            public override string ToString()
+            {
+                return string.Format("{0} [{1}]", NodeType, Children.Count);
+            }
+        }
+
+        private uint GetAttribElementSize(DataTypes dataType)
+        {
+            switch (dataType)
+            {
+                case DataTypes.Unsigned8:
+                case DataTypes.Signed8:
+                    return 1;
+                case DataTypes.Unsigned16:
+                case DataTypes.Signed16:
+                    return 2;
+                case DataTypes.Float32:
+                case DataTypes.Rgba8:
+                    return 4;
+            }
+
+            Console.WriteLine("Unknown attrib datatype {0}, guessing at 2!", dataType);
+            return 2;
+        }
+
         #endregion
     }
 }

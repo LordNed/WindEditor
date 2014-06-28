@@ -21,14 +21,19 @@ namespace WindViewer.Editor
             return (short)((Buffer.GetByte(data, offset) << 8) | Buffer.GetByte(data, offset + 1));
         }
 
+        public static ushort Read16Swap(byte[] data, uint offset)
+        {
+            return (ushort)((Buffer.GetByte(data, (int)offset + 1) << 8) | Buffer.GetByte(data, (int)offset));
+        }
+
         public static int Read32(byte[] data, int offset)
         {
-            if (offset + 4 > data.Length)
-            {
-                Console.WriteLine("WARNING: Read past end of data buffer!");
-                return 0;
-            }
             return ((Buffer.GetByte(data, offset) << 24) | (Buffer.GetByte(data, offset + 1) << 16) | (Buffer.GetByte(data, offset + 2) << 8) | Buffer.GetByte(data, offset + 3));
+        }
+
+        public static uint Read32Swap(byte[] data, uint offset)
+        {
+            return (uint)((Buffer.GetByte(data, (int)offset + 3) << 24) | (Buffer.GetByte(data, (int)offset + 2) << 16) | (Buffer.GetByte(data, (int)offset + 1) << 8) | Buffer.GetByte(data, (int)offset));
         }
 
         public static string ReadString(byte[] data, ref int offset)
@@ -80,6 +85,16 @@ namespace WindViewer.Editor
             return result;
         }
 
+        public static HalfRotation ReadHalfRot(byte[] data, uint offset)
+        {
+            HalfRotation rot = new HalfRotation();
+            rot.X = Read16(data, (int) offset + 0x0);
+            rot.Y = Read16(data, (int)offset + 0x2);
+            rot.Z = Read16(data, (int)offset + 0x4);
+
+            return rot;
+        }
+
         public static float ConvertIEEE754Float(UInt32 Raw)
         {
             byte[] data = new byte[4];
@@ -88,6 +103,12 @@ namespace WindViewer.Editor
             return BitConverter.ToSingle(data, 0);
         }
         #endregion
+
+        public static void Swap(ref byte b1, ref byte b2)
+        {
+            byte tmp = b1; b1 = b2; b2 = tmp;
+        }
+
         #region Writing
         public static void Write8(BinaryWriter bWriter, byte value)
         {

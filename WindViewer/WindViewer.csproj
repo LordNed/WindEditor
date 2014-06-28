@@ -52,20 +52,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="src\Editor\Tools\DebugRenderer.cs" />
+    <Compile Include="src\Editor\Renderer\CubeMesh.cs" />
+    <Compile Include="src\Editor\Renderer\DebugRenderer.cs" />
+    <Compile Include="src\Editor\Renderer\IRenderable.cs" />
+    <Compile Include="src\Editor\Renderer\J3DRenderer.cs" />
     <Compile Include="src\Editor\Tools\IEditorTool.cs" />
     <Compile Include="src\Editor\Renderer\Camera.cs" />
     <Compile Include="src\Editor\CommonClasses.cs" />
-    <Compile Include="src\Editor\Cube.cs" />
     <Compile Include="src\Editor\EditorAttributes.cs" />
     <Compile Include="src\Editor\EditorHelpers.cs" />
     <Compile Include="src\Editor\FSHelpers.cs" />
-    <Compile Include="src\Editor\Renderer\GLRenderer.cs" />
-    <Compile Include="src\Editor\Renderer\IRenderer.cs" />
+    <Compile Include="src\Editor\Renderer\BaseRenderer.cs" />
     <Compile Include="src\Editor\MathExtensions.cs" />
-    <Compile Include="src\Editor\Renderer\IRenderable.cs" />
     <Compile Include="src\Editor\Transform.cs" />
     <Compile Include="src\Editor\WorldspaceProject.cs" />
+    <Compile Include="src\FileFormats\BinaryTextureImage.cs" />
     <Compile Include="src\FileFormats\GenericArchiveData.cs" />
     <Compile Include="src\FileFormats\JStudioModel.cs" />
     <Compile Include="src\FileFormats\StaticCollisionModel.cs" />
@@ -430,13 +431,16 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <None Include="Shaders\fs_solid.glsl">
+    <None Include="Shaders\j3d_fs.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\j3d_vs.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\debug_fs.glsl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Shaders\fs.glsl">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Shaders\vs.glsl">
+    <None Include="Shaders\debug_vs.glsl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
