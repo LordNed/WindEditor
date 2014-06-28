@@ -177,7 +177,7 @@ namespace WindViewer.Forms
             exportArchivesToolStripMenuItem.Enabled = true;
             unloadWorldspaceProjectToolStripMenuItem.Enabled = true;
 
-            _loadedWorldspaceProject = new WorldspaceProject();
+            _loadedWorldspaceProject = new Editor.WindWaker.Project();
             _loadedWorldspaceProject.LoadFromDirectory(workDir);
 
             UpdateProjectFolderTreeview();

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.Eventing;
 using System.IO;
-using System.Xml.Linq;
 using GameFormatReader.Common;
 using OpenTK;
 
@@ -10,12 +8,19 @@ namespace WindViewer.FileFormats
 {
     public sealed class WwEntData
     {
+        #region Members
+
+        public List<BaseChunk> EntityData;
+ 
+        #endregion
         public WwEntData(string filePath)
         {
             if (filePath == null)
                 throw new ArgumentNullException("filePath", "filepath cannot be null");
             if (!File.Exists(filePath))
                 throw new IOException(string.Format("File {0} does not exist", filePath));
+
+            EntityData = new List<BaseChunk>();
 
             using (var reader = new EndianBinaryReader(File.OpenRead(filePath), Endian.Big))
             {
@@ -864,9 +869,11 @@ namespace WindViewer.FileFormats
 
                     reader.BaseStream.Seek(cHeader.ChunkOffset, SeekOrigin.Begin);
                     chunk.LoadData(reader);
+                    EntityData.Add(chunk);
                 }
             }
         }
+
         #endregion
     }
 }

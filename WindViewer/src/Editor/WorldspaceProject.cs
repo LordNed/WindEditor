@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using WindViewer.Editor.WindWaker;
 using WindViewer.FileFormats;
 using WindViewer.Forms;
 
@@ -36,7 +37,7 @@ namespace WindViewer.Editor
             Rooms = new List<ZArchive>();
         }
 
-        public void SaveAllArchives()
+        public virtual void SaveAllArchives()
         {
             foreach (ZArchive archive in GetAllArchives())
             {
@@ -57,7 +58,7 @@ namespace WindViewer.Editor
         /// This will create a new WorldspaceProject from an existing working directory.
         /// </summary>
         /// <param name="dirFilePath">A filepath that ends in ".wrkDir" that is the root folder of the project.</param>
-        public void LoadFromDirectory(string dirFilePath)
+        public virtual void LoadFromDirectory(string dirFilePath)
         {
             if (!Directory.Exists(dirFilePath))
                 throw new FileNotFoundException("Cannot load worldspace project from nonexistant directory!",
@@ -142,7 +143,6 @@ namespace WindViewer.Editor
                 if(arc != null)
                     arc.LoadFromDirectory(folder);
             }
-
         }
     }
 
@@ -233,6 +233,8 @@ namespace WindViewer.Editor
                 {
                     BinaryReader br = new BinaryReader(File.OpenRead(filePath));
                     BaseArchiveFile file;
+
+                    //ToDo: Shouldn't this be by extension and not by folder name?
 
                     byte[] fileData = br.ReadBytes((int)br.BaseStream.Length);
                     switch ((new DirectoryInfo(folder).Name).ToLower())

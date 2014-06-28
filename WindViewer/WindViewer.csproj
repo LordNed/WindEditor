@@ -60,8 +60,9 @@
     <Compile Include="src\Editor\Renderer\DebugRenderer.cs" />
     <Compile Include="src\Editor\Renderer\IRenderable.cs" />
     <Compile Include="src\Editor\Renderer\J3DRenderer.cs" />
-    <Compile Include="src\Editor\Room.cs" />
-    <Compile Include="src\Editor\Stage.cs" />
+    <Compile Include="src\Editor\WindWaker\Project.cs" />
+    <Compile Include="src\Editor\WindWaker\Room.cs" />
+    <Compile Include="src\Editor\WindWaker\Stage.cs" />
     <Compile Include="src\Editor\Tools\IEditorTool.cs" />
     <Compile Include="src\Editor\Renderer\Camera.cs" />
     <Compile Include="src\FileFormats\CommonClasses.cs" />
