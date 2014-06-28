@@ -42,6 +42,7 @@ namespace WindViewer.Forms
         {
             //Initialize the WinForm
             InitializeComponent();
+            KeyPreview = true;
 
             _mruMenu = new MruStripMenu(mruList, OnMruClickedHandler, _mruRegKey + "\\MRU", 6);
         }
@@ -86,26 +87,14 @@ namespace WindViewer.Forms
             RenderFrame();
         }
 
-        void glControl_Resize(object sender, EventArgs e)
-        {
-            if (!_glControlInitalized)
-                return;
-
-            glControl.Invalidate();
-        }
-
-
-
         void glControl_KeyDown(object sender, KeyEventArgs e)
         {
-            EditorHelpers.KeysDown[e.KeyValue] = true;
-
-            //Console.WriteLine("cam pos: " + _camera.transform.Position);
+            EditorHelpers.SetKeyState(e.KeyCode, true);
         }
 
         void glControl_KeyUp(object sender, KeyEventArgs e)
         {
-            EditorHelpers.KeysDown[e.KeyValue] = false;
+            EditorHelpers.SetKeyState(e.KeyCode, false);
         }
 
         void glControl_MouseDown(object sender, MouseEventArgs e)
@@ -292,21 +281,21 @@ namespace WindViewer.Forms
 
             GL.Viewport(0, 0, glControl.Width, glControl.Height);
 
+            //ToDo: Put these in a list...
             _renderer.Render(_camera, (float)glControl.Width / (float)glControl.Height);
             _debugRenderer.Render(_camera, (float)glControl.Width / (float)glControl.Height);
 
-            if (EditorHelpers.KeysDown[(int)Keys.W])
+            //ToDo: This should be moved inside the camera, camera should be an IEditorTool
+            if (EditorHelpers.GetKey(Keys.W))
                 _camera.Move(0f, 0f, 1);
-            if (EditorHelpers.KeysDown[(int)Keys.S])
+            if (EditorHelpers.GetKey(Keys.S))
                 _camera.Move(0f, 0f, -1);
-            if (EditorHelpers.KeysDown[(int)Keys.A])
+            if (EditorHelpers.GetKey(Keys.A))
                 _camera.Move(1, 0f, 0f);
-            if (EditorHelpers.KeysDown[(int)Keys.D])
+            if (EditorHelpers.GetKey(Keys.D))
                 _camera.Move(-1, 0f, 0f);
 
             glControl.SwapBuffers();
-
-
             EditorHelpers.UpdateKeysDownArray();
         }
 

@@ -127,29 +127,31 @@ namespace WindViewer.Editor
 
         public static bool GetKey(Keys key)
         {
-            return KeysDown[(int)key];
+            return _keysDown[(int)key];
         }
 
-        /*public static bool GetKeyDown(Keys key)
+        public static bool GetKeyDown(Keys key)
         {
-            return KeysDown[(int) key] && !_prevKeysDown[(int) key];
+            return _keysDown[(int) key] && !_prevKeysDown[(int) key];
         }
 
         public static bool GetKeyUp(Keys key)
         {
-            return _prevKeysDown[(int) key] && !KeysDown[(int) key];
-        }*/
-        //Bleh these don't seem to work. :(
-
-        
+            return _prevKeysDown[(int) key] && !_keysDown[(int) key];
+        }
 
         public static void UpdateKeysDownArray()
         {
-            _prevKeysDown = KeysDown;
-
+            for (int i = 0; i < 256; i++)
+                _prevKeysDown[i] = _keysDown[i];
         }
 
-        public static bool[] KeysDown = new bool[256];
+        internal static void SetKeyState(Keys keyCode, bool bPressed)
+        {
+            _keysDown[(int) keyCode] = bPressed;
+        }
+
+        private static bool[] _keysDown = new bool[256];
         private static bool[] _prevKeysDown = new bool[256];
 
         public static MouseStruct MouseState = new MouseStruct();

@@ -1,4 +1,5 @@
-﻿using OpenTK;
+﻿using System.Windows.Forms;
+using OpenTK;
 using OpenTK.Input;
 using WindViewer.Forms;
 
@@ -7,7 +8,7 @@ namespace WindViewer.Editor.Renderer
     public class Camera
     {
         public Transform transform { get; private set; }
-        public float MoveSpeed = 800f;
+        public float MoveSpeed = 1000f;
         public float MouseSensitivity = 0.1f;
 
         public Camera()
@@ -25,7 +26,7 @@ namespace WindViewer.Editor.Renderer
             offset.NormalizeFast();
 
             float moveSpeed = MoveSpeed;
-            if (EditorHelpers.KeysDown[(int) Key.ShiftLeft])
+            if (EditorHelpers.GetKey(Keys.ShiftKey))
                 moveSpeed *= 2;
             transform.Position += Vector3.Multiply(offset, moveSpeed * MainEditor.DeltaTime);
         }
