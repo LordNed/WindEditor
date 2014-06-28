@@ -195,7 +195,7 @@ namespace WindViewer.Editor
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine("Error saving file " + archiveFile.FileName + " to " + subFolder + "! Error: " + ex);
+                        Console.WriteLine("Error saving file {0} to {1}! Error: {3}", archiveFile.FileName, subFolder, ex);
                     }
                 }
             }
