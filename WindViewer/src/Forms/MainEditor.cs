@@ -10,9 +10,7 @@ using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using WindViewer.Editor;
 using WindViewer.Editor.Renderer;
-using WindViewer.FileFormats;
 using WindViewer.Forms.Dialogs;
-using WindViewer.Forms.EntityEditors;
 using WindViewer.src.Forms;
 
 namespace WindViewer.Forms
@@ -22,10 +20,6 @@ namespace WindViewer.Forms
         //Currently loaded Worldspace Project. Null if no project loaded.
         private WorldspaceProject _loadedWorldspaceProject;
 
-        //Currently selected Entity data file for Worldspace Project. Null if none selected.
-        private WindWakerEntityData _selectedEntityFile;
-        private EditorHelpers.EntityLayer _selectedEntityLayer;
-
         private Camera _camera;
 
         //Rendering stuffs
@@ -33,8 +27,6 @@ namespace WindViewer.Forms
         private DebugRenderer _debugRenderer;
 
         //Events
-        public static event Action<WindWakerEntityData> SelectedEntityFileChanged;
-        public static event Action<WindWakerEntityData.BaseChunk> SelectedEntityChanged;
         public static event Action<WorldspaceProject> WorldspaceProjectLoaded;
 
         //Misc
@@ -52,11 +44,6 @@ namespace WindViewer.Forms
             InitializeComponent();
 
             _mruMenu = new MruStripMenu(mruList, OnMruClickedHandler, _mruRegKey + "\\MRU", 6);
-
-            SelectedEntityFileChanged += delegate(WindWakerEntityData data)
-            {
-                Console.WriteLine("Changing Ent file...");
-            };
         }
 
         private void MainEditor_Load(object sender, EventArgs e)
@@ -306,45 +293,6 @@ namespace WindViewer.Forms
             DeltaTime = Program.DeltaTimeStopwatch.Elapsed.Milliseconds / 1000f;
             Time += DeltaTime;
             Program.DeltaTimeStopwatch.Restart();
-            /*toolStripStatusLabel1.Text = (1 / DeltaTime).ToString("00") + " fps.";
-
-            foreach (IEditorTool tool in _editorTools)
-            {
-                tool.PreUpdate();
-            }
-
-            //Hack...
-            /*if (_loadedWorldspaceProject != null)
-            {
-                
-                foreach (var archive in _loadedWorldspaceProject.GetAllArchives())
-                {
-                    WindWakerEntityData entData = archive.GetFileByType<WindWakerEntityData>();
-                    if (entData != null)
-                    {
-                        foreach (var kvp in entData.GetAllChunks())
-                        {
-                            foreach (WindWakerEntityData.BaseChunk chunk in kvp.Value)
-                            {
-                                var spatial = chunk as WindWakerEntityData.BaseChunkSpatial;
-                                if (spatial != null)
-                                {
-                                    Vector3 flippedZ = spatial.Transform.Position;
-                                    flippedZ.X = -flippedZ.X;
-                                    flippedZ.Z = -flippedZ.Z;
-                                    DebugRenderer.DrawWireCube(flippedZ);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            foreach (IEditorTool tool in _editorTools)
-            {
-                tool.LateUpdate();
-            }*/
-
 
             //Actual render stuff
             GL.ClearColor(Color.YellowGreen);
@@ -368,87 +316,6 @@ namespace WindViewer.Forms
 
 
             EditorHelpers.UpdateKeysDownArray();
-        }
-
-
-        private void UpdateEntityTreeview()
-        {
-            Stopwatch timer = Stopwatch.StartNew();
-            toolStripStatusLabel1.Text = "Updating Entity Treeview...";
-
-            EntityTreeview.SuspendLayout();
-            EntityTreeview.BeginUpdate();
-            EntityTreeview.Nodes.Clear();
-
-            //Early out in case we just unloaded a project.
-            if (_loadedWorldspaceProject == null || _selectedEntityFile == null)
-            {
-                EntityTreeview.ResumeLayout();
-                EntityTreeview.EndUpdate();
-                return;
-            }
-
-            foreach (var kvPair in _selectedEntityFile.GetAllChunks())
-            {
-                //This is the top-level grouping, ie: "Doors". We don't know the name yet though.
-                TreeNode topLevelNode = EntityTreeview.Nodes.Add("ChunkHeader");
-                TreeNode topLevelNodeLayer = null;
-                int i = 0;
-
-                foreach (var chunk in kvPair.Value)
-                {
-                    if (chunk.ChunkLayer != EditorHelpers.EntityLayer.DefaultLayer && chunk.ChunkLayer != _selectedEntityLayer)
-                        continue;
-
-                    TreeNode curParentNode = topLevelNode;
-
-                    //If it's a non-default layer we want to put them under a different TLN
-                    if (chunk.ChunkLayer != EditorHelpers.EntityLayer.DefaultLayer)
-                    {
-                        if (topLevelNodeLayer == null)
-                            topLevelNodeLayer = EntityTreeview.Nodes.Add("ChunkHeaderLayer");
-                        topLevelNodeLayer.Text = "[" + chunk.ChunkName.ToUpper() + "] " + chunk.ChunkDescription + " [" + EditorHelpers.LayerIdToString(chunk.ChunkLayer) + "]";
-                        topLevelNodeLayer.BackColor = EditorHelpers.LayerIdToColor(chunk.ChunkLayer);
-                        curParentNode = topLevelNodeLayer;
-                    }
-                    else
-                    {
-                        topLevelNode.Text = "[" + chunk.ChunkName.ToUpper() + "] " + chunk.ChunkDescription;
-                    }
-
-                    string displayName = string.Empty;
-                    //Now generate the name for our current node. If it doesn't have a DisplayName attribute then we'll just
-                    //use an index, otherwise we'll use the display name + index.
-                    foreach (var field in chunk.GetType().GetFields())
-                    {
-                        DisplayName dispNameAttribute =
-                            (DisplayName)Attribute.GetCustomAttribute(field, typeof(DisplayName));
-                        if (dispNameAttribute != null)
-                        {
-                            displayName = (string)field.GetValue(chunk);
-                        }
-                    }
-
-                    TreeNode newNode = curParentNode.Nodes.Add("[" + i + "] " + displayName);
-                    newNode.Tag = chunk;
-
-
-                    if (chunk.ChunkLayer != EditorHelpers.EntityLayer.DefaultLayer)
-                        newNode.BackColor = EditorHelpers.LayerIdToColor(chunk.ChunkLayer);
-                    i++;
-                }
-
-                //Some maps only have copies of things on sub-layers and not the main
-                //layer, so we're going to remove the main layer one if it hasn't been
-                //used.
-                if (topLevelNode.Text == "ChunkHeader")
-                    EntityTreeview.Nodes.Remove(topLevelNode);
-            }
-
-            EntityTreeview.EndUpdate();
-            EntityTreeview.ResumeLayout();
-            Console.WriteLine("Updating ETV took: " + timer.Elapsed);
-            toolStripStatusLabel1.Text = "Completed.";
         }
 
         private void UpdateProjectFolderTreeview()
@@ -475,15 +342,6 @@ namespace WindViewer.Forms
 
                     TreeNode fileName = folderNode.Nodes.Add(archiveFile.FileName);
                     fileName.Tag = archiveFile; //Store a reference to the archive file so we can get it later.
-
-                    if (archiveFile is WindWakerEntityData && _selectedEntityFile == null)
-                    {
-                        _selectedEntityFile = (WindWakerEntityData)archiveFile;
-                        UpdateLayersView(); //Updates the Entityview for us.
-
-                        if (SelectedEntityFileChanged != null)
-                            SelectedEntityFileChanged((WindWakerEntityData)archiveFile);
-                    }
                 }
             }
 
@@ -491,149 +349,14 @@ namespace WindViewer.Forms
             ProjectTreeview.EndUpdate();
         }
 
-        private void ProjectTreeview_AfterSelect(object sender, TreeViewEventArgs e)
-        {
-            if (!(e.Node.Tag is WindWakerEntityData))
-                return;
-
-            if (SelectedEntityFileChanged != null)
-            {
-                var entData = (WindWakerEntityData)e.Node.Tag;
-                _selectedEntityFile = entData;
-
-
-                UpdateLayersView(); //Updates the Entity view for us.
-                SelectedEntityFileChanged(entData); //Broadcast event.
-            }
-        }
-
-
-
-        private void UpdateLayersView()
-        {
-            LayersListBox.SuspendLayout();
-            LayersListBox.BeginUpdate();
-            LayersListBox.Items.Clear();
-
-            //Early out if the worldspace project is null (ie: We just unloaded the project)
-            if (_loadedWorldspaceProject == null)
-            {
-                LayersListBox.EndUpdate();
-                LayersListBox.ResumeLayout();
-
-                return;
-            }
-
-            WindWakerEntityData entData = _selectedEntityFile;
-            List<EditorHelpers.EntityLayer> validLayers = new List<EditorHelpers.EntityLayer>();
-
-            foreach (var kvPair in entData.GetAllChunks())
-            {
-                foreach (WindWakerEntityData.BaseChunk chunk in kvPair.Value)
-                {
-                    if (validLayers.Contains(chunk.ChunkLayer))
-                        continue;
-
-                    validLayers.Add(chunk.ChunkLayer);
-                }
-            }
-
-            for (int i = validLayers.Count - 1; i >= 0; i--)
-            {
-                LayersListBox.Items.Add(EditorHelpers.LayerIdToString(validLayers[i]));
-            }
-
-            //Select the Default layer by uh... default.
-            if (LayersListBox.Items.Count > 0)
-                LayersListBox.SetSelected(LayersListBox.Items.Count - 1, true);
-
-            LayersListBox.ResumeLayout();
-            LayersListBox.EndUpdate();
-        }
-
-        private void LayersListBox_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            _selectedEntityLayer = EditorHelpers.ConvertStringToLayerId((string)((ListBox)sender).SelectedItem);
-            UpdateEntityTreeview();
-        }
+        
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             //Save our MRU File List
             _mruMenu.SaveToRegistry(_mruRegKey + "\\MRU");
 
-            //ToDo: Ask if the user wants to save.
-        }
-
-        private void EntityTreeview_AfterSelect(object sender, TreeViewEventArgs e)
-        {
-            WindWakerEntityData.BaseChunk chunk = e.Node.Tag as WindWakerEntityData.BaseChunk;
-            if (chunk != null)
-            {
-                //Temp
-                e.Node.ContextMenuStrip = contextEntityTreeRoot;
-                contextEntityTreeRoot.Tag = chunk;
-
-
-                //Find the Editor Type attribute.
-                EntEditorType editorType = null;
-                WindWakerEntityData.PlyrChunk plyr = chunk as WindWakerEntityData.PlyrChunk; ;
-
-                if (chunk.GetType().IsDefined(typeof(EntEditorType), true))
-                {
-                    Console.WriteLine("Yes!");
-                    editorType = (EntEditorType)chunk.GetType().GetCustomAttributes(typeof(EntEditorType), false)[0];
-                }
-
-                Type editType = null;
-                if (editorType == null)
-                {
-                    editType = typeof(UnsupportedEntity);
-                }
-                else
-                {
-                    editType = editorType.EditorType();
-                }
-                UserControl obj = Activator.CreateInstance(editType) as UserControl;
-
-
-                obj.Dock = DockStyle.Fill;
-
-                PropertiesBox.SuspendLayout();
-                //Dispose of the control manually right now so that they un-register their event
-                //handler to MainForm::SelectedEntityChanged
-                foreach (Control control in PropertiesBox.Controls)
-                {
-                    control.Dispose();
-                }
-                PropertiesBox.Controls.Clear();
-                PropertiesBox.Controls.Add(obj);
-                PropertiesBox.ResumeLayout(true);
-
-                if (editorType != null && MainSplitter.Panel2.Width < editorType.MinEditorWidth)
-                    MainSplitter.SplitterDistance = MainSplitter.Width - editorType.MinEditorWidth;
-
-                if (SelectedEntityChanged != null)
-                    SelectedEntityChanged(chunk);
-            }
-        }
-
-        private void exportChunksOfTypeToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
-            saveFileDialog1.RestoreDirectory = true;
-
-            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
-            {
-                FileStream fs = new FileStream(saveFileDialog1.FileName, FileMode.Create);
-                BinaryWriter stream = new BinaryWriter(fs);
-
-                WindWakerEntityData.BaseChunk chunk = (WindWakerEntityData.BaseChunk)contextEntityTreeRoot.Tag;
-                chunk.WriteData(stream);
-
-                fs.Flush();
-                fs.Close();
-            }
+            //ToDo: Ask if the user wants to save when closing the application.
         }
 
         private void newFromArchiveToolStripMenuItem_Click(object sender, EventArgs e)
@@ -732,12 +455,8 @@ namespace WindViewer.Forms
         public void UnloadLoadedWorldspaceProject()
         {
             _loadedWorldspaceProject = null;
-            _selectedEntityFile = null;
-            _selectedEntityLayer = EditorHelpers.EntityLayer.DefaultLayer;
             _renderer.OnSceneUnload();
             UpdateProjectFolderTreeview();
-            UpdateEntityTreeview();
-            UpdateLayersView();
         }
 
 

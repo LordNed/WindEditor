@@ -238,9 +238,9 @@ namespace WindViewer.Editor
                             //Apparently Nintendo likes to mis-categorize files sometimes and put the wrong
                             //file format inside the wrong folder! We'll name-check dzr and dzs before loading
                             //them as they have fixed names (Room.*)
-                            if (filePath.EndsWith(".dzr") || filePath.EndsWith(".dzs"))
+                            /*if (filePath.EndsWith(".dzr") || filePath.EndsWith(".dzs"))
                                 file = new WindWakerEntityData();
-                            else
+                            else*/
                                 file = new GenericArchiveData();
                             break;
 

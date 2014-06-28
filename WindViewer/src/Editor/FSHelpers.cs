@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text;
 using OpenTK;
+using WindViewer.FileFormats;
 
 namespace WindViewer.Editor
 {

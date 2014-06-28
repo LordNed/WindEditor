@@ -198,7 +198,6 @@
             this.EntityTreeview.Name = "EntityTreeview";
             this.EntityTreeview.Size = new System.Drawing.Size(207, 284);
             this.EntityTreeview.TabIndex = 0;
-            this.EntityTreeview.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.EntityTreeview_AfterSelect);
             // 
             // groupBox2
             // 
@@ -218,7 +217,6 @@
             this.ProjectTreeview.Name = "ProjectTreeview";
             this.ProjectTreeview.Size = new System.Drawing.Size(207, 303);
             this.ProjectTreeview.TabIndex = 0;
-            this.ProjectTreeview.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.ProjectTreeview_AfterSelect);
             // 
             // PropertiesLayerSplit
             // 
@@ -270,7 +268,6 @@
             this.LayersListBox.Name = "LayersListBox";
             this.LayersListBox.Size = new System.Drawing.Size(164, 216);
             this.LayersListBox.TabIndex = 0;
-            this.LayersListBox.SelectedIndexChanged += new System.EventHandler(this.LayersListBox_SelectedIndexChanged);
             // 
             // panel1
             // 
@@ -355,7 +352,6 @@
             this.exportChunksOfTypeToolStripMenuItem.Name = "exportChunksOfTypeToolStripMenuItem";
             this.exportChunksOfTypeToolStripMenuItem.Size = new System.Drawing.Size(210, 22);
             this.exportChunksOfTypeToolStripMenuItem.Text = "&Export Chunks of Type...";
-            this.exportChunksOfTypeToolStripMenuItem.Click += new System.EventHandler(this.exportChunksOfTypeToolStripMenuItem_Click);
             // 
             // deleteAllChunksOfTypeToolStripMenuItem
             // 

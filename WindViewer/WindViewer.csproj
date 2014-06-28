@@ -58,7 +58,7 @@
     <Compile Include="src\Editor\Renderer\J3DRenderer.cs" />
     <Compile Include="src\Editor\Tools\IEditorTool.cs" />
     <Compile Include="src\Editor\Renderer\Camera.cs" />
-    <Compile Include="src\Editor\CommonClasses.cs" />
+    <Compile Include="src\FileFormats\CommonClasses.cs" />
     <Compile Include="src\Editor\EditorAttributes.cs" />
     <Compile Include="src\Editor\EditorHelpers.cs" />
     <Compile Include="src\Editor\FSHelpers.cs" />
@@ -70,7 +70,10 @@
     <Compile Include="src\FileFormats\GenericArchiveData.cs" />
     <Compile Include="src\FileFormats\JStudioModel.cs" />
     <Compile Include="src\FileFormats\StaticCollisionModel.cs" />
-    <Compile Include="src\FileFormats\WindWakerEntityData.cs" />
+    <Compile Include="src\FileFormats\WindWakerEntityData.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\FileFormats\WWEntData.cs" />
     <Compile Include="src\Forms\Dialogs\AboutWindow.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -89,180 +92,6 @@
     <Compile Include="src\Forms\Dialogs\NewWorldspaceDialog.Designer.cs">
       <DependentUpon>NewWorldspaceDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Forms\EntityEditors\ColoEditor.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\ColoEditor.Designer.cs">
-      <DependentUpon>ColoEditor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\DoorEditor.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\DoorEditor.Designer.cs">
-      <DependentUpon>DoorEditor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\DungeonMapEditor.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\DungeonMapEditor.Designer.cs">
-      <DependentUpon>DungeonMapEditor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\EnvREditor.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\EnvREditor.Designer.cs">
-      <DependentUpon>EnvREditor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\MinimapEditor.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\MinimapEditor.Designer.cs">
-      <DependentUpon>MinimapEditor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\ActorEditor.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\ActorEditor.Designer.cs">
-      <DependentUpon>ActorEditor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\CameraBehaviorEditor.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\CameraBehaviorEditor.Designer.cs">
-      <DependentUpon>CameraBehaviorEditor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\CameraWaypointEditor.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\CameraWaypointEditor.Designer.cs">
-      <DependentUpon>CameraWaypointEditor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\DungeonFloorEditor.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\DungeonFloorEditor.Designer.cs">
-      <DependentUpon>DungeonFloorEditor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\EnvironmentSoundEditor.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\EnvironmentSoundEditor.Designer.cs">
-      <DependentUpon>EnvironmentSoundEditor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\EventEditor.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\EventEditor.Designer.cs">
-      <DependentUpon>EventEditor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\ExitEditor.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\ExitEditor.Designer.cs">
-      <DependentUpon>ExitEditor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\InteriorLightEditor.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\InteriorLightEditor.Designer.cs">
-      <DependentUpon>InteriorLightEditor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\LBlankEditor.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\LBlankEditor.Designer.cs">
-      <DependentUpon>LBlankEditor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\MECOEditor.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\MECOEditor.Designer.cs">
-      <DependentUpon>MECOEditor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\MEMAEditor.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\MEMAEditor.Designer.cs">
-      <DependentUpon>MEMAEditor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\PaleEditor.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\PaleEditor.Designer.cs">
-      <DependentUpon>PaleEditor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\PathEditor.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\PathEditor.Designer.cs">
-      <DependentUpon>PathEditor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\PathWaypointEditor.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\PathWaypointEditor.Designer.cs">
-      <DependentUpon>PathWaypointEditor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\PlayerEditor.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\PlayerEditor.Designer.cs">
-      <DependentUpon>PlayerEditor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\PositionField.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\PositionField.Designer.cs">
-      <DependentUpon>PositionField.cs</DependentUpon>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\RoomEnvironmentEditor.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\RoomEnvironmentEditor.Designer.cs">
-      <DependentUpon>RoomEnvironmentEditor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\RoomPosEditor.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\RoomPosEditor.Designer.cs">
-      <DependentUpon>RoomPosEditor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\RoomVisibilityEditor.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\RoomVisibilityEditor.Designer.cs">
-      <DependentUpon>RoomVisibilityEditor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\ScaleableObjectEditor.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\ScaleableObjectEditor.Designer.cs">
-      <DependentUpon>ScaleableObjectEditor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\ShipSpawnEditor.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\ShipSpawnEditor.Designer.cs">
-      <DependentUpon>ShipSpawnEditor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\StagePropertyEditor.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\StagePropertyEditor.Designer.cs">
-      <DependentUpon>StagePropertyEditor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\TreasureChestEditor.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\TreasureChestEditor.Designer.cs">
-      <DependentUpon>TreasureChestEditor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\UnsupportedEntity.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\UnsupportedEntity.Designer.cs">
-      <DependentUpon>UnsupportedEntity.cs</DependentUpon>
-    </Compile>
     <Compile Include="src\Forms\Dialogs\FloatConverter.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -274,12 +103,6 @@
     </Compile>
     <Compile Include="src\Forms\Dialogs\InvalidRoomNumberPopup.Designer.cs">
       <DependentUpon>InvalidRoomNumberPopup.cs</DependentUpon>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\VirtEditor.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="src\Forms\EntityEditors\VirtEditor.Designer.cs">
-      <DependentUpon>VirtEditor.cs</DependentUpon>
     </Compile>
     <Compile Include="src\Forms\MainEditor.cs">
       <SubType>Form</SubType>
@@ -309,101 +132,11 @@
     <EmbeddedResource Include="src\Forms\Dialogs\NewWorldspaceDialog.resx">
       <DependentUpon>NewWorldspaceDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\EntityEditors\ColoEditor.resx">
-      <DependentUpon>ColoEditor.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\EntityEditors\DoorEditor.resx">
-      <DependentUpon>DoorEditor.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\EntityEditors\DungeonMapEditor.resx">
-      <DependentUpon>DungeonMapEditor.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\EntityEditors\EnvREditor.resx">
-      <DependentUpon>EnvREditor.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\EntityEditors\MinimapEditor.resx">
-      <DependentUpon>MinimapEditor.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\EntityEditors\ActorEditor.resx">
-      <DependentUpon>ActorEditor.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\EntityEditors\CameraBehaviorEditor.resx">
-      <DependentUpon>CameraBehaviorEditor.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\EntityEditors\CameraWaypointEditor.resx">
-      <DependentUpon>CameraWaypointEditor.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\EntityEditors\DungeonFloorEditor.resx">
-      <DependentUpon>DungeonFloorEditor.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\EntityEditors\EnvironmentSoundEditor.resx">
-      <DependentUpon>EnvironmentSoundEditor.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\EntityEditors\EventEditor.resx">
-      <DependentUpon>EventEditor.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\EntityEditors\ExitEditor.resx">
-      <DependentUpon>ExitEditor.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\EntityEditors\InteriorLightEditor.resx">
-      <DependentUpon>InteriorLightEditor.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\EntityEditors\LBlankEditor.resx">
-      <DependentUpon>LBlankEditor.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\EntityEditors\MECOEditor.resx">
-      <DependentUpon>MECOEditor.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\EntityEditors\MEMAEditor.resx">
-      <DependentUpon>MEMAEditor.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\EntityEditors\PaleEditor.resx">
-      <DependentUpon>PaleEditor.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\EntityEditors\PathEditor.resx">
-      <DependentUpon>PathEditor.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\EntityEditors\PathWaypointEditor.resx">
-      <DependentUpon>PathWaypointEditor.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\EntityEditors\PlayerEditor.resx">
-      <DependentUpon>PlayerEditor.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\EntityEditors\PositionField.resx">
-      <DependentUpon>PositionField.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\EntityEditors\RoomEnvironmentEditor.resx">
-      <DependentUpon>RoomEnvironmentEditor.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\EntityEditors\RoomPosEditor.resx">
-      <DependentUpon>RoomPosEditor.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\EntityEditors\RoomVisibilityEditor.resx">
-      <DependentUpon>RoomVisibilityEditor.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\EntityEditors\ScaleableObjectEditor.resx">
-      <DependentUpon>ScaleableObjectEditor.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\EntityEditors\ShipSpawnEditor.resx">
-      <DependentUpon>ShipSpawnEditor.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\EntityEditors\StagePropertyEditor.resx">
-      <DependentUpon>StagePropertyEditor.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\EntityEditors\TreasureChestEditor.resx">
-      <DependentUpon>TreasureChestEditor.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\EntityEditors\UnsupportedEntity.resx">
-      <DependentUpon>UnsupportedEntity.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\Dialogs\FloatConverter.resx">
       <DependentUpon>FloatConverter.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\Dialogs\InvalidRoomNumberPopup.resx">
       <DependentUpon>InvalidRoomNumberPopup.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="src\Forms\EntityEditors\VirtEditor.resx">
-      <DependentUpon>VirtEditor.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\MainEditor.resx">
       <DependentUpon>MainEditor.cs</DependentUpon>

@@ -1,14 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Windows.Forms;
 using OpenTK;
 using WindViewer.Editor;
-using WindViewer.Forms.EntityEditors;
-using WindViewer.src.Forms.EntityEditors;
 
 namespace WindViewer.FileFormats
 {
@@ -47,23 +42,13 @@ namespace WindViewer.FileFormats
 
                     switch (chunkHeader.Tag.Substring(0, 3).ToUpper())
                     {
-                        case "ENV": chunk = new EnvrChunk(); break; 
-                        case "COL": chunk = new ColoChunk(); break;
-                        case "PAL": chunk = new PaleChunk(); break;
-                        case "VIR": chunk = new VirtChunk(); break;
-                        case "SCL": chunk = new SclsChunk(); break;
-                        case "PLY": chunk = new PlyrChunk(); break;
+                        /*
                         case "RPA": chunk = new RPATChunk(); break;
                         case "PAT": chunk = new PathChunk(); break;
                         case "RPP": chunk = new RppnChunk(); break;
                         case "PPN": chunk = new PpntChunk(); break;
-                        case "SON": chunk = new SondChunk(); break;
-                        case "FIL": chunk = new FiliChunk(); break;
-                        case "MEC": chunk = new MecoChunk(); break;
-                        case "MEM": chunk = new MemaChunk(); break;
-                        case "TRE": chunk = new TresChunk(); break;
-                        case "SHI": chunk = new ShipChunk(); break;
-                        case "MUL": chunk = new MultChunk(); break;
+                         * 
+                         * 
                         case "LGH": chunk = new LghtChunk(); break;
                         case "LGT": chunk = new LgtvChunk(); break;
                         case "RAR": chunk = new RaroChunk(); break;
@@ -84,17 +69,15 @@ namespace WindViewer.FileFormats
                                 chunk.ChunkLayer = EditorHelpers.ConvertStringToLayerId(chunkHeader.Tag.ToUpper().Substring(3, 1));
                             }
                             break;
-                        case "STA": chunk = new StagChunk(); break;
                         case "RCA": chunk = new RcamChunk(); break;
                         case "CAM": chunk = new CamrChunk(); break;
-                        case "FLO": chunk = new FlorChunk(); break;
                         case "TWO": chunk = new TwoDChunk(); break;
                         case "2DM": chunk = new TwoDMAChunk(); break;
                         case "DMA": chunk = new DMAPChunk(); break;
-                        case "LBN": chunk = new LbnkChunk(); break;
-                        case "TGD": chunk = new TgdrChunk(); break;
-                        case "RTB": chunk = new RTBLChunk(); break;
-                        
+                   
+                   
+                        case "RTB": chunk = new RTBLChunk(); break;*/
+
                         default:
                             Console.WriteLine("Unsupported Chunk Tag: " + chunkHeader.Tag + " Chunk will not be saved!");
                             chunk = null;
@@ -133,7 +116,7 @@ namespace WindViewer.FileFormats
         public override void Save(BinaryWriter stream)
         {
             //Write the file header
-            FileHeader header = new FileHeader();
+            /*FileHeader header = new FileHeader();
             header.ChunkCount = _chunkList.Count;
             header.Save(stream);
 
@@ -199,7 +182,7 @@ namespace WindViewer.FileFormats
             foreach (ChunkHeader chunkHeader in chunkHeaders)
             {
                 chunkHeader.WriteData(stream);
-            }
+            }*/
         }
 
         #region File Formats
@@ -302,8 +285,9 @@ namespace WindViewer.FileFormats
             }
         }
         #endregion
-
+        
         #region Chunk Types
+        /*
         /// <summary>
         /// The Envr (short for Environment) chunk contains indexes of different color pallets
         ///  to use in different weather situations. 
@@ -1707,6 +1691,7 @@ namespace WindViewer.FileFormats
 
 
         }
+        */
         #endregion
     }
 }
