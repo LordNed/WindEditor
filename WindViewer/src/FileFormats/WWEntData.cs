@@ -269,7 +269,7 @@ namespace WindViewer.FileFormats
 
             public override void LoadData(EndianBinaryReader reader)
             {
-                DestinationName = reader.ReadString(8);
+                DestinationName = new string(reader.ReadChars(8));
                 SpawnNumber = reader.ReadByte();
                 DestinationRoomNumber = reader.ReadByte();
                 ExitType = reader.ReadByte();
@@ -306,7 +306,7 @@ namespace WindViewer.FileFormats
 
             public override void LoadData(EndianBinaryReader reader)
             {
-                Name = reader.ReadString(8);
+                Name = new string(reader.ReadChars(8));
                 EventIndex = reader.ReadByte();
                 Unknown1 = reader.ReadByte();
                 SpawnType = reader.ReadByte();
@@ -347,7 +347,7 @@ namespace WindViewer.FileFormats
 
             public override void LoadData(EndianBinaryReader reader)
             {
-                Name = reader.ReadString(8);
+                Name = new string(reader.ReadChars(8));
                 Position = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
                 Unknown1 = reader.ReadByte();
                 Unknown2 = reader.ReadByte();
@@ -453,7 +453,7 @@ namespace WindViewer.FileFormats
 
             public override void LoadData(EndianBinaryReader reader)
             {
-                Name = reader.ReadString(8);
+                Name = new string(reader.ReadChars(8));
                 Param1 = reader.ReadByte();
                 Param2 = reader.ReadByte();
                 Param3 = reader.ReadByte();
@@ -635,7 +635,7 @@ namespace WindViewer.FileFormats
 
             public override void LoadData(EndianBinaryReader reader)
             {
-                Name = reader.ReadString(8);
+                Name = new string(reader.ReadChars(8));
                 Param1 = reader.ReadByte();
                 Param2 = reader.ReadByte();
                 Param3 = reader.ReadByte();
@@ -690,7 +690,7 @@ namespace WindViewer.FileFormats
 
             public override void LoadData(EndianBinaryReader reader)
             {
-                Name = reader.ReadString(8);
+                Name = new string(reader.ReadChars(8));
                 Unknown1 = reader.ReadByte();
                 RpatIndex = reader.ReadByte();
                 Unknown2 = reader.ReadByte();
@@ -731,7 +731,7 @@ namespace WindViewer.FileFormats
             public override void LoadData(EndianBinaryReader reader)
             {
                 Unknown1 = reader.ReadByte();
-                EventName = reader.ReadString(15);
+                EventName = new string(reader.ReadChars(15));
                 Unknown2 = reader.ReadByte();
                 Unknown3 = reader.ReadByte();
                 Unknown4 = reader.ReadByte();
@@ -777,7 +777,7 @@ namespace WindViewer.FileFormats
 
             public override void LoadData(EndianBinaryReader reader)
             {
-                ObjectName = reader.ReadString(8);
+                ObjectName = new string(reader.ReadChars(8));
                 Param0 = reader.ReadByte();
                 Param1 = reader.ReadByte();
                 Param2 = reader.ReadByte();
@@ -823,7 +823,7 @@ namespace WindViewer.FileFormats
             for (uint i = 0; i < chunkCount; i++)
             {
                 var cHeader = new ChunkHeader();
-                cHeader.Tag = reader.ReadString(4);
+                cHeader.Tag = new string(reader.ReadChars(4));
                 cHeader.ChunkEntries = reader.ReadUInt32();
                 cHeader.ChunkOffset = reader.ReadUInt32();
                 chunkHeaders.Add(cHeader);
@@ -831,6 +831,8 @@ namespace WindViewer.FileFormats
 
             foreach (ChunkHeader cHeader in chunkHeaders)
             {
+                reader.BaseStream.Seek(cHeader.ChunkOffset, SeekOrigin.Begin);
+
                 for (uint elementIndex = 0; elementIndex < cHeader.ChunkEntries; elementIndex++)
                 {
                     BaseChunk chunk = null;
@@ -863,11 +865,10 @@ namespace WindViewer.FileFormats
                     if (chunk == null)
                     {
                         //throw new InvalidDataException(string.Format("Unknown chunk {0} in DZS/DZR file.", cHeader.Tag));
-                        Console.WriteLine("Unknown chunk {0} in DZS/DZR file.", cHeader.Tag);
+                        //Console.WriteLine("Unknown chunk {0} in DZS/DZR file.", cHeader.Tag);
                         continue;
                     }
-
-                    reader.BaseStream.Seek(cHeader.ChunkOffset, SeekOrigin.Begin);
+                    
                     chunk.LoadData(reader);
                     EntityData.Add(chunk);
                 }

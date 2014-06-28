@@ -185,14 +185,6 @@ namespace WindViewer.Forms
             if (!surpressMRU)
                 _mruMenu.AddFile(_loadedWorldspaceProject.ProjectFilePath);
 
-            //Temp
-            /*foreach (ZArchive archive in _loadedWorldspaceProject.GetAllArchives())
-            {
-                StaticCollisionModel scm = archive.GetFileByType<StaticCollisionModel>();
-                if(scm!=null)
-                    _collisionRenderer.AddRenderable(scm.Renderable);
-            }*/
-
             if (WorldspaceProjectLoaded != null)
                 WorldspaceProjectLoaded(_loadedWorldspaceProject);
         }

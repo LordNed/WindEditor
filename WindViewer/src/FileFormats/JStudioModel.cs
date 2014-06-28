@@ -9,6 +9,7 @@ using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using WindViewer.Editor;
 using WindViewer.Editor.Renderer;
+using WindViewer.Editor.WindWaker;
 using WindViewer.Forms;
 
 namespace WindViewer.FileFormats
@@ -234,8 +235,15 @@ namespace WindViewer.FileFormats
                     Jnt1Chunk jnt1Chunk = GetChunkByType<Jnt1Chunk>();
                     var joint = jnt1Chunk.GetJoint(curNode.DataIndex);
                     Vector3 jointRot = joint.GetRotation().ToDegrees();
+                    Vector3 translation = joint.GetTranslation();
+                    if (ParentArchive != null)
+                    {
+                        Room room = ParentArchive as Room;
+                        if (room != null)
+                            translation += new Vector3(room.Translation.X, 0, room.Translation.Y);
+                    }
 
-                    Matrix4 tranMatrix = Matrix4.CreateTranslation(joint.GetTranslation());
+                    Matrix4 tranMatrix = Matrix4.CreateTranslation(translation);
                     Matrix4 rotMatrix = Matrix4.CreateRotationX(jointRot.X) * Matrix4.CreateRotationY(jointRot.Y) *
                                         Matrix4.CreateRotationZ(jointRot.Z);
                     Matrix4 scaleMatrix = Matrix4.CreateScale(joint.GetScale());
