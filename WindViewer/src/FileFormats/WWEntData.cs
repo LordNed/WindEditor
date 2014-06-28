@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing;
 using System.IO;
 using System.Xml.Linq;
 using GameFormatReader.Common;
@@ -593,7 +594,7 @@ namespace WindViewer.FileFormats
             }
         }
 
-        public class BlankChunk : BaseChunk
+        public class LBlankChunk : BaseChunk
         {
             public byte Data;
 
@@ -670,6 +671,143 @@ namespace WindViewer.FileFormats
             }
         }
 
+        public class Actor : BaseChunk
+        {
+            public string Name;
+            public byte Unknown1;
+            public byte RpatIndex;
+            public byte Unknown2;
+            public byte BehaviorType;
+            public Vector3 Position;
+            public HalfRotation Rotation;
+
+            public ushort EnemyNumber; //Unknown purpose. Enemies are given a number here based on their position in the actor list.
+
+            public override void LoadData(EndianBinaryReader reader)
+            {
+                Name = reader.ReadString(8);
+                Unknown1 = reader.ReadByte();
+                RpatIndex = reader.ReadByte();
+                Unknown2 = reader.ReadByte();
+                BehaviorType = reader.ReadByte();
+                Position = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+                Rotation = new HalfRotation(reader);
+                EnemyNumber = reader.ReadUInt16();
+            }
+
+            public override void WriteData(EndianBinaryWriter writer)
+            {
+                writer.Write(Name, 8);
+                writer.Write(Unknown1);
+                writer.Write(RpatIndex);
+                writer.Write(Unknown2);
+                writer.Write(BehaviorType);
+                writer.Write(Position.X);
+                writer.Write(Position.Y);
+                writer.Write(Position.Z);
+                Rotation.Write(writer);
+                writer.Write(EnemyNumber);
+            }
+        }
+
+        public class EnvironmentEvent : BaseChunk
+        {
+            public byte Unknown1;
+            public string EventName;
+            public byte Unknown2;
+            public byte Unknown3;
+            public byte Unknown4;
+            public byte Unknown5;
+            public byte RoomNumber;
+            private byte _padding1;
+            private byte _padding2;
+            private byte _padding3;
+
+            public override void LoadData(EndianBinaryReader reader)
+            {
+                Unknown1 = reader.ReadByte();
+                EventName = reader.ReadString(15);
+                Unknown2 = reader.ReadByte();
+                Unknown3 = reader.ReadByte();
+                Unknown4 = reader.ReadByte();
+                Unknown5 = reader.ReadByte();
+                RoomNumber = reader.ReadByte();
+                _padding1 = reader.ReadByte();
+                _padding2 = reader.ReadByte();
+                _padding3 = reader.ReadByte();
+
+            }
+
+            public override void WriteData(EndianBinaryWriter writer)
+            {
+                writer.Write(Unknown1);
+                writer.Write(EventName, 15);
+                writer.Write(Unknown2);
+                writer.Write(Unknown3);
+                writer.Write(Unknown4);
+                writer.Write(Unknown5);
+                writer.Write(RoomNumber);
+                writer.Write(_padding1);
+                writer.Write(_padding2);
+                writer.Write(_padding3);
+            }
+        }
+
+        public class ScaleableActor : BaseChunk
+        {
+            public string ObjectName; //Always 8 bytes
+            public byte Param0;
+            public byte Param1;
+            public byte Param2;
+            public byte Param3; //Params are context-sensitive. They differ between objects.
+            public Vector3 Position;
+            public ushort TextId; //Only objects that call up text use this, contains TextID
+            public HalfRotationSingle Rotation;
+            public ushort Unknown1;
+            public ushort Unknown2; //May be padding? Always seems to be FF FF
+            public byte ScaleX;
+            public byte ScaleY;
+            public byte ScaleZ;
+            private byte _padding;
+
+            public override void LoadData(EndianBinaryReader reader)
+            {
+                ObjectName = reader.ReadString(8);
+                Param0 = reader.ReadByte();
+                Param1 = reader.ReadByte();
+                Param2 = reader.ReadByte();
+                Param3 = reader.ReadByte();
+                Position = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+                TextId = reader.ReadUInt16();
+                Rotation = new HalfRotationSingle(reader);
+                Unknown1 = reader.ReadUInt16();
+                Unknown2 = reader.ReadUInt16();
+                ScaleX = reader.ReadByte();
+                ScaleY = reader.ReadByte();
+                ScaleZ = reader.ReadByte();
+                _padding = reader.ReadByte();
+            }
+
+            public override void WriteData(EndianBinaryWriter writer)
+            {
+                writer.Write(ObjectName, 8);
+                writer.Write(Param0);
+                writer.Write(Param1);
+                writer.Write(Param2);
+                writer.Write(Param3);
+                writer.Write(Position.X);
+                writer.Write(Position.Y);
+                writer.Write(Position.Z);
+                writer.Write(TextId);
+                Rotation.Write(writer);
+                writer.Write(Unknown1);
+                writer.Write(Unknown2);
+                writer.Write(ScaleX);
+                writer.Write(ScaleY);
+                writer.Write(ScaleZ);
+                writer.Write(_padding);
+            }
+        }
         #endregion
 
         #region Private Methods
@@ -708,8 +846,13 @@ namespace WindViewer.FileFormats
                         case "MUL": chunk = new RoomTransform(); break;
                         case "STA": chunk = new StageSettings(); break;
                         case "FLO": chunk = new DungeonFloor(); break;
-                        case "LBN": chunk = new BlankChunk(); break;
+                        case "LBN": chunk = new LBlankChunk(); break;
                         case "TGD": chunk = new RoomDoor(); break;
+                        case "EVN": chunk = new EnvironmentEvent(); break;
+                        //ACTR
+                        //SCOB
+
+                        //ToDo: RPA, PAT, RPP, PPN, LGH, LGT, RAR, ARO, TGO, RCA, CAM, TWO, 2DM, DMA
                     }
 
                     if (chunk == null)
