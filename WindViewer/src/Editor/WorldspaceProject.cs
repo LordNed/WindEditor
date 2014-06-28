@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Windows.Forms;
 using WindViewer.FileFormats;
 using WindViewer.Forms;
 
@@ -45,11 +46,11 @@ namespace WindViewer.Editor
 
         public List<ZArchive> GetAllArchives()
         {
-            List<ZArchive> archive = new List<ZArchive>(Rooms);
+            List<ZArchive> archives = new List<ZArchive>(Rooms);
             if (Stage != null)
-                archive.Add(Stage);
+                archives.Add(Stage);
 
-            return archive;
+            return archives;
         }
 
         /// <summary>
@@ -74,22 +75,24 @@ namespace WindViewer.Editor
             //We'll generate a ZArchive for each subfolder and load the ZArchive with their contents
             foreach (string folder in subFolders)
             {
-                ZArchive arc = new ZArchive();
-                arc.LoadFromDirectory(folder);
-               
+                ZArchive arc = null;
+
                 //Check to see if this is a stage (name starts with "Stage") or a Room ("Room")
                 string folderName = new DirectoryInfo(folder).Name;
-                arc.Name = folderName;
-
+                
                 if (folderName.ToLower().StartsWith("stage"))
                 {
                     Console.WriteLine("Loaded Stage for " + Name);
-                    Stage = arc;
+                    arc = new Stage();
+                    arc.Name = folderName;
                     arc.RoomNumber = -1;
+                    Stage = arc;
                 }
                 else if(folderName.ToLower().StartsWith("room"))
                 {
                     Console.WriteLine("Loading \"" + folderName + "\" as Room for " + Name);
+                    arc = new Room();
+                    arc.Name = folderName;
                     Rooms.Add(arc);
 
                     // In a 'Stage', there is data that is indexed by Room number. The actual rooms don't store
@@ -113,7 +116,7 @@ namespace WindViewer.Editor
                     {
                         //I *think* these follow the Rxx_00 pattern, where xx is the room number. _00 can change, xx might be 1 or 3, who knows!
 
-                        //We're going to use RegEx here to make sure we only grab what is between R and _00 which could be multipl.e
+                        //We're going to use RegEx here to make sure we only grab what is between R and _00 which could be multiple.
                         string[] numbers = Regex.Split(folderName.Substring(0, folderName.Length - 6), @"\D+");
                         string trimmedNumbers = String.Join("", numbers);
                         trimmedNumbers = trimmedNumbers.Trim();
@@ -122,9 +125,9 @@ namespace WindViewer.Editor
                     }
                     else
                     {
-                        InvalidRoomNumberPopup popup = new InvalidRoomNumberPopup();
+                        var popup = new InvalidRoomNumberPopup();
                         popup.SetFailedRoomDescription(folderName);
-                        popup.ShowDialog(MainEditor.ActiveForm);
+                        popup.ShowDialog(Form.ActiveForm);
 
                         roomNumber = (int)popup.roomNumberSelector.Value;
                     }
@@ -135,6 +138,9 @@ namespace WindViewer.Editor
                 {
                     Console.WriteLine("Found non-stage and non-room archive \"{0}\" in WorldspaceProject {1}!", folderName, Name);
                 }
+
+                if(arc != null)
+                    arc.LoadFromDirectory(folder);
             }
 
         }
@@ -182,7 +188,7 @@ namespace WindViewer.Editor
         /// folders and saves out each individual file.
         /// </summary>
         /// <param name="archiveRootFolder">Folder inside the WrkDir to save to, ie: "C:\...\MiniHyo\Room0\"</param>
-        public void Save(string archiveRootFolder)
+        public virtual void Save(string archiveRootFolder)
         {
             foreach (BaseArchiveFile archiveFile in _archiveFiles)
             {
@@ -210,7 +216,7 @@ namespace WindViewer.Editor
         /// (bdl, btk, dzb, dzr, dzs, dat, etc.) and load each file within them as appropriate.
         /// </summary>
         /// <param name="directory">Absolute file path to a folder containing a bdl/btk/etc. files(s).</param>
-        public void LoadFromDirectory(string directory)
+        public virtual void LoadFromDirectory(string directory)
         {
             if (!Directory.Exists(directory))
                 throw new Exception("Invalid directory specified for WorldspaceProject.");
