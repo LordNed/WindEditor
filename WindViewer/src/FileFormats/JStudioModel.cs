@@ -236,11 +236,18 @@ namespace WindViewer.FileFormats
                     var joint = jnt1Chunk.GetJoint(curNode.DataIndex);
                     Vector3 jointRot = joint.GetRotation().ToDegrees();
                     Vector3 translation = joint.GetTranslation();
+
                     if (ParentArchive != null)
                     {
-                        Room room = ParentArchive as Room;
-                        if (room != null)
-                            translation += new Vector3(room.Translation.X, 0, room.Translation.Y);
+                        if (FileName.StartsWith("model"))
+                        {
+                            Room room = ParentArchive as Room;
+                            if (room != null)
+                            {
+                                translation += new Vector3(room.Translation.X, 0, room.Translation.Y);
+                                jointRot.Y += room.Rotation.ToDegrees();
+                            }
+                        }
                     }
 
                     Matrix4 tranMatrix = Matrix4.CreateTranslation(translation);
