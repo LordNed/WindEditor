@@ -5,87 +5,85 @@ namespace WindViewer.Editor
 {
     public class Physics
     {
-        public static bool RayVsAABB(Ray ray, Vector3 bboxMin, Vector3 bboxMax, out float distance)
+        public static bool RayVsAABB(Vector3 p, Vector3 d, Vector3 bboxMin, Vector3 bboxMax, out float tmin, out Vector3 q)
         {
-            /*Vector3 dirFrac = new Vector3();
-            dirFrac.X = 1f/ray.Direction.X;
-            dirFrac.Y = 1f/ray.Direction.Y;
-            dirFrac.Z = 1f/ray.Direction.Z;
+            tmin = 0f; //Set to -float.MaxValue to get first hit on line.
+            float tmax = float.MaxValue; //Set to max distance ray can travel (for segment)
 
-            float t1 = (bboxMin.X - ray.Origin.X)*dirFrac.X;
-            float t2 = (bboxMax.X - ray.Origin.X)*dirFrac.X;
-            float t3 = (bboxMin.Y - ray.Origin.Y)*dirFrac.Y;
-            float t4 = (bboxMax.Y - ray.Origin.Y)*dirFrac.Y;
-            float t5 = (bboxMin.Z - ray.Origin.Z)*dirFrac.Z;
-            float t6 = (bboxMax.Z - ray.Origin.Z)*dirFrac.Z;
-
-            float tMin = Math.Max(Math.Max(Math.Min(t1, t2), Math.Min(t3, t4)), Math.Min(t5, t6));
-            float tMax = Math.Min(Math.Min(Math.Max(t1, t2), Math.Max(t3, t4)), Math.Max(t5, t6));
-
-            //if tMax < 0, ray is intersecting AABB, but whole AABB is behind us.
-            if (tMax < 0)
-            {
-                distance = tMax;
-                return false;
-            }
-
-            //If tmin > tmax, ray doesn't intersect AABB
-            if (tMin > tMax)
-            {
-                distance = tMax;
-                return false;
-            }
-
-            distance = tMin;
-            return true;*/
-
-            Vector3 t1 = Vector3.Zero;
-            Vector3 t2 = Vector3.Zero;
-
-            float tNear = -float.MaxValue;
-            float tFar = float.MaxValue;
-
-            //For each axis
+            //For all three slaps
             for (int i = 0; i < 3; i++)
             {
-                //If ray is parallel to plane in this direction
-                if (Math.Abs(ray.Direction[0]) < float.Epsilon)
+                if (Math.Abs(d[i]) < float.Epsilon)
                 {
-                    if ((ray.Origin[i] < bboxMin[i]) || (ray.Origin[i] > bboxMax[i]))
+                    //Ray is parallel to slab. No hit if origin not within slab.
+                    if (p[i] < bboxMin[i] || p[i] > bboxMax[i])
                     {
-                        //Parallel and outside box, no intersection possible.
-                        distance = -1;
+                        q = Vector3.Zero;
                         return false;
                     }
                 }
                 else
                 {
-                    //Ray is not parallel to a plane in that direction.
-                    t1[i] = (bboxMin[i] - ray.Origin[i])/ray.Direction[i];
-                    t2[i] = (bboxMax[i] - ray.Origin[i])/ray.Direction[i];
+                    //Compute intersection t value of ray with near and far plane of slab.
+                    float ood = 1.0f/d[i];
+                    float t1 = (bboxMin[i] - p[i])*ood;
+                    float t2 = (bboxMax[i] - p[i])*ood;
 
-                    //Ensure T1 holds intersection with near plane.
-                    if (t1[i] > t2[i])
+                    //Make t1 be intersection with near plane, t2 with far plane.
+                    if (t1 > t2)
                     {
-                        float temp = t1[i];
-                        t1[i] = t2[i];
-                        t2[i] = temp;
+                        float temp = t1;
+                        t1 = t2;
+                        t2 = temp;
                     }
 
-                    if (t1[i] > tNear)
-                        tNear = t1[i];
-                    if (t2[i] < tFar)
-                        tFar = t2[i];
+                    //Comput intersection of slab intersection intervals
+                    tmin = Math.Max(tmin, t1);
+                    tmax = Math.Min(tmax, t2);
 
-                    if ((tNear > tFar) || (tFar < 0))
+                    //Exit with no collision as soon as slab intersection becomes empty
+                    if (tmin > tmax)
                     {
-                        distance = -1;
+                        q = Vector3.Zero;
                         return false;
                     }
                 }
             }
 
-            distance = tFar - tNear;
+            //Ray intersects all three slabs. Return point q and intersection t value.
+            q = p + d*tmin;
+            return true;
+        }
+
+        public static bool RayVsAABB(Ray ray, Vector3 bMin, Vector3 bMax, out float distance)
+        {
+            float dirFracX = 1.0f/ray.Direction.X;
+            float dirFracY = 1.0f/ray.Direction.Y;
+            float dirFracZ = 1.0f/ray.Direction.Z;
+
+            float t1 = (bMin.X - ray.Origin.X)*dirFracX;
+            float t2 = (bMax.X - ray.Origin.X) * dirFracX;
+            float t3 = (bMin.Y - ray.Origin.Y) * dirFracY;
+            float t4 = (bMax.Y - ray.Origin.Y) * dirFracY;
+            float t5 = (bMin.Z - ray.Origin.Z) * dirFracZ;
+            float t6 = (bMax.Z - ray.Origin.Z) * dirFracZ;
+
+            float tmin = Math.Max(Math.Max(Math.Min(t1, t2), Math.Min(t3, t4)), Math.Min(t5, t6));
+            float tmax = Math.Min(Math.Min(Math.Max(t1, t2), Math.Max(t3, t4)), Math.Max(t5, t6));
+
+            if (tmax < 0)
+            {
+                distance = tmax;
+                return false;
+            }
+
+            if (tmin > tmax)
+            {
+                distance = tmax;
+                return false;
+            }
+
+            distance = tmin;
             return true;
         }
     }

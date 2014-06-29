@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Reflection;
 using System.Windows.Forms;
 using OpenTK;
 using OpenTK.Input;
@@ -58,42 +59,53 @@ namespace WindViewer.Editor.Renderer
             ClearColor = Color.SeaGreen;
         }
 
+        //Phr34k's Version
+        public Ray RayFromViewport(Vector3 mousePos)
+        {
+            Vector3 orig, target, dir;
+            GetViewProjMatrix();
+
+            Matrix4 invScreen = Matrix4.Invert(_viewMatrix * _projMatrix);
+            orig = UnprojectVector(invScreen, new Vector3(mousePos.X, mousePos.Y, 0f));
+            target = UnprojectVector(invScreen, new Vector3(mousePos.X, mousePos.Y, 1f));
+
+            dir = target - orig;
+            dir.Normalize();
+
+            Ray ray = new Ray();
+            ray.Origin = orig;
+            ray.Direction = dir;
+
+            return ray;
+        }
+
+        //Phr34k's Version
+        private Vector3 UnprojectVector(Matrix4 mat, Vector3 vec)
+        {
+            Vector3 ret = new Vector3();
+            ret.X = (((vec.X - 0)*2.0f)/PixelWidth) - 1.0f;
+            ret.Y = -((((vec.Y - 0) * 2.0f) / PixelHeight) - 1.0f);
+            ret.Z = (vec.Z*2.0f) - 1.0f;
+
+            return Vector3.Transform(ret, mat);
+        }
+
+        //My version (take 2)
         public Ray ViewportPointToRay(Vector3 mousePos)
         {
-            Vector4 unProject = UnProject(ref _projMatrix, _viewMatrix, new Size(PixelWidth, PixelHeight), mousePos);
-            Vector3 projPos = unProject.Xyz;
-            Vector3 startPos = Transform.Position;
+            GetViewProjMatrix();
 
-            return new Ray(Transform.Position, (projPos-startPos).Normalized());
-        }
+            Vector3 mousePosA = new Vector3(mousePos.X, mousePos.Y, -1f);
+            Vector3 mousePosB = new Vector3(mousePos.X, mousePos.Y, 1f);
 
-        public void Move(float x, float y, float z)
-        {
-            Vector3 offset = Vector3.Zero;
-            offset += Transform.Right*x;
-            offset += Transform.Forward*z;
-            offset.Y += y;
 
-            offset.NormalizeFast();
+            Vector4 nearUnproj = UnProject(ref _projMatrix, _viewMatrix, new Size(PixelWidth, PixelHeight), mousePosA);
+            Vector4 farUnproj = UnProject(ref _projMatrix, _viewMatrix, new Size(PixelWidth, PixelHeight), mousePosB);
 
-            float moveSpeed = MoveSpeed;
-            if (Input.GetKey(Keys.ShiftKey))
-                moveSpeed *= 2;
-            Transform.Position += Vector3.Multiply(offset, moveSpeed * MainEditor.DeltaTime);
-        }
+            Vector3 dir = farUnproj.Xyz - nearUnproj.Xyz;
+            dir.Normalize();
 
-        public void Rotate(float x, float y)
-        {
-            
-            Transform.Rotate(Vector3.UnitY, -x * MouseSensitivity);
-            Transform.Rotate(Transform.Right, y * MouseSensitivity);
-            Vector3 up = Vector3.Cross(Transform.Forward, Transform.Right);
-            if (Vector3.Dot(up, Vector3.UnitY) <= 0.001)
-            {
-                //rotate back if we went too far...
-                Transform.Rotate(Transform.Right, -y * MouseSensitivity);
-            }
-
+            return new Ray(nearUnproj.Xyz, dir);
         }
 
         public static Vector4 UnProject(ref Matrix4 projection, Matrix4 view, Size viewport, Vector3 mouse)
@@ -102,7 +114,7 @@ namespace WindViewer.Editor.Renderer
 
             vec.X = 2.0f * mouse.X / viewport.Width - 1;
             vec.Y = -(2.0f * mouse.Y / viewport.Height - 1);
-            vec.Z = 0;
+            vec.Z = mouse.Z;
             vec.W = 1.0f;
 
             Matrix4 viewInv = Matrix4.Invert(view);
@@ -129,6 +141,33 @@ namespace WindViewer.Editor.Renderer
             return _viewMatrix*_projMatrix;
         }
 
-        
+        public void Move(float x, float y, float z)
+        {
+            Vector3 offset = Vector3.Zero;
+            offset += Transform.Right * x;
+            offset += Transform.Forward * z;
+            offset.Y += y;
+
+            offset.NormalizeFast();
+
+            float moveSpeed = MoveSpeed;
+            if (Input.GetKey(Keys.ShiftKey))
+                moveSpeed *= 2;
+            Transform.Position += Vector3.Multiply(offset, moveSpeed * MainEditor.DeltaTime);
+        }
+
+        public void Rotate(float x, float y)
+        {
+
+            Transform.Rotate(Vector3.UnitY, -x * MouseSensitivity);
+            Transform.Rotate(Transform.Right, y * MouseSensitivity);
+            Vector3 up = Vector3.Cross(Transform.Forward, Transform.Right);
+            if (Vector3.Dot(up, Vector3.UnitY) <= 0.001)
+            {
+                //rotate back if we went too far...
+                Transform.Rotate(Transform.Right, -y * MouseSensitivity);
+            }
+
+        }
     }
 }
