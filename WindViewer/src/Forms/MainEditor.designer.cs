@@ -32,7 +32,7 @@ namespace WindViewer.Forms
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.glControl = new OpenTK.GLControl(/*new GraphicsMode(32, 24, 8, 4), 3, 3, GraphicsContextFlags.ForwardCompatible*/);
+            this.glControl = new OpenTK.GLControl(new GraphicsMode(32, 24, 8, 4), 3, 3, GraphicsContextFlags.Default);
             this.MainSplitter = new System.Windows.Forms.SplitContainer();
             this.leftColumGameSplit = new System.Windows.Forms.SplitContainer();
             this.EntitiesProjectSplit = new System.Windows.Forms.SplitContainer();

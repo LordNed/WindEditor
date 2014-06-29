@@ -56,23 +56,18 @@ namespace WindViewer.Forms
             glControl.MouseDown += Input.Internal_EventMouseDown;
             glControl.MouseMove += Input.Internal_EventMouseMove;
             glControl.MouseUp += Input.Internal_EventMouseUp;
+            glControl.Resize += Display.Internal_EventResize;
         }
 
         private void MainEditor_Load(object sender, EventArgs e)
         {
             _loadedWorldspaceProject = null;
 
-            _camera = new Camera(new Rect(glControl.Width / 2, glControl.Height, 0, 0));
+            _camera = new Camera();
             _camera.ClearColor = Color.DodgerBlue;
-
-            _camera2 = new Camera(new Rect(glControl.Width / 2, glControl.Height, glControl.Width / 2, 0));
-            _camera2.ClearColor = Color.Lime;
-            _camera2.transform.Position = new Vector3(0, 0, -500);
-            _camera2.transform.Rotate(Vector3.UnitY, 180f);
 
             _cameras = new List<Camera>();
             _cameras.Add(_camera);
-            _cameras.Add(_camera2);
 
 
             //Add our renderers to the list 
@@ -243,10 +238,9 @@ namespace WindViewer.Forms
             GL.Enable(EnableCap.ScissorTest);
             foreach (var camera in _cameras)
             {
-                
-                GL.Viewport((int)camera._rect.X, (int)camera._rect.Y, camera.PixelWidth, camera.PixelHeight);
-                GL.Scissor((int)camera._rect.X, (int)camera._rect.Y, (int)camera._rect.Width,
-                    (int)camera._rect.Height);
+
+                GL.Viewport((int)(camera.Rect.X * Display.Width), (int)(camera.Rect.Y * Display.Height), camera.PixelWidth, camera.PixelHeight);
+                GL.Scissor((int)(camera.Rect.X * Display.Width), (int)(camera.Rect.Y * Display.Height), camera.PixelWidth, camera.PixelHeight);
                 
 
                 //Actual render stuff
