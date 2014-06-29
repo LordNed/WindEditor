@@ -239,7 +239,7 @@ namespace WindViewer.FileFormats
 
                     if (ParentArchive != null)
                     {
-                        if (FileName.StartsWith("model"))
+                        if (FileName == "model.bdl")
                         {
                             Room room = ParentArchive as Room;
                             if (room != null)

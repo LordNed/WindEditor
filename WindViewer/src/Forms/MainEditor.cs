@@ -51,7 +51,7 @@ namespace WindViewer.Forms
         {
             _loadedWorldspaceProject = null;
 
-            _camera = new Camera();
+            _camera = new Camera(new Rect(glControl.Width, glControl.Height, 0, 0));
 
             //Add our renderers to the list 
             _renderer = new J3DRenderer();
@@ -279,11 +279,11 @@ namespace WindViewer.Forms
             GL.ClearColor(Color.YellowGreen);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            GL.Viewport(0, 0, glControl.Width, glControl.Height);
+            GL.Viewport(0, 0, _camera.PixelWidth, _camera.PixelHeight);
 
             //ToDo: Put these in a list...
-            _renderer.Render(_camera, (float)glControl.Width / (float)glControl.Height);
-            _debugRenderer.Render(_camera, (float)glControl.Width / (float)glControl.Height);
+            _renderer.Render(_camera, 0f);
+            _debugRenderer.Render(_camera, 0f);
 
             //ToDo: This should be moved inside the camera, camera should be an IEditorTool
             if (EditorHelpers.GetKey(Keys.W))

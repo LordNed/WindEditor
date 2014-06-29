@@ -46,23 +46,79 @@ namespace WindViewer.FileFormats
             public uint ChunkOffset;
         }
 
+        public class EnvironmentLighting : BaseChunk
+        {
+            public byte ClearColorIndexA; //Index of the EnvironmentColor entry to use for clear weather.
+            public byte RainingColorIndexA; //There's two sets, A and B. B's usage is unknown but identical.
+            public byte SnowingColorIndexA;
+            public byte UnknownColorIndexA; //We don't know what weather this color is used for! Might be lava or forest
+
+            public byte ClearColorIndexB;
+            public byte RainingColorIndexB;
+            public byte SnowingColorIndexB;
+            public byte UnknownColorIndexB;
+
+            public override void LoadData(EndianBinaryReader reader)
+            {
+                ClearColorIndexA = reader.ReadByte();
+                RainingColorIndexA = reader.ReadByte();
+                SnowingColorIndexA = reader.ReadByte();
+                UnknownColorIndexA = reader.ReadByte();
+
+                ClearColorIndexB = reader.ReadByte();
+                RainingColorIndexB = reader.ReadByte();
+                SnowingColorIndexB = reader.ReadByte();
+                UnknownColorIndexB = reader.ReadByte();
+            }
+
+            public override void WriteData(EndianBinaryWriter writer)
+            {
+                writer.Write(ClearColorIndexA);
+                writer.Write(RainingColorIndexA);
+                writer.Write(SnowingColorIndexA);
+                writer.Write(UnknownColorIndexA);
+
+                writer.Write(ClearColorIndexB);
+                writer.Write(RainingColorIndexB);
+                writer.Write(SnowingColorIndexB);
+                writer.Write(UnknownColorIndexB);
+            }
+        }
+
+        /// <summary>
+        /// The EnvironmentColor is a series of indexes into the <see cref="EnvironmentPalette"/> for different times
+        /// during the day. The <see cref="EnvironmentPalette"/> contains the actual colors used for various objects
+        /// in the environment. The B series is used during special occasions in-game where the engine 
+        /// needs to have two sets of lighting within a room. The Auction House is an example of this,
+        /// where the engine will switch to a different color scheme when the auction starts without 
+        /// reloading the map.
+        /// </summary>
         public class EnvironmentColor : BaseChunk
         {
-            /// <summary> Index into the Palette array to use during "Dawn" time in game. </summary>
-            //ToDo: Find out the difference between the A and B indexes.
+            /// <summary> Index into the <see cref="EnvironmentPalette"/> array to use during "Dawn" time in game. </summary>
             public byte DawnIndexA;
+            /// <summary> Index into the <see cref="EnvironmentPalette"/> array to use during "Morning" time in game. </summary>
             public byte MorningIndexA;
+            /// <summary> Index into the <see cref="EnvironmentPalette"/> array to use during "Noon" time in game. </summary>
             public byte NoonIndexA;
+            /// <summary> Index into the <see cref="EnvironmentPalette"/> array to use during "Afternoon" time in game. </summary>
             public byte AfternoonIndexA;
+            /// <summary> Index into the <see cref="EnvironmentPalette"/> array to use during "Dusk" time in game. </summary>
             public byte DuskIndexA;
+            /// <summary> Index into the <see cref="EnvironmentPalette"/> array to use during "Night" time in game. </summary>
             public byte NightIndexA;
 
-            /// <summary> Index into the Palette array to use during "Dawn" time in game. </summary>
+            /// <summary> Index into the <see cref="EnvironmentPalette"/> array to use during "Dawn" time in game for special occasions. See <see cref="EnvironmentColor"/>. </summary>
             public byte DawnIndexB;
+            /// <summary> Index into the <see cref="EnvironmentPalette"/> array to use during "Morning" time in game for special occasions. See <see cref="EnvironmentColor"/>. </summary>
             public byte MorningIndexB;
+            /// <summary> Index into the <see cref="EnvironmentPalette"/> array to use during "Noon" time in game for special occasions. See <see cref="EnvironmentColor"/>. </summary>
             public byte NoonIndexB;
+            /// <summary> Index into the <see cref="EnvironmentPalette"/> array to use during "Afternoon" time in game for special occasions. See <see cref="EnvironmentColor"/>. </summary>
             public byte AfternoonIndexB;
+            /// <summary> Index into the <see cref="EnvironmentPalette"/> array to use during "Dusk" time in game for special occasions. See <see cref="EnvironmentColor"/>. </summary>
             public byte DuskIndexB;
+            /// <summary> Index into the <see cref="EnvironmentPalette"/> array to use during "Night" time in game for special occasions. See <see cref="EnvironmentColor"/>. </summary>
             public byte NightIndexB;
 
             public override void LoadData(EndianBinaryReader reader)
@@ -217,45 +273,6 @@ namespace WindViewer.FileFormats
 
                 writer.Write(_padding1);
                 writer.Write(_padding2);
-            }
-        }
-
-        public class EnvironmentLighting : BaseChunk
-        {
-            public byte ClearColorIndexA; //Index of the Color entry to use for clear weather.
-            public byte RainingColorIndexA; //There's two sets, A and B. B's usage is unknown but identical.
-            public byte SnowingColorIndexA;
-            public byte UnknownColorIndexA; //We don't know what weather this color is used for! Might be lava or forest
-
-            public byte ClearColorIndexB;
-            public byte RainingColorIndexB;
-            public byte SnowingColorIndexB;
-            public byte UnknownColorIndexB;
-
-            public override void LoadData(EndianBinaryReader reader)
-            {
-                ClearColorIndexA = reader.ReadByte();
-                RainingColorIndexA = reader.ReadByte();
-                SnowingColorIndexA = reader.ReadByte();
-                UnknownColorIndexA = reader.ReadByte();
-
-                ClearColorIndexB = reader.ReadByte();
-                RainingColorIndexB = reader.ReadByte();
-                SnowingColorIndexB = reader.ReadByte();
-                UnknownColorIndexB = reader.ReadByte();
-            }
-
-            public override void WriteData(EndianBinaryWriter writer)
-            {
-                writer.Write(ClearColorIndexA);
-                writer.Write(RainingColorIndexA);
-                writer.Write(SnowingColorIndexA);
-                writer.Write(UnknownColorIndexA);
-
-                writer.Write(ClearColorIndexB);
-                writer.Write(RainingColorIndexB);
-                writer.Write(SnowingColorIndexB);
-                writer.Write(UnknownColorIndexB);
             }
         }
 

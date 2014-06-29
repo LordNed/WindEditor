@@ -85,7 +85,7 @@ namespace WindViewer.Editor.Renderer
             //Clear any previously bound buffer
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 
-            Matrix4 projMatrix = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4f, aspectRatio, 250f, 15000f);
+            Matrix4 projMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(camera.FieldOfView), camera.AspectRatio, camera.NearClipPlane, camera.FarClipPlane);
             Matrix4 viewMatrix = camera.GetViewMatrix();
             Matrix4 viewProjMatrix = viewMatrix * projMatrix;
 
