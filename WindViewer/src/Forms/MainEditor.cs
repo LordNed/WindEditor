@@ -299,7 +299,7 @@ namespace WindViewer.Forms
             if (EditorHelpers.GetKeyDown(Keys.Q))
             {
                 Ray mouseRay = _camera.ViewportPointToRay(_mousePos);
-                DebugRenderer.DrawWireCube(mouseRay.Origin + (mouseRay.Direction*250f), Color.Blue, Quaternion.Identity,
+                DebugRenderer.DrawWireCube(mouseRay.Origin + (mouseRay.Direction*500f), Color.Blue, Quaternion.Identity,
                     Vector3.One);
                 Console.WriteLine("Q.");
             }

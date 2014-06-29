@@ -48,7 +48,10 @@ namespace WindViewer.Editor.Renderer
             _projMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(FieldOfView), AspectRatio, NearClipPlane, FarClipPlane);
             _viewMatrix = GetViewMatrix();
             Vector4 unProject = UnProject(ref _projMatrix, _viewMatrix, new Size(PixelWidth, PixelHeight), position);
-            return new Ray(transform.Position, new Vector3(-unProject.Xyz.Normalized()));
+            Vector3 projPos = unProject.Xyz;
+            Vector3 startPos = transform.Position;
+
+            return new Ray(transform.Position, (projPos-startPos).Normalized());
         }
 
         public void Move(float x, float y, float z)
@@ -79,8 +82,6 @@ namespace WindViewer.Editor.Renderer
             }
 
         }
-
-
 
         public static Vector4 UnProject(ref Matrix4 projection, Matrix4 view, Size viewport, Vector2 mouse)
         {
