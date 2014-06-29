@@ -115,11 +115,12 @@ namespace WindViewer.Forms
             EditorHelpers.MouseState.Center = new Vector2(e.X, e.Y);
         }
 
+        private Vector2 _mousePos;
         void glControl_MouseMove(object sender, MouseEventArgs e)
         {
-            Vector2 newMousePos = new Vector2(e.X, e.Y);
-            Vector2 delta = newMousePos - EditorHelpers.MouseState.Center;
-            EditorHelpers.MouseState.Center = newMousePos;
+            _mousePos = new Vector2(e.X, e.Y);
+            Vector2 delta = _mousePos - EditorHelpers.MouseState.Center;
+            EditorHelpers.MouseState.Center = _mousePos;
 
             EditorHelpers.MouseState.Delta = delta;
 
@@ -294,6 +295,14 @@ namespace WindViewer.Forms
                 _camera.Move(1, 0f, 0f);
             if (EditorHelpers.GetKey(Keys.D))
                 _camera.Move(-1, 0f, 0f);
+
+            if (EditorHelpers.GetKeyDown(Keys.Q))
+            {
+                Ray mouseRay = _camera.ViewportPointToRay(_mousePos);
+                DebugRenderer.DrawWireCube(mouseRay.Origin + (mouseRay.Direction*250f), Color.Blue, Quaternion.Identity,
+                    Vector3.One);
+                Console.WriteLine("Q.");
+            }
 
             glControl.SwapBuffers();
             EditorHelpers.UpdateKeysDownArray();

@@ -1,4 +1,6 @@
-﻿namespace WindViewer.Forms
+﻿using OpenTK.Graphics;
+
+namespace WindViewer.Forms
 {
     partial class MainEditor
     {
@@ -29,7 +31,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.glControl = new OpenTK.GLControl();
+            this.glControl = new OpenTK.GLControl(/*new GraphicsMode(32, 24, 8, 4), 3, 3, GraphicsContextFlags.ForwardCompatible*/);
             this.MainSplitter = new System.Windows.Forms.SplitContainer();
             this.leftColumGameSplit = new System.Windows.Forms.SplitContainer();
             this.EntitiesProjectSplit = new System.Windows.Forms.SplitContainer();

@@ -29,6 +29,9 @@ namespace WindViewer.Editor.Renderer
 
         private Rect _rect;
 
+        private Matrix4 _projMatrix;
+        private Matrix4 _viewMatrix;
+
         public Camera()
         {
             transform = new Transform();
@@ -40,10 +43,13 @@ namespace WindViewer.Editor.Renderer
             transform = new Transform();
         }
 
-        /*public Ray ViewportPointToRay(Vector2 position)
+        public Ray ViewportPointToRay(Vector2 position)
         {
-            //Vector4 unProject = UnProject()
-        }*/
+            _projMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(FieldOfView), AspectRatio, NearClipPlane, FarClipPlane);
+            _viewMatrix = GetViewMatrix();
+            Vector4 unProject = UnProject(ref _projMatrix, _viewMatrix, new Size(PixelWidth, PixelHeight), position);
+            return new Ray(transform.Position, new Vector3(-unProject.Xyz.Normalized()));
+        }
 
         public void Move(float x, float y, float z)
         {
