@@ -21,10 +21,13 @@ namespace WindViewer.Forms
         private WorldspaceProject _loadedWorldspaceProject;
 
         private Camera _camera;
+        private Camera _camera2;
 
         //Rendering stuffs
         private J3DRenderer _renderer;
         private DebugRenderer _debugRenderer;
+        private List<Camera> _cameras;
+
 
         //Events
         public static event Action<WorldspaceProject> WorldspaceProjectLoaded;
@@ -45,13 +48,32 @@ namespace WindViewer.Forms
             KeyPreview = true;
 
             _mruMenu = new MruStripMenu(mruList, OnMruClickedHandler, _mruRegKey + "\\MRU", 6);
+
+            //Register some event handlers instead of using the designer because they point to a different class.
+            glControl.Paint += this.glControl_Paint;
+            glControl.KeyDown += Input.Internal_EventKeyDown;
+            glControl.KeyUp += Input.Internal_EventKeyUp;
+            glControl.MouseDown += Input.Internal_EventMouseDown;
+            glControl.MouseMove += Input.Internal_EventMouseMove;
+            glControl.MouseUp += Input.Internal_EventMouseUp;
         }
 
         private void MainEditor_Load(object sender, EventArgs e)
         {
             _loadedWorldspaceProject = null;
 
-            _camera = new Camera(new Rect(glControl.Width, glControl.Height, 0, 0));
+            _camera = new Camera(new Rect(glControl.Width / 2, glControl.Height, 0, 0));
+            _camera.ClearColor = Color.DodgerBlue;
+
+            _camera2 = new Camera(new Rect(glControl.Width / 2, glControl.Height, glControl.Width / 2, 0));
+            _camera2.ClearColor = Color.Lime;
+            _camera2.transform.Position = new Vector3(0, 0, -500);
+            _camera2.transform.Rotate(Vector3.UnitY, 180f);
+
+            _cameras = new List<Camera>();
+            _cameras.Add(_camera);
+            _cameras.Add(_camera2);
+
 
             //Add our renderers to the list 
             _renderer = new J3DRenderer();
@@ -85,65 +107,6 @@ namespace WindViewer.Forms
         void glControl_Paint(object sender, PaintEventArgs e)
         {
             RenderFrame();
-        }
-
-        void glControl_KeyDown(object sender, KeyEventArgs e)
-        {
-            EditorHelpers.SetKeyState(e.KeyCode, true);
-        }
-
-        void glControl_KeyUp(object sender, KeyEventArgs e)
-        {
-            EditorHelpers.SetKeyState(e.KeyCode, false);
-        }
-
-        void glControl_MouseDown(object sender, MouseEventArgs e)
-        {
-            switch (e.Button)
-            {
-                case MouseButtons.Left:
-                    EditorHelpers.MouseState.LDown = true;
-                    break;
-                case MouseButtons.Right:
-                    EditorHelpers.MouseState.RDown = true;
-                    break;
-                case MouseButtons.Middle:
-                    EditorHelpers.MouseState.MDown = true;
-                    break;
-            }
-
-            EditorHelpers.MouseState.Center = new Vector2(e.X, e.Y);
-        }
-
-        private Vector2 _mousePos;
-        void glControl_MouseMove(object sender, MouseEventArgs e)
-        {
-            _mousePos = new Vector2(e.X, e.Y);
-            Vector2 delta = _mousePos - EditorHelpers.MouseState.Center;
-            EditorHelpers.MouseState.Center = _mousePos;
-
-            EditorHelpers.MouseState.Delta = delta;
-
-            if (EditorHelpers.MouseState.LDown)
-            {
-                _camera.Rotate(-delta.X, delta.Y);
-            }
-        }
-
-        void glControl_MouseUp(object sender, MouseEventArgs e)
-        {
-            switch (e.Button)
-            {
-                case MouseButtons.Left:
-                    EditorHelpers.MouseState.LDown = false;
-                    break;
-                case MouseButtons.Right:
-                    EditorHelpers.MouseState.RDown = false;
-                    break;
-                case MouseButtons.Middle:
-                    EditorHelpers.MouseState.MDown = false;
-                    break;
-            }
         }
 
         #endregion
@@ -276,36 +239,56 @@ namespace WindViewer.Forms
             Time += DeltaTime;
             Program.DeltaTimeStopwatch.Restart();
 
-            //Actual render stuff
-            GL.ClearColor(Color.YellowGreen);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            GL.Viewport(0, 0, _camera.PixelWidth, _camera.PixelHeight);
+            GL.Enable(EnableCap.ScissorTest);
+            foreach (var camera in _cameras)
+            {
+                
+                GL.Viewport((int)camera._rect.X, (int)camera._rect.Y, camera.PixelWidth, camera.PixelHeight);
+                GL.Scissor((int)camera._rect.X, (int)camera._rect.Y, (int)camera._rect.Width,
+                    (int)camera._rect.Height);
+                
 
-            //ToDo: Put these in a list...
-            _renderer.Render(_camera, 0f);
-            _debugRenderer.Render(_camera, 0f);
+                //Actual render stuff
+                GL.ClearColor(camera.ClearColor);
+                GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+                
+
+                //ToDo: Put these in a list...
+                _renderer.Render(camera);
+                _debugRenderer.Render(camera);
+
+                
+            }
+            GL.Disable(EnableCap.ScissorTest);
+
 
             //ToDo: This should be moved inside the camera, camera should be an IEditorTool
-            if (EditorHelpers.GetKey(Keys.W))
+            if (Input.GetKey(Keys.W))
                 _camera.Move(0f, 0f, 1);
-            if (EditorHelpers.GetKey(Keys.S))
+            if (Input.GetKey(Keys.S))
                 _camera.Move(0f, 0f, -1);
-            if (EditorHelpers.GetKey(Keys.A))
+            if (Input.GetKey(Keys.A))
                 _camera.Move(1, 0f, 0f);
-            if (EditorHelpers.GetKey(Keys.D))
+            if (Input.GetKey(Keys.D))
                 _camera.Move(-1, 0f, 0f);
 
-            if (EditorHelpers.GetKeyDown(Keys.Q))
+            if (Input.GetMouseButton(MouseButtons.Left))
             {
-                Ray mouseRay = _camera.ViewportPointToRay(_mousePos);
-                DebugRenderer.DrawWireCube(mouseRay.Origin + (mouseRay.Direction*500f), Color.Blue, Quaternion.Identity,
+                _camera.Rotate(Input.MouseDelta.X, Input.MouseDelta.Y);
+            }
+
+            if (Input.GetKeyDown(Keys.Q))
+            {
+                Ray mouseRay = _camera.ViewportPointToRay(Input.MousePosition);
+                DebugRenderer.DrawWireCube(mouseRay.Origin + (mouseRay.Direction * 500f), Color.Blue, Quaternion.Identity,
                     Vector3.One);
                 Console.WriteLine("Q.");
             }
 
+
+            Input.Internal_UpdateInputState();
             glControl.SwapBuffers();
-            EditorHelpers.UpdateKeysDownArray();
         }
 
         private void UpdateProjectFolderTreeview()
@@ -339,7 +322,7 @@ namespace WindViewer.Forms
             ProjectTreeview.EndUpdate();
         }
 
-        
+
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {

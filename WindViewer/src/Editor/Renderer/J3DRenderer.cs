@@ -70,7 +70,7 @@ namespace WindViewer.Editor.Renderer
                 Console.WriteLine(GL.GetProgramInfoLog(_programId));
         }
 
-        public override void Render(Camera camera, float aspectRatio)
+        public override void Render(Camera camera)
         {
             GL.UseProgram(_programId);
 
@@ -80,10 +80,8 @@ namespace WindViewer.Editor.Renderer
             //Clear any previously bound buffer
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0); 
 
-            //Build a VP out of camera settings.
-            Matrix4 projMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(camera.FieldOfView), camera.AspectRatio, camera.NearClipPlane, camera.FarClipPlane);
-            Matrix4 viewMatrix = camera.GetViewMatrix();
-            _viewProjMatrix = viewMatrix*projMatrix;
+            //Build a View Projection Matrix out of camera settings.
+            _viewProjMatrix = camera.GetViewProjMatrix();
 
             /* Because the J3D models are very complex, we're going to 
              * allow them to completely render themselves, including

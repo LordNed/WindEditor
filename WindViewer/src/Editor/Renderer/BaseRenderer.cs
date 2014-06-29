@@ -22,7 +22,7 @@ namespace WindViewer.Editor.Renderer
         public abstract void Initialize();
         public abstract void OnSceneUnload();
        
-        public abstract void Render(Camera camera, float aspectRatio);
+        public abstract void Render(Camera camera);
         public abstract void SetModelMatrix(Matrix4 matrix);
         protected abstract void CreateShaderFromFile(string vertShader, string fragShader);
 

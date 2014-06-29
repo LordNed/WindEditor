@@ -75,7 +75,7 @@ namespace WindViewer.Editor.Renderer
             _renderList.Clear();
         }
 
-        public override void Render(Camera camera, float aspectRatio)
+        public override void Render(Camera camera)
         {
             GL.UseProgram(_programId);
 
@@ -85,9 +85,7 @@ namespace WindViewer.Editor.Renderer
             //Clear any previously bound buffer
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 
-            Matrix4 projMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(camera.FieldOfView), camera.AspectRatio, camera.NearClipPlane, camera.FarClipPlane);
-            Matrix4 viewMatrix = camera.GetViewMatrix();
-            Matrix4 viewProjMatrix = viewMatrix * projMatrix;
+            Matrix4 viewProjMatrix = camera.GetViewProjMatrix();
 
             foreach (var meshType in _renderList)
             {

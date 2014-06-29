@@ -20,6 +20,8 @@ namespace WindViewer.Editor.Renderer
         public int PixelWidth { get { return (int)_rect.Width; }}
         /// <summary> Height of the camera viewport in pixels. Read only. </summary>
         public int PixelHeight { get { return (int)_rect.Height; } }
+        /// <summary> Color to clear the backbuffer with. </summary>
+        public Color ClearColor;
 
         //ToDo: Camera movement should really go onto a component for the Camera.
         public Transform transform { get; private set; }
@@ -27,7 +29,7 @@ namespace WindViewer.Editor.Renderer
         public float MouseSensitivity = 0.1f;
 
 
-        private Rect _rect;
+        public Rect _rect;
 
         private Matrix4 _projMatrix;
         private Matrix4 _viewMatrix;
@@ -43,11 +45,9 @@ namespace WindViewer.Editor.Renderer
             transform = new Transform();
         }
 
-        public Ray ViewportPointToRay(Vector2 position)
+        public Ray ViewportPointToRay(Vector3 mousePos)
         {
-            _projMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(FieldOfView), AspectRatio, NearClipPlane, FarClipPlane);
-            _viewMatrix = GetViewMatrix();
-            Vector4 unProject = UnProject(ref _projMatrix, _viewMatrix, new Size(PixelWidth, PixelHeight), position);
+            Vector4 unProject = UnProject(ref _projMatrix, _viewMatrix, new Size(PixelWidth, PixelHeight), mousePos);
             Vector3 projPos = unProject.Xyz;
             Vector3 startPos = transform.Position;
 
@@ -64,7 +64,7 @@ namespace WindViewer.Editor.Renderer
             offset.NormalizeFast();
 
             float moveSpeed = MoveSpeed;
-            if (EditorHelpers.GetKey(Keys.ShiftKey))
+            if (Input.GetKey(Keys.ShiftKey))
                 moveSpeed *= 2;
             transform.Position += Vector3.Multiply(offset, moveSpeed * MainEditor.DeltaTime);
         }
@@ -72,7 +72,7 @@ namespace WindViewer.Editor.Renderer
         public void Rotate(float x, float y)
         {
             
-            transform.Rotate(Vector3.UnitY, x * MouseSensitivity);
+            transform.Rotate(Vector3.UnitY, -x * MouseSensitivity);
             transform.Rotate(transform.Right, y * MouseSensitivity);
             Vector3 up = Vector3.Cross(transform.Forward, transform.Right);
             if (Vector3.Dot(up, Vector3.UnitY) <= 0.001)
@@ -83,7 +83,7 @@ namespace WindViewer.Editor.Renderer
 
         }
 
-        public static Vector4 UnProject(ref Matrix4 projection, Matrix4 view, Size viewport, Vector2 mouse)
+        public static Vector4 UnProject(ref Matrix4 projection, Matrix4 view, Size viewport, Vector3 mouse)
         {
             Vector4 vec;
 
@@ -108,9 +108,12 @@ namespace WindViewer.Editor.Renderer
             return vec;
         }
 
-        public Matrix4 GetViewMatrix()
+        public Matrix4 GetViewProjMatrix()
         {
-            return Matrix4.LookAt(transform.Position, transform.Position + transform.Forward, Vector3.UnitY);
+            _viewMatrix = Matrix4.LookAt(transform.Position, transform.Position + transform.Forward, Vector3.UnitY);
+            _projMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(FieldOfView), AspectRatio, NearClipPlane, FarClipPlane);
+
+            return _viewMatrix*_projMatrix;
         }
 
         
