@@ -65,7 +65,8 @@ namespace WindViewer.Forms
 
             _camera = new Camera();
             _camera.ClearColor = Color.DodgerBlue;
-
+            //_camera.Transform.Position = new Vector3(500, 500, 500);
+            //_camera.Transform.LookAt(Vector3.Zero);
             _cameras = new List<Camera>();
             _cameras.Add(_camera);
 
@@ -78,7 +79,7 @@ namespace WindViewer.Forms
             _debugRenderer.Initialize();
 
 
-            DebugRenderer.DrawWireCube(Vector3.Zero, Color.Snow, Quaternion.Identity, Vector3.One);
+            DebugRenderer.DrawWireCube(Vector3.Zero, Color.DarkRed, Quaternion.Identity, new Vector3(50, 50, 50));
 
 
             _glControlInitalized = true;

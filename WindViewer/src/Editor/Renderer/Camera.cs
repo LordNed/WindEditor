@@ -59,42 +59,8 @@ namespace WindViewer.Editor.Renderer
             ClearColor = Color.SeaGreen;
         }
 
-        //Phr34k's Version
-        public Ray RayFromViewport(Vector3 mousePos)
-        {
-            Vector3 orig, target, dir;
-            GetViewProjMatrix();
-
-            Matrix4 invScreen = Matrix4.Invert(_viewMatrix * _projMatrix);
-            orig = UnprojectVector(invScreen, new Vector3(mousePos.X, mousePos.Y, 0f));
-            target = UnprojectVector(invScreen, new Vector3(mousePos.X, mousePos.Y, 1f));
-
-            dir = target - orig;
-            dir.Normalize();
-
-            Ray ray = new Ray();
-            ray.Origin = orig;
-            ray.Direction = dir;
-
-            return ray;
-        }
-
-        //Phr34k's Version
-        private Vector3 UnprojectVector(Matrix4 mat, Vector3 vec)
-        {
-            Vector3 ret = new Vector3();
-            ret.X = (((vec.X - 0)*2.0f)/PixelWidth) - 1.0f;
-            ret.Y = -((((vec.Y - 0) * 2.0f) / PixelHeight) - 1.0f);
-            ret.Z = (vec.Z*2.0f) - 1.0f;
-
-            return Vector3.Transform(ret, mat);
-        }
-
-        //My version (take 2)
         public Ray ViewportPointToRay(Vector3 mousePos)
         {
-            GetViewProjMatrix();
-
             Vector3 mousePosA = new Vector3(mousePos.X, mousePos.Y, -1f);
             Vector3 mousePosB = new Vector3(mousePos.X, mousePos.Y, 1f);
 

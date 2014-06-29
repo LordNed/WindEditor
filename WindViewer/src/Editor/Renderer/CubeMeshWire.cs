@@ -4,46 +4,31 @@ using OpenTK.Graphics.OpenGL;
 
 namespace WindViewer.Editor.Renderer
 {
-    public class CubeMesh : IRenderable
+    public class CubeMeshWire : IRenderable
     {
         private readonly int _glVbo;
         private readonly int _glEbo;
 
-        public CubeMesh()
+        public CubeMeshWire()
         {
             Vector3[] meshVerts = 
             { 
-                new Vector3(-50f, -50f,  -50f),
-                new Vector3(50f, -50f,  -50f),
-                new Vector3(50f, 50f,  -50f),
-                new Vector3(-50f, 50f,  -50f),
-                new Vector3(-50f, -50f,  50f),
-                new Vector3(50f, -50f,  50f),
-                new Vector3(50f, 50f,  50f),
-                new Vector3(-50f, 50f,  50f),
+                //Top Verts
+                new Vector3(-1f, 1f,  -1f),
+                new Vector3(1f, 1f,  -1f),
+                new Vector3(1f, 1f,  1f),
+                new Vector3(-1f, 1f,  1f),
+                //Bottom Verts
+                new Vector3(-1f, -1f,  1f),
+                new Vector3(-1f, -1f,  -1f),
+                new Vector3(1f, -1f,  -1f),
+                new Vector3(1f, -1f,  1f),
             };
 
-
+            //ToDo: This is a really round about way, I'm sure there's a way with less edges.
             int[] meshIndexes =
             {
-                //front
-                0, 7, 3,
-                0, 4, 7,
-                //back
-                1, 2, 6,
-                6, 5, 1,
-                //left
-                0, 2, 1,
-                0, 3, 2,
-                //right
-                4, 5, 6,
-                6, 7, 4,
-                //top
-                2, 3, 6,
-                6, 3, 7,
-                //bottom
-                0, 1, 5,
-                0, 5, 4
+                4, 3, 0, 5, 6, 1, 0, 3, 2, 1, 6, 7, 2, 3, 4, 7, 6, 5
             };
 
             GL.GenBuffers(1, out _glVbo);
@@ -64,7 +49,7 @@ namespace WindViewer.Editor.Renderer
 
         public void Draw(BaseRenderer renderer)
         {
-            GL.DrawElements(PrimitiveType.TriangleStrip, 36, DrawElementsType.UnsignedInt, 0);
+            GL.DrawElements(PrimitiveType.LineLoop, 18, DrawElementsType.UnsignedInt, 0);
         }
     }
 }

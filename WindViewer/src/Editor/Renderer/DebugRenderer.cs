@@ -30,13 +30,15 @@ namespace WindViewer.Editor.Renderer
         private int _uniformColor;
 
         //Instances of Geometry
-        private IRenderable _cubeMesh;
+        private IRenderable _cubeMeshWire;
+        private IRenderable _cubeMeshSolid;
 
         public override void Initialize()
         {
             _renderList = new Dictionary<IRenderable, List<Instance>>();
             _instance = this;
-            _cubeMesh = new CubeMesh();
+            _cubeMeshWire = new CubeMeshWire();
+            _cubeMeshSolid = new CubeMeshSolid();
 
             CreateShaderFromFile("shaders/debug_vs.glsl", "shaders/debug_fs.glsl");
         }
@@ -116,11 +118,18 @@ namespace WindViewer.Editor.Renderer
 
         public static void DrawWireCube(Vector3 position, Color color, Quaternion rotation, Vector3 scale)
         {
-            if (!_instance._renderList.ContainsKey(_instance._cubeMesh))
-                _instance._renderList.Add(_instance._cubeMesh, new List<Instance>());
+            if (!_instance._renderList.ContainsKey(_instance._cubeMeshWire))
+                _instance._renderList.Add(_instance._cubeMeshWire, new List<Instance>());
 
-            _instance._renderList[_instance._cubeMesh].Add(new Instance(position, color, rotation, scale));
+            _instance._renderList[_instance._cubeMeshWire].Add(new Instance(position, color, rotation, scale));
         }
 
+        public static void DrawCube(Vector3 position, Color color, Quaternion rotation, Vector3 scale)
+        {
+            if (!_instance._renderList.ContainsKey(_instance._cubeMeshSolid))
+                _instance._renderList.Add(_instance._cubeMeshSolid, new List<Instance>());
+
+            _instance._renderList[_instance._cubeMeshSolid].Add(new Instance(position, color, rotation, scale));
+        }
     }
 }
