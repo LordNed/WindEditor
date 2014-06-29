@@ -80,7 +80,9 @@ namespace WindViewer.Forms
 
 
             DebugRenderer.DrawWireCube(Vector3.Zero, Color.DarkRed, Quaternion.Identity, new Vector3(50, 50, 50));
-
+            DebugRenderer.DrawLine(Vector3.Zero, new Vector3(0, 500, 0), Color.Blue);
+            DebugRenderer.DrawLine(new Vector3(0, 500, 0), new Vector3(500, 500, 0),  Color.Red);
+            DebugRenderer.DrawLine(new Vector3(500, 500, 0), new Vector3(500, 1000, 0), Color.Blue);
 
             _glControlInitalized = true;
         }
