@@ -10,7 +10,7 @@ namespace WindViewer.Editor
         public Ray(Vector3 origin, Vector3 direction)
         {
             Origin = origin;
-            Direction = direction.Normalized();
+            Direction = direction;
         }
     }
 

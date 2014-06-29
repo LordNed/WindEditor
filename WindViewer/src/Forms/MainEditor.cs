@@ -275,9 +275,18 @@ namespace WindViewer.Forms
             if (Input.GetKeyDown(Keys.Q))
             {
                 Ray mouseRay = _camera.ViewportPointToRay(Input.MousePosition);
-                DebugRenderer.DrawWireCube(mouseRay.Origin + (mouseRay.Direction * 500f), Color.Blue, Quaternion.Identity,
+                
+                float distance;
+                //bool bIntersects = Physics.RayVsAABB(mouseRay, new Vector3(-1f, -1f, -1f), new Vector3(1f, 1f, 1f), out distance);
+
+                Ray fakeRay = new Ray(new Vector3(0, -25, 0), (new Vector3(0, 1, 0).Normalized()));
+                bool bIntersects = Physics.RayVsAABB(fakeRay, new Vector3(-10f, -10f, -10f), new Vector3(10f, 10f, 10f), out distance);
+
+
+                Console.WriteLine("Intersects: {0} Distance: {1}", bIntersects, distance);
+                /*DebugRenderer.DrawWireCube(mouseRay.Origin + (mouseRay.Direction * 500f), Color.Blue, Quaternion.Identity,
                     Vector3.One);
-                Console.WriteLine("Q.");
+                Console.WriteLine("Q.");*/
             }
 
 
