@@ -22,6 +22,9 @@ namespace WindViewer.Editor.Tools
 
         private float _gizmoScale = 150f;
         private float _gizmoAxisWidth = 8f;
+        private float _gizmoRayOffset;
+        private Vector3 _gizmoPosAtStart;
+        private bool _gizmoIsTracking;
 
         private AxisDirections _selectedAxis = AxisDirections.None;
         private BoundingBox[] _axisBoundingBoxes;
@@ -62,16 +65,49 @@ namespace WindViewer.Editor.Tools
             if (Input.GetMouseButtonUp(0))
             {
                 _selectedAxis = AxisDirections.None;
+                _gizmoIsTracking = false;
+                _gizmoRayOffset = 0f;
+                _gizmoPosAtStart = Vector3.Zero;
             }
 
             if (_selectedAxis != AxisDirections.None)
             {
-                
+                switch (_selectedAxis)
+                {
+                    case AxisDirections.X:
+                        HandleXAxisMovement();
+                        break;
+                }
             }
 
             //DebugRenderer.DrawLine(Vector3.Zero, new Vector3(0, 0, 500), Color.White);
 
             DrawGizmoDebugLines();
+        }
+
+        private void HandleXAxisMovement()
+        {
+            Ray mouseRay = Camera.Current.ViewportPointToRay(Input.MousePosition);
+            if (!_gizmoIsTracking)
+            {
+                
+                Vector3 rayIntersect;
+                float distance;
+                
+                _gizmoIsTracking = Physics.RayVsPlane(mouseRay, transform.Position, transform.Up, out distance, out rayIntersect);
+                _gizmoPosAtStart = transform.Position;
+                _gizmoRayOffset = (_gizmoPosAtStart - rayIntersect).X;
+            }
+
+            //Get their current mouse position
+            Vector3 curRayPos;
+            Physics.RayVsPlane(mouseRay, transform.Position, transform.Up, out curRayPos);
+
+            //Get the difference on the x axis
+            float deltaX = curRayPos.X - _gizmoPosAtStart.X;
+
+            transform.Position = new Vector3(curRayPos.X + _gizmoRayOffset, transform.Position.Y, transform.Position.Z) ;
+            Console.WriteLine("delta: " + deltaX);
         }
 
         private AxisDirections CheckSelectedAxis()
@@ -83,7 +119,7 @@ namespace WindViewer.Editor.Tools
             for (int i = 0; i < _axisBoundingBoxes.Length; i++)
             {
                 float distance;
-                bool bIntersects = Physics.RayVsAABB(mouseRay, _axisBoundingBoxes[i].Min, _axisBoundingBoxes[i].Max, out distance);
+                bool bIntersects = Physics.RayVsAABB(mouseRay, _axisBoundingBoxes[i].Min + transform.Position, _axisBoundingBoxes[i].Max + transform.Position, out distance);
                 
                 if(!bIntersects)
                     continue;
@@ -105,16 +141,16 @@ namespace WindViewer.Editor.Tools
             Color zColor = _selectedAxis == AxisDirections.Z ? _zAxisColorSelected : _zAxisColor;
 
             //X
-            DebugRenderer.DrawLine(transform.Position, transform.Right * _gizmoScale, xColor);
+            DebugRenderer.DrawLine(transform.Position, transform.Position + transform.Right * _gizmoScale, xColor);
             //Y
-            DebugRenderer.DrawLine(transform.Position, transform.Up * _gizmoScale, yColor);
+            DebugRenderer.DrawLine(transform.Position, transform.Position + transform.Up * _gizmoScale, yColor);
             //Z
-            DebugRenderer.DrawLine(transform.Position, transform.Forward * _gizmoScale, zColor);
+            DebugRenderer.DrawLine(transform.Position, transform.Position + transform.Forward * _gizmoScale, zColor);
 
             for (int i = 0; i < _axisBoundingBoxes.Length; i++)
             {
                 BoundingBox bbox = _axisBoundingBoxes[i];
-                DebugRenderer.DrawWireCube((bbox.Max - bbox.Min)/2 - (new Vector3(_gizmoAxisWidth, _gizmoAxisWidth, _gizmoAxisWidth) ), Color.White, Quaternion.Identity,
+                DebugRenderer.DrawWireCube(transform.Position + (bbox.Max - bbox.Min)/2 - (new Vector3(_gizmoAxisWidth, _gizmoAxisWidth, _gizmoAxisWidth) ), Color.White, Quaternion.Identity,
                     (bbox.Max - bbox.Min)/2);
             }
         }

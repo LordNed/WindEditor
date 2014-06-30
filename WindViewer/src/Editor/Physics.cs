@@ -56,8 +56,20 @@ namespace WindViewer.Editor
             return true;
         }*/
 
-        public static bool RayVsPlane(Ray ray, Vector3 planeOrigin, Vector3 planeNormal, out float distance,
-            out Vector3 intersectPoint)
+        public static bool RayVsPlane(Ray ray, Vector3 planeOrigin, Vector3 planeNormal)
+        {
+            float dummy1;
+            Vector3 dummy2;
+            return RayVsPlane(ray, planeOrigin, planeNormal, out dummy1, out dummy2);
+        }
+
+        public static bool RayVsPlane(Ray ray, Vector3 planeOrigin, Vector3 planeNormal, out Vector3 intersectPoint)
+        {
+            float dummy;
+            return RayVsPlane(ray, planeOrigin, planeNormal, out dummy, out intersectPoint);
+        }
+
+        public static bool RayVsPlane(Ray ray, Vector3 planeOrigin, Vector3 planeNormal, out float distance, out Vector3 intersectPoint)
         {
             return RayVsPlane(ray, new Plane(planeOrigin, planeNormal), out distance, out intersectPoint);
         }
