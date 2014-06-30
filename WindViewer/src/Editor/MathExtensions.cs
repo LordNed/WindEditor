@@ -15,7 +15,7 @@ namespace WindViewer.Editor
             resultQuat = value*resultQuat;
 
             resultVector = new Vector3(resultQuat.X, resultQuat.Y, resultQuat.Z);
-            return resultVector.Normalized();
+            return resultVector;
         }
 
         public static Quaternion Invert_Custom(this Quaternion value)

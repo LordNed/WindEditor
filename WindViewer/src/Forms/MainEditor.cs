@@ -297,6 +297,7 @@ namespace WindViewer.Forms
                 bool bIntersects = Physics.RayVsPlane(mouseRay, new Plane(Vector3.Zero, Vector3.UnitY),
                     out distance, out point);
 
+                DebugRenderer.DrawLine(mouseRay.Origin, mouseRay.Origin + mouseRay.Direction*250f);
                 Console.WriteLine("Intersects: {0}, Distance: {1} At: {2}", bIntersects, distance , point);
 
             }

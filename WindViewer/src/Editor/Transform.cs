@@ -32,17 +32,17 @@ namespace WindViewer.Editor
 
         public Vector3 Right
         {
-            get { return Rotation.Mult(Vector3.UnitX); }
+            get { return Rotation.Mult(Vector3.UnitX).Normalized(); }
         }
 
         public Vector3 Forward
         {
-            get { return Rotation.Mult(Vector3.UnitZ); }
+            get { return Rotation.Mult(Vector3.UnitZ).Normalized(); }
         }
 
         public Vector3 Up
         {
-            get { return Rotation.Mult(Vector3.UnitY); }
+            get { return Rotation.Mult(Vector3.UnitY).Normalized(); }
         }
 
         public void LookAt(Vector3 worldPosition)

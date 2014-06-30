@@ -53,11 +53,14 @@ namespace WindViewer.Editor.Tools
             //Z Axis
             _axisBoundingBoxes[2] = new BoundingBox(new Vector3(-_gizmoAxisWidth, -_gizmoAxisWidth, 0),
                 new Vector3(_gizmoAxisWidth, _gizmoAxisWidth, _gizmoScale));
+
+
+            transform.Rotate(new Vector3(1, 1, 0).Normalized(), 45f);
         }
 
         public void Update()
         {
-            if (Input.GetMouseButtonDown(0))
+            if (Input.GetMouseButton(0))
             {
                 _selectedAxis = CheckSelectedAxis();
             }
@@ -88,6 +91,11 @@ namespace WindViewer.Editor.Tools
         private void HandleXAxisMovement()
         {
             Ray mouseRay = Camera.Current.ViewportPointToRay(Input.MousePosition);
+            //Transform the ray into AABB space based on the rotation.
+            Quaternion invertRot = transform.Rotation.Inverted();
+            mouseRay.Origin = invertRot.Mult(mouseRay.Origin);
+            mouseRay.Direction = invertRot.Mult(mouseRay.Direction);
+
             if (!_gizmoIsTracking)
             {
                 
@@ -101,18 +109,27 @@ namespace WindViewer.Editor.Tools
 
             //Get their current mouse position
             Vector3 curRayPos;
+
             Physics.RayVsPlane(mouseRay, transform.Position, transform.Up, out curRayPos);
 
             //Get the difference on the x axis
             float deltaX = curRayPos.X - _gizmoPosAtStart.X;
 
-            transform.Position = new Vector3(curRayPos.X + _gizmoRayOffset, transform.Position.Y, transform.Position.Z) ;
+            transform.Position = _gizmoPosAtStart + (transform.Right*deltaX);
             Console.WriteLine("delta: " + deltaX);
         }
 
         private AxisDirections CheckSelectedAxis()
         {
             Ray mouseRay = Camera.Current.ViewportPointToRay(Input.MousePosition);
+            //Transform the ray into AABB space based on the rotation.
+            Quaternion invertRot = transform.Rotation;
+            invertRot.Conjugate();
+            mouseRay.Origin = invertRot.Mult(mouseRay.Origin);
+            mouseRay.Direction = invertRot.Mult(mouseRay.Direction);
+            mouseRay.Direction.Normalize();
+
+            DebugRenderer.DrawLine(mouseRay.Origin, mouseRay.Origin + mouseRay.Direction * 25000, Color.Yellow, 5f);
 
             float closestAxis = float.MaxValue;
             int selected = -1;
@@ -131,6 +148,7 @@ namespace WindViewer.Editor.Tools
                 }
             }
             
+            return AxisDirections.None;
             return (AxisDirections) selected;
         }
 

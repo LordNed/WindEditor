@@ -4,6 +4,7 @@ using System.Drawing;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using WindViewer.Editor.Tools;
+using WindViewer.Forms;
 
 namespace WindViewer.Editor.Renderer
 {
@@ -11,29 +12,34 @@ namespace WindViewer.Editor.Renderer
     {
         private class Instance
         {
-            public Instance(Vector3 pos, Color color, Quaternion rot, Vector3 scale)
+            public Instance(Vector3 pos, Color color, Quaternion rot, Vector3 scale, float lifetime)
             {
                 Position = pos;
                 Rotation = rot;
                 Scale = scale;
                 Color = new Vector4(color.R / 255f, color.G / 255f, color.B / 255f, color.A / 255f);
+                Lifetime = lifetime;
             }
 
             public Vector3 Position { get; private set; }
             public Quaternion Rotation { get; private set; }
             public Vector3 Scale { get; private set; }
             public Vector4 Color { get; private set; }
+            public float Lifetime;
         }
 
         private class LineInstance : IDisposable, IRenderable
         {
             private int _vboId;
-            public Vector4 Color;
 
-            public LineInstance(Vector3 startPos, Vector3 endPos, Color color)
+            public Vector4 Color;
+            public float Lifetime;
+
+            public LineInstance(Vector3 startPos, Vector3 endPos, Color color, float lifetime)
             {
-                Vector3[] verts = new[] {startPos, endPos};
-                Color = new Vector4(color.R/255f, color.G/255f, color.B/255f, color.A/255F);
+                Vector3[] verts = new[] { startPos, endPos };
+                Color = new Vector4(color.R / 255f, color.G / 255f, color.B / 255f, color.A / 255F);
+                Lifetime = lifetime;
 
                 GL.GenBuffers(1, out _vboId);
                 GL.BindBuffer(BufferTarget.ArrayBuffer, _vboId);
@@ -60,7 +66,7 @@ namespace WindViewer.Editor.Renderer
 
         private Dictionary<IRenderable, List<Instance>> _renderList;
         private List<LineInstance> _lineRenderList;
- 
+
         private static DebugRenderer _instance;
         private int _uniformColor;
 
@@ -103,7 +109,7 @@ namespace WindViewer.Editor.Renderer
 
             _uniformMVP = GL.GetUniformLocation(_programId, "modelview");
             _uniformColor = GL.GetUniformLocation(_programId, "inColor");
-     
+
             if (GL.GetError() != ErrorCode.NoError)
                 Console.WriteLine(GL.GetProgramInfoLog(_programId));
         }
@@ -171,9 +177,13 @@ namespace WindViewer.Editor.Renderer
 
         public override void SetModelMatrix(Matrix4 matrix) { }
 
-        public static void DrawLine(Vector3 startPos, Vector3 endPos, Color color)
+        public static void DrawLine(Vector3 startPos, Vector3 endPos, float duration = 0f)
         {
-            _instance._lineRenderList.Add(new LineInstance(startPos, endPos, color));
+            DrawLine(startPos, endPos, Color.White, duration);
+        }
+        public static void DrawLine(Vector3 startPos, Vector3 endPos, Color color, float duration = 0f)
+        {
+            _instance._lineRenderList.Add(new LineInstance(startPos, endPos, color, duration));
         }
 
         public static void DrawWireCube(Vector3 position, Color color, Quaternion rotation, Vector3 scale)
@@ -181,7 +191,7 @@ namespace WindViewer.Editor.Renderer
             if (!_instance._renderList.ContainsKey(_instance._cubeMeshWire))
                 _instance._renderList.Add(_instance._cubeMeshWire, new List<Instance>());
 
-            _instance._renderList[_instance._cubeMeshWire].Add(new Instance(position, color, rotation, scale));
+            _instance._renderList[_instance._cubeMeshWire].Add(new Instance(position, color, rotation, scale, 0f));
         }
 
         public static void DrawCube(Vector3 position, Color color, Quaternion rotation, Vector3 scale)
@@ -189,18 +199,44 @@ namespace WindViewer.Editor.Renderer
             if (!_instance._renderList.ContainsKey(_instance._cubeMeshSolid))
                 _instance._renderList.Add(_instance._cubeMeshSolid, new List<Instance>());
 
-            _instance._renderList[_instance._cubeMeshSolid].Add(new Instance(position, color, rotation, scale));
+            _instance._renderList[_instance._cubeMeshSolid].Add(new Instance(position, color, rotation, scale, 0f));
         }
 
         public void Update()
         {
-            
+
         }
 
         public void PostRenderUpdate()
         {
-            _instance._renderList.Clear();
-            _instance._lineRenderList.Clear();
+            foreach (var type in _renderList)
+            {
+                List<Instance> pendRemoval = new List<Instance>();
+                foreach (var instance in type.Value)
+                {
+                    instance.Lifetime -= MainEditor.DeltaTime;
+                    if (instance.Lifetime <= 0f)
+                        pendRemoval.Add(instance);
+                }
+
+                foreach (Instance instance in pendRemoval)
+                {
+                    type.Value.Remove(instance);
+                }
+            }
+
+            List<LineInstance> linePendRemoval = new List<LineInstance>();
+            foreach (var lineInstance in _lineRenderList)
+            {
+                lineInstance.Lifetime -= MainEditor.DeltaTime;
+
+                if (lineInstance.Lifetime <= 0f)
+                    linePendRemoval.Add(lineInstance);
+            }
+            foreach (LineInstance instance in linePendRemoval)
+            {
+                _lineRenderList.Remove(instance);
+            }
         }
     }
 }
