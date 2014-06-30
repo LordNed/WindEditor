@@ -35,25 +35,28 @@ namespace WindViewer.Editor
             return _prevKeysDown[(int)key] && !_keysDown[(int)key];
         }
 
-        public static bool GetMouseButton(MouseButtons button)
+        public static bool GetMouseButton(int button)
         {
-            return _mouseBtnsDown[MouseButtonEnumToInt(button)];
+            return _mouseBtnsDown[button];
         }
 
-        public static bool GetMouseButtonDown(MouseButtons button)
+        public static bool GetMouseButtonDown(int button)
         {
-            return _mouseBtnsDown[MouseButtonEnumToInt(button)] && !_prevKeysDown[MouseButtonEnumToInt(button)];
+            return _mouseBtnsDown[button] && !_prevMouseBtnsDown[button];
         }
 
-        public static bool GetMouseButtonUp(MouseButtons button)
+        public static bool GetMouseButtonUp(int button)
         {
-            return _prevMouseBtnsDown[MouseButtonEnumToInt(button)] && !_mouseBtnsDown[MouseButtonEnumToInt(button)];
+            return _prevMouseBtnsDown[button] && !_mouseBtnsDown[button];
         }
 
         internal static void Internal_UpdateInputState()
         {
             for (int i = 0; i < 256; i++)
                 _prevKeysDown[i] = _keysDown[i];
+
+            for (int i = 0; i < 3; i++)
+                _prevMouseBtnsDown[i] = _mouseBtnsDown[i];
 
             MouseDelta = MousePosition - _prevMousePos;
             _prevMousePos = MousePosition;

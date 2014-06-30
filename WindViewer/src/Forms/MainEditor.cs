@@ -10,6 +10,7 @@ using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using WindViewer.Editor;
 using WindViewer.Editor.Renderer;
+using WindViewer.Editor.Tools;
 using WindViewer.Forms.Dialogs;
 using WindViewer.src.Forms;
 
@@ -24,9 +25,12 @@ namespace WindViewer.Forms
         private Camera _camera2;
 
         //Rendering stuffs
+        //ToDo: Listify
         private J3DRenderer _renderer;
         private DebugRenderer _debugRenderer;
         private List<Camera> _cameras;
+
+        private List<IEditorTool> _editorTools;
 
 
         //Events
@@ -70,6 +74,8 @@ namespace WindViewer.Forms
             _cameras = new List<Camera>();
             _cameras.Add(_camera);
 
+            _editorTools = new List<IEditorTool>();
+            _editorTools.Add(new MovementGizmo());
 
             //Add our renderers to the list 
             _renderer = new J3DRenderer();
@@ -77,12 +83,7 @@ namespace WindViewer.Forms
 
             _debugRenderer = new DebugRenderer();
             _debugRenderer.Initialize();
-
-
-            DebugRenderer.DrawWireCube(Vector3.Zero, Color.DarkRed, Quaternion.Identity, new Vector3(50, 50, 50));
-            DebugRenderer.DrawLine(Vector3.Zero, new Vector3(0, 500, 0), Color.Blue);
-            DebugRenderer.DrawLine(new Vector3(0, 500, 0), new Vector3(500, 500, 0),  Color.Red);
-            DebugRenderer.DrawLine(new Vector3(500, 500, 0), new Vector3(500, 1000, 0), Color.Blue);
+            _editorTools.Add(_debugRenderer);
 
             _glControlInitalized = true;
         }
@@ -237,6 +238,12 @@ namespace WindViewer.Forms
             Time += DeltaTime;
             Program.DeltaTimeStopwatch.Restart();
 
+            foreach (IEditorTool tool in _editorTools)
+            {
+                tool.Update();
+            }
+
+            DebugRenderer.DrawWireCube(Vector3.Zero, Color.DarkRed, Quaternion.Identity, new Vector3(10, 10, 10));
 
             GL.Enable(EnableCap.ScissorTest);
             foreach (var camera in _cameras)
@@ -259,6 +266,11 @@ namespace WindViewer.Forms
             }
             GL.Disable(EnableCap.ScissorTest);
 
+            foreach (IEditorTool tool in _editorTools)
+            {
+                tool.PostRenderUpdate();
+            }
+
 
             //ToDo: This should be moved inside the camera, camera should be an IEditorTool
             if (Input.GetKey(Keys.W))
@@ -270,7 +282,7 @@ namespace WindViewer.Forms
             if (Input.GetKey(Keys.D))
                 _camera.Move(-1, 0f, 0f);
 
-            if (Input.GetMouseButton(MouseButtons.Left))
+            if (Input.GetMouseButton(1))
             {
                 _camera.Rotate(Input.MouseDelta.X, Input.MouseDelta.Y);
             }
@@ -281,10 +293,6 @@ namespace WindViewer.Forms
                 float distance;
                 bool bIntersects = Physics.RayVsAABB(mouseRay, new Vector3(-50, -50, -50), new Vector3(50, 50, 50),
                     out distance);
-
-                //for (int i = 0; i < 5; i++)
-                    //DebugRenderer.DrawWireCube(mouseRay.Origin + (mouseRay.Direction*500f*i), Color.Red, Quaternion.Identity, Vector3.One);
-
 
                 Console.WriteLine("Intersects: {0}, Distance: {1}", bIntersects, distance);
 

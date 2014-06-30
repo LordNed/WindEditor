@@ -43,6 +43,10 @@ namespace WindViewer.Editor.Renderer
             }
         }
 
+        public static Camera Current;
+
+
+
         //ToDo: Camera movement should really go onto a component for the Camera.
         public Transform Transform { get; private set; }
         public float MoveSpeed = 1000f;
@@ -57,6 +61,7 @@ namespace WindViewer.Editor.Renderer
             Transform = new Transform();
             Rect = new Rect(1, 1, 0, 0);
             ClearColor = Color.SeaGreen;
+            Current = this;
         }
 
         public Ray ViewportPointToRay(Vector3 mousePos)

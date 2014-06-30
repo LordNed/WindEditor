@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Drawing;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using WindViewer.Editor.Tools;
 
 namespace WindViewer.Editor.Renderer
 {
-    public class DebugRenderer : BaseRenderer
+    public class DebugRenderer : BaseRenderer, IEditorTool
     {
         private class Instance
         {
@@ -189,6 +190,17 @@ namespace WindViewer.Editor.Renderer
                 _instance._renderList.Add(_instance._cubeMeshSolid, new List<Instance>());
 
             _instance._renderList[_instance._cubeMeshSolid].Add(new Instance(position, color, rotation, scale));
+        }
+
+        public void Update()
+        {
+            
+        }
+
+        public void PostRenderUpdate()
+        {
+            _instance._renderList.Clear();
+            _instance._lineRenderList.Clear();
         }
     }
 }

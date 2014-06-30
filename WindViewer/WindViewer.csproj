@@ -65,6 +65,7 @@
     <Compile Include="src\Editor\Renderer\IRenderable.cs" />
     <Compile Include="src\Editor\Renderer\J3DRenderer.cs" />
     <Compile Include="src\Editor\Display.cs" />
+    <Compile Include="src\Editor\Tools\MovementGizmo.cs" />
     <Compile Include="src\Editor\WindWaker\Project.cs" />
     <Compile Include="src\Editor\WindWaker\Room.cs" />
     <Compile Include="src\Editor\WindWaker\Stage.cs" />
