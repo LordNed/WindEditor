@@ -23,7 +23,7 @@ namespace WindViewer.Editor.Tools
         private float _gizmoScale = 150f;
         private float _gizmoAxisWidth = 8f;
 
-        private AxisDirections _selectedAxis;
+        private AxisDirections _selectedAxis = AxisDirections.None;
         private BoundingBox[] _axisBoundingBoxes;
 
         private Color _xAxisColor = Color.Red;

@@ -58,6 +58,7 @@
   <ItemGroup>
     <Compile Include="src\Editor\Input.cs" />
     <Compile Include="src\Editor\Physics.cs" />
+    <Compile Include="src\Editor\Plane.cs" />
     <Compile Include="src\Editor\Ray.cs" />
     <Compile Include="src\Editor\Renderer\CubeMeshWire.cs" />
     <Compile Include="src\Editor\Renderer\CubeMeshSolid.cs" />

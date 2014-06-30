@@ -8,6 +8,7 @@ using FolderSelect;
 using JWC;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Math;
 using WindViewer.Editor;
 using WindViewer.Editor.Renderer;
 using WindViewer.Editor.Tools;
@@ -68,7 +69,7 @@ namespace WindViewer.Forms
             _loadedWorldspaceProject = null;
 
             _camera = new Camera();
-            _camera.ClearColor = Color.DodgerBlue;
+            _camera.ClearColor = Color.DarkSlateGray;
             //_camera.Transform.Position = new Vector3(500, 500, 500);
             //_camera.Transform.LookAt(Vector3.Zero);
             _cameras = new List<Camera>();
@@ -291,10 +292,12 @@ namespace WindViewer.Forms
             {
                 Ray mouseRay = _camera.ViewportPointToRay(Input.MousePosition);
                 float distance;
-                bool bIntersects = Physics.RayVsAABB(mouseRay, new Vector3(-50, -50, -50), new Vector3(50, 50, 50),
-                    out distance);
+                Vector3 point;
 
-                Console.WriteLine("Intersects: {0}, Distance: {1}", bIntersects, distance);
+                bool bIntersects = Physics.RayVsPlane(mouseRay, new Plane(Vector3.Zero, Vector3.UnitY),
+                    out distance, out point);
+
+                Console.WriteLine("Intersects: {0}, Distance: {1} At: {2}", bIntersects, distance , point);
 
             }
 

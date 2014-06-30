@@ -1,11 +1,12 @@
 ﻿using System;
 using OpenTK;
+using OpenTK.Math;
 
 namespace WindViewer.Editor
 {
     public class Physics
     {
-        public static bool RayVsAABB(Vector3 p, Vector3 d, Vector3 bboxMin, Vector3 bboxMax, out float tmin, out Vector3 q)
+        /*public static bool RayVsAABB(Vector3 p, Vector3 d, Vector3 bboxMin, Vector3 bboxMax, out float tmin, out Vector3 q)
         {
             tmin = 0f; //Set to -float.MaxValue to get first hit on line.
             float tmax = float.MaxValue; //Set to max distance ray can travel (for segment)
@@ -53,6 +54,40 @@ namespace WindViewer.Editor
             //Ray intersects all three slabs. Return point q and intersection t value.
             q = p + d*tmin;
             return true;
+        }*/
+
+        public static bool RayVsPlane(Ray ray, Vector3 planeOrigin, Vector3 planeNormal, out float distance,
+            out Vector3 intersectPoint)
+        {
+            return RayVsPlane(ray, new Plane(planeOrigin, planeNormal), out distance, out intersectPoint);
+        }
+
+        public static bool RayVsPlane(Ray ray, Plane plane, out float outDistance, out Vector3 intersectPoint)
+        {
+            bool bIntersect = SegmentVsPlane(ray.Origin, ray.Origin + ray.Direction*float.MaxValue, plane, out outDistance, out intersectPoint);
+            outDistance *= float.MaxValue;
+
+            return bIntersect;
+        }
+
+        public static bool SegmentVsPlane(Vector3 pointA, Vector3 pointB, Plane plane, out float outFraction, out Vector3 intersectPoint)
+        {
+            //Compute the t value for the directed line ab intersecting the plane.
+            Vector3 ab = pointB - pointA;
+            
+            //Plane ABC is the plane's normal.
+            outFraction = (plane.D - Vector3.Dot(new Vector3(plane.A, plane.B, plane.C), pointA)) / Vector3.Dot(new Vector3(plane.A, plane.B, plane.C), ab);
+
+            //If t in [0..1] compute and return intersection point
+            if (outFraction >= 0f && outFraction <= 1f)
+            {
+                intersectPoint = pointA + outFraction*ab;
+                return true;
+            }
+
+            //Else, no intersection.
+            intersectPoint = Vector3.Zero;
+            return false;
         }
 
         public static bool RayVsAABB(Ray ray, Vector3 bMin, Vector3 bMax, out float distance)
