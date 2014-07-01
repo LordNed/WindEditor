@@ -71,13 +71,7 @@ namespace WindViewer.Editor.WindWaker
 
             if (Selected)
             {
-                GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Position);
-                GL.LineWidth(2);
-                GL.Disable(EnableCap.DepthTest);
                 DrawModelRecursive(_root, renderer, true);
-                GL.Enable(EnableCap.DepthTest);
-                GL.DisableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Position);
-                GL.LineWidth(1);
             }
         }
 
@@ -98,10 +92,35 @@ namespace WindViewer.Editor.WindWaker
                          * within it.*/
                     if (bSelectedPass)
                     {
+                        float[] front_face_wireframe_color = { 1.0f, 1.0f, 1.0f, 1.0f };
+                        float[] back_face_wireframe_color = { 0.7f, 0.7f, 0.7f, 0.7f };
+
+                        GL.LineWidth(1);
+                        GL.Enable(EnableCap.CullFace);
+                        GL.Disable(EnableCap.DepthTest);
+                        GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
+                        GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Position);
+
+                        // 1. Draw the back-faces with a darker color:
+                        GL.CullFace(CullFaceMode.Back);
+                        GL.VertexAttrib4((int)BaseRenderer.ShaderAttributeIds.Color, back_face_wireframe_color);
                         foreach (var primitive in _renderList[curNode.DataIndex])
                         {
-                            GL.DrawArrays(PrimitiveType.LineStrip, primitive.VertexStart, primitive.VertexCount);
+                            GL.DrawArrays(primitive.DrawType, primitive.VertexStart, primitive.VertexCount);
                         }
+
+                        // 2. Draw the front-faces with a lighter color:
+                        GL.CullFace(CullFaceMode.Front);
+                        GL.VertexAttrib4((int)BaseRenderer.ShaderAttributeIds.Color, front_face_wireframe_color);
+                        foreach (var primitive in _renderList[curNode.DataIndex])
+                        {
+                            GL.DrawArrays(primitive.DrawType, primitive.VertexStart, primitive.VertexCount);
+                        }
+
+                        GL.DisableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Position);
+                        GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+                        GL.Enable(EnableCap.DepthTest);
+                        GL.LineWidth(1);
                     }
                     else
                     {
