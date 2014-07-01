@@ -80,7 +80,9 @@ namespace WindViewer.Editor.WindWaker
             switch (curNode.NodeType)
             {
                 case J3DFormat.HierarchyDataTypes.Material:
-                    if (!bSelectedPass)
+                    if (bSelectedPass)
+                        GL.BindTexture(TextureTarget.Texture2D, 0);
+                    else
                         GL.BindTexture(TextureTarget.Texture2D, GetGLTexIdFromCache(curNode.DataIndex));
                     break;
 
@@ -92,8 +94,7 @@ namespace WindViewer.Editor.WindWaker
                          * within it.*/
                     if (bSelectedPass)
                     {
-                        float[] front_face_wireframe_color = { 1.0f, 1.0f, 1.0f, 1.0f };
-                        float[] back_face_wireframe_color = { 0.7f, 0.7f, 0.7f, 0.7f };
+                        renderer.UseShader("debug");
 
                         GL.LineWidth(1);
                         GL.Enable(EnableCap.CullFace);
@@ -101,17 +102,17 @@ namespace WindViewer.Editor.WindWaker
                         GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
                         GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Position);
 
-                        // 1. Draw the back-faces with a darker color:
-                        GL.CullFace(CullFaceMode.Back);
-                        GL.VertexAttrib4((int)BaseRenderer.ShaderAttributeIds.Color, back_face_wireframe_color);
+                        // 1. Draw the back-faces:
+                        /*GL.CullFace(CullFaceMode.Back);
+                        GL.Uniform3(renderer._currentShader.UniformColor, new Vector3(0.77f, 0.38f, 0.06f));
                         foreach (var primitive in _renderList[curNode.DataIndex])
                         {
                             GL.DrawArrays(primitive.DrawType, primitive.VertexStart, primitive.VertexCount);
-                        }
+                        }*/
 
-                        // 2. Draw the front-faces with a lighter color:
+                        // 2. Draw the front-faces:
                         GL.CullFace(CullFaceMode.Front);
-                        GL.VertexAttrib4((int)BaseRenderer.ShaderAttributeIds.Color, front_face_wireframe_color);
+                        GL.Uniform3(renderer._currentShader.UniformColor, new Vector3(0.77f, 0.38f, 0.06f));
                         foreach (var primitive in _renderList[curNode.DataIndex])
                         {
                             GL.DrawArrays(primitive.DrawType, primitive.VertexStart, primitive.VertexCount);
@@ -124,6 +125,8 @@ namespace WindViewer.Editor.WindWaker
                     }
                     else
                     {
+                        renderer.UseShader("j3d");
+
                         SetVertexAttribArraysForBatch(true, curNode.DataIndex);
                         foreach (var primitive in _renderList[curNode.DataIndex])
                         {
