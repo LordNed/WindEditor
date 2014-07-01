@@ -17,6 +17,8 @@ namespace WindViewer.Editor.WindWaker
         private Dictionary<int, List<PrimitiveList>> _renderList;
         private Dictionary<int, int> _textureCache;
 
+        public bool Selected;
+
         public override void Load(byte[] data)
         {
             _file = new J3DFormat();
@@ -24,7 +26,9 @@ namespace WindViewer.Editor.WindWaker
             _textureCache = new Dictionary<int, int>();
             _file.Load(data);
             _dataCache = data;
-            
+
+            Selected = false;
+
             //Extract the data from the file format into something we can use.
             var vertData = BuildVertexArraysFromFile();
 
@@ -34,7 +38,7 @@ namespace WindViewer.Editor.WindWaker
             //Generate our VBO, and upload the data
             GL.GenBuffers(1, out _glVbo);
             GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr) (vertData.Count*9*4), vertData.ToArray(),
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(vertData.Count * 9 * 4), vertData.ToArray(),
                 BufferUsageHint.StaticDraw);
 
             //Make sure we get drawn
@@ -53,7 +57,7 @@ namespace WindViewer.Editor.WindWaker
             public int VertexCount;
             public PrimitiveType DrawType;
         }
-        
+
         public void Bind()
         {
             GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
@@ -63,15 +67,27 @@ namespace WindViewer.Editor.WindWaker
         {
             /* Recursively iterate through the J3D scene graph to bind and draw all
              * of the batches within the J3D model. */
-            DrawModelRecursive(_root, renderer);
+            DrawModelRecursive(_root, renderer, false);
+
+            if (Selected)
+            {
+                GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Position);
+                GL.LineWidth(2);
+                GL.Disable(EnableCap.DepthTest);
+                DrawModelRecursive(_root, renderer, true);
+                GL.Enable(EnableCap.DepthTest);
+                GL.DisableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Position);
+                GL.LineWidth(1);
+            }
         }
 
-        private void DrawModelRecursive(SceneGraph curNode, BaseRenderer renderer)
+        private void DrawModelRecursive(SceneGraph curNode, BaseRenderer renderer, bool bSelectedPass)
         {
             switch (curNode.NodeType)
             {
                 case J3DFormat.HierarchyDataTypes.Material:
-                    GL.BindTexture(TextureTarget.Texture2D, GetGLTexIdFromCache(curNode.DataIndex));
+                    if (!bSelectedPass)
+                        GL.BindTexture(TextureTarget.Texture2D, GetGLTexIdFromCache(curNode.DataIndex));
                     break;
 
                 case J3DFormat.HierarchyDataTypes.Batch:
@@ -80,15 +96,23 @@ namespace WindViewer.Editor.WindWaker
                          * and set default values for vertex attribs that
                          * the batch doesn't use, then draw all primitives
                          * within it.*/
-                    SetVertexAttribArraysForBatch(true, curNode.DataIndex);
-
-                    foreach (var primitive in _renderList[curNode.DataIndex])
+                    if (bSelectedPass)
                     {
-                        GL.DrawArrays(primitive.DrawType, primitive.VertexStart, primitive.VertexCount);
-                        GL.DrawArrays(PrimitiveType.LineStrip, primitive.VertexStart, primitive.VertexCount);
+                        foreach (var primitive in _renderList[curNode.DataIndex])
+                        {
+                            GL.DrawArrays(PrimitiveType.LineStrip, primitive.VertexStart, primitive.VertexCount);
+                        }
+                    }
+                    else
+                    {
+                        SetVertexAttribArraysForBatch(true, curNode.DataIndex);
+                        foreach (var primitive in _renderList[curNode.DataIndex])
+                        {
+                            GL.DrawArrays(primitive.DrawType, primitive.VertexStart, primitive.VertexCount);
+                        }
+                        SetVertexAttribArraysForBatch(false, curNode.DataIndex);
                     }
 
-                    SetVertexAttribArraysForBatch(false, curNode.DataIndex);
                     break;
 
                 case J3DFormat.HierarchyDataTypes.Joint:
@@ -122,7 +146,7 @@ namespace WindViewer.Editor.WindWaker
 
             foreach (SceneGraph subNode in curNode.Children)
             {
-                DrawModelRecursive(subNode, renderer);
+                DrawModelRecursive(subNode, renderer, bSelectedPass);
             }
         }
 
