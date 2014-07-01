@@ -55,12 +55,12 @@ namespace WindViewer.Editor.Tools
                 new Vector3(_gizmoAxisWidth, _gizmoAxisWidth, _gizmoScale));
 
 
-            transform.Rotate(new Vector3(1, 1, 0).Normalized(), 45f);
+            transform.Rotate(new Vector3(0, 1, 0).Normalized(), 45f);
         }
 
         public void Update()
         {
-            if (Input.GetMouseButton(0))
+            if (Input.GetMouseButtonDown(0))
             {
                 _selectedAxis = CheckSelectedAxis();
             }
@@ -91,10 +91,13 @@ namespace WindViewer.Editor.Tools
         private void HandleXAxisMovement()
         {
             Ray mouseRay = Camera.Current.ViewportPointToRay(Input.MousePosition);
+
             //Transform the ray into AABB space based on the rotation.
-            Quaternion invertRot = transform.Rotation.Inverted();
+            Quaternion invertRot = transform.Rotation;
+            invertRot.Conjugate();
             mouseRay.Origin = invertRot.Mult(mouseRay.Origin);
             mouseRay.Direction = invertRot.Mult(mouseRay.Direction);
+            mouseRay.Direction.Normalize();
 
             if (!_gizmoIsTracking)
             {
@@ -122,12 +125,19 @@ namespace WindViewer.Editor.Tools
         private AxisDirections CheckSelectedAxis()
         {
             Ray mouseRay = Camera.Current.ViewportPointToRay(Input.MousePosition);
+            DebugRenderer.DrawLine(mouseRay.Origin, mouseRay.Origin + mouseRay.Direction * 25000, Color.Green, 5f);
+
+
             //Transform the ray into AABB space based on the rotation.
             Quaternion invertRot = transform.Rotation;
             invertRot.Conjugate();
+
+            Vector3 prevOrig = mouseRay.Origin;
             mouseRay.Origin = invertRot.Mult(mouseRay.Origin);
             mouseRay.Direction = invertRot.Mult(mouseRay.Direction);
             mouseRay.Direction.Normalize();
+
+            Console.WriteLine("Prev: {0} Post: {1}", prevOrig, mouseRay.Origin);
 
             DebugRenderer.DrawLine(mouseRay.Origin, mouseRay.Origin + mouseRay.Direction * 25000, Color.Yellow, 5f);
 
@@ -147,8 +157,7 @@ namespace WindViewer.Editor.Tools
                     selected = i;
                 }
             }
-            
-            return AxisDirections.None;
+
             return (AxisDirections) selected;
         }
 
