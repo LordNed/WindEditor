@@ -11,8 +11,9 @@ namespace WindViewer.FileFormats
         #region Members
 
         public List<BaseChunk> EntityData;
- 
+
         #endregion
+
         public WwEntData(string filePath)
         {
             if (filePath == null)

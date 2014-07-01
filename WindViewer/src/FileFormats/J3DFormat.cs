@@ -1,16 +1,8 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Drawing.Drawing2D;
 using System.IO;
-using System.Linq;
-using System.Windows.Forms;
 using OpenTK;
-using OpenTK.Graphics.OpenGL;
 using WindViewer.Editor;
-using WindViewer.Editor.Renderer;
-using WindViewer.Editor.WindWaker;
-using WindViewer.Forms;
 
 namespace WindViewer.FileFormats
 {
@@ -19,10 +11,11 @@ namespace WindViewer.FileFormats
     /// so good enough. Anyways. It renders things.
     /// 
     /// Many thanks to @Drakonite, shuffle2, JMC47, Sage of Mirrors, Jasper, and phire for helping me understand the various
-    /// bits and pieces of the format, and some debugging ideas!
+    /// bits and pieces of the format, and some debugging ideas! Also thanks to @slime73 & others for rendering help.
     /// </summary>
-    public class JStudioModel : BaseArchiveFile, IRenderable
+    public class J3DFormat
     {
+        #region Public Enums
         public enum ArrayTypes
         {
             PositionMatrixIndex, Tex0MatrixIndex, Tex1MatrixIndex, Tex2MatrixIndex, Tex3MatrixIndex,
@@ -68,72 +61,24 @@ namespace WindViewer.FileFormats
             Finish = 0x0, NewNode = 0x01, EndNode = 0x02,
             Joint = 0x10, Material = 0x11, Batch = 0x12,
         }
+        #endregion
 
-        public class HierarchyData
+        public InfoChunk Info;
+        public VertexChunk Vertexes;
+        public EnvelopeChunk Envelopes;
+        public DrawChunk Draw;
+        public JointChunk Joints;
+        public ShapeChunk Shapes;
+        public Material3Chunk Materials;
+        public TextureChunk Textures;
+
+        public void Load(byte[] data)
         {
-            public HierarchyDataTypes Type { get; private set; }
-            public ushort Index { get; private set; }
-
-            public void Load(byte[] data, uint offset)
-            {
-                Type = (HierarchyDataTypes)FSHelpers.Read16(data, (int)offset);
-                Index = (ushort)FSHelpers.Read16(data, (int)offset + 0x2);
-            }
-
-            public override string ToString()
-            {
-                return string.Format("{0} [{1}]", Type, Index);
-            }
-
-            public const uint Size = 4;
-        }
-
-        public class VertexFormat
-        {
-            public ArrayTypes ArrayType { get; private set; }
-            public uint ArrayCount { get; private set; }
-            public DataTypes DataType { get; private set; }
-            public byte DecimalPoint { get; private set; }
-
-            public void Load(byte[] data, uint offset)
-            {
-                ArrayType = (ArrayTypes)FSHelpers.Read32(data, (int)offset);
-                ArrayCount = (uint)FSHelpers.Read32(data, (int)offset + 4);
-                DataType = (DataTypes)FSHelpers.Read32(data, (int)offset + 8);
-                DecimalPoint = FSHelpers.Read8(data, (int)offset + 12);
-            }
-
-            public const int Size = 16;
-        }
-
-        public enum VertexDataTypes
-        {
-            Position = 0,
-            Normal = 1,
-            Color0 = 3,
-            Tex0 = 5,
-        }
-
-
-        //Temp in case I fuck up
-        private byte[] _origDataCache;
-
-        private List<BaseChunk> _chunkList;
-
-        public override void Load(byte[] data)
-        {
-            _origDataCache = data;
-
-            _chunkList = new List<BaseChunk>();
-
             int dataOffset = 0;
 
             var header = new Header();
             header.Load(data, ref dataOffset);
 
-            //STEP 1: We're going to load all of the data out of memory straight into the chunks that
-            //hold them. These should be relatively close to accurate copies of the file format, but
-            //the Wiki is probably a better place to draw that information from.
             for (int i = 0; i < header.ChunkCount; i++)
             {
                 BaseChunk baseChunk;
@@ -144,28 +89,36 @@ namespace WindViewer.FileFormats
                 switch (tagName)
                 {
                     case "INF1":
-                        baseChunk = new Inf1Chunk();
+                        baseChunk = new InfoChunk();
+                        Info = baseChunk as InfoChunk;
                         break;
                     case "VTX1":
-                        baseChunk = new Vtx1Chunk();
+                        baseChunk = new VertexChunk();
+                        Vertexes = baseChunk as VertexChunk;
                         break;
                     case "EVP1":
-                        baseChunk = new Evp1Chunk();
+                        baseChunk = new EnvelopeChunk();
+                        Envelopes = baseChunk as EnvelopeChunk;
                         break;
                     case "DRW1":
-                        baseChunk = new Drw1Chunk();
+                        baseChunk = new DrawChunk();
+                        Draw = baseChunk as DrawChunk;
                         break;
                     case "JNT1":
-                        baseChunk = new Jnt1Chunk();
+                        baseChunk = new JointChunk();
+                        Joints = baseChunk as JointChunk;
                         break;
                     case "SHP1":
-                        baseChunk = new Shp1Chunk();
+                        baseChunk = new ShapeChunk();
+                        Shapes = baseChunk as ShapeChunk;
                         break;
                     case "TEX1":
-                        baseChunk = new Tex1Chunk();
+                        baseChunk = new TextureChunk();
+                        Textures = baseChunk as TextureChunk;
                         break;
                     case "MAT3":
-                        baseChunk = new Mat3Chunk();
+                        baseChunk = new Material3Chunk();
+                        Materials = baseChunk as Material3Chunk;
                         break;
                     case "ANK1":
                     default:
@@ -175,326 +128,8 @@ namespace WindViewer.FileFormats
                 }
 
                 baseChunk.Load(data, ref dataOffset);
-                _chunkList.Add(baseChunk);
-            }
-
-
-            //STEP 2: Once all of the data is loaded, we're going to pull different data from
-            //different chunks to transform the data into something
-            _vertData = BuildVertexArraysFromFile(data);
-
-
-            //Haaaaaaaack there goes my lung. Generate a vbo, bind and upload data.
-            GL.GenBuffers(1, out _glVbo);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(_vertData.Count * 36), _vertData.ToArray(), BufferUsageHint.StaticDraw);
-
-            _sceneGraph = BuildSceneGraphFromInfo(GetChunkByType<Inf1Chunk>());
-
-            //IterateSceneGraphRecursive(_sceneGraph);
-            J3DRenderer.Instance.AddRenderable(this);
-        }
-
-        public void Bind()
-        {
-            GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
-        }
-
-        public void Draw(BaseRenderer renderer)
-        {
-            /* Recursively iterate through the J3D scene graph to bind and draw all
-             * of the batches within the J3D model. */
-            DrawModelRecursive(_sceneGraph, renderer);
-        }
-
-        private void DrawModelRecursive(SceneGraph curNode, BaseRenderer renderer)
-        {
-            switch (curNode.NodeType)
-            {
-                case HierarchyDataTypes.Material:
-                    GL.BindTexture(TextureTarget.Texture2D, GetGLTexIdFromCache(curNode.DataIndex));
-                    break;
-
-                case HierarchyDataTypes.Batch:
-                    /* For each batch, we're going to enable the
-                         * appropriate Vertex Attributes for that batch
-                         * and set default values for vertex attribs that
-                         * the batch doesn't use, then draw all primitives
-                         * within it.*/
-                    SetVertexAttribArraysForBatch(true, curNode.DataIndex);
-
-                    foreach (var primitive in _renderList[curNode.DataIndex])
-                    {
-                        GL.DrawArrays(primitive.DrawType, primitive.VertexStart, primitive.VertexCount);
-                    }
-
-                    SetVertexAttribArraysForBatch(false, curNode.DataIndex);
-                    break;
-
-                case HierarchyDataTypes.Joint:
-                    Jnt1Chunk jnt1Chunk = GetChunkByType<Jnt1Chunk>();
-                    var joint = jnt1Chunk.GetJoint(curNode.DataIndex);
-                    Vector3 jointRot = joint.GetRotation().ToDegrees();
-                    Vector3 translation = joint.GetTranslation();
-
-                    if (ParentArchive != null)
-                    {
-                        if (FileName == "model.bdl")
-                        {
-                            Room room = ParentArchive as Room;
-                            if (room != null)
-                            {
-                                translation += new Vector3(room.Translation.X, 0, room.Translation.Y);
-                                jointRot.Y += room.Rotation.ToDegrees();
-                            }
-                        }
-                    }
-
-                    Matrix4 tranMatrix = Matrix4.CreateTranslation(translation);
-                    Matrix4 rotMatrix = Matrix4.CreateRotationX(jointRot.X) * Matrix4.CreateRotationY(jointRot.Y) *
-                                        Matrix4.CreateRotationZ(jointRot.Z);
-                    Matrix4 scaleMatrix = Matrix4.CreateScale(joint.GetScale());
-
-                    Matrix4 modelMatrix = tranMatrix * rotMatrix * scaleMatrix;
-
-                    renderer.SetModelMatrix(modelMatrix);
-                    break;
-            }
-
-            foreach (SceneGraph subNode in curNode.Children)
-            {
-                DrawModelRecursive(subNode, renderer);
             }
         }
-
-        private void SetVertexAttribArraysForBatch(bool bEnabled, ushort batchIndex)
-        {
-            Shp1Chunk shp1 = GetChunkByType<Shp1Chunk>();
-            List<Shp1Chunk.BatchAttribute> attributes = shp1.GetAttributesForBatch(batchIndex);
-
-            foreach (var attribute in attributes)
-            {
-                if (bEnabled)
-                {
-                    switch (attribute.AttribType)
-                    {
-                        case ArrayTypes.Position: GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Position); break;
-                        case ArrayTypes.Color0: GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Color); break;
-                        case ArrayTypes.Tex0: GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.TexCoord); break;
-                    }
-                }
-                else
-                {
-                    switch (attribute.AttribType)
-                    {
-                        case ArrayTypes.Position: GL.DisableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Position); break;
-                        case ArrayTypes.Color0: GL.DisableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Color); break;
-                        case ArrayTypes.Tex0: GL.DisableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.TexCoord); break;
-                    }
-                }
-            }
-        }
-
-        private SceneGraph _sceneGraph;
-
-        private SceneGraph BuildSceneGraphFromInfo(Inf1Chunk info)
-        {
-            if (info == null)
-                return null;
-
-            SceneGraph root = new SceneGraph();
-            var hierarchyData = info.GetHierarchyData();
-
-            BuildNodeRecursive(ref root, hierarchyData, 0);
-
-            return root;
-        }
-
-        private int BuildNodeRecursive(ref SceneGraph parent, List<HierarchyData> nodeList, int listIndex)
-        {
-            for (int i = listIndex; i < nodeList.Count; ++i)
-            {
-                HierarchyData node = nodeList[i];
-                SceneGraph newNode;
-
-                switch (node.Type)
-                {
-                    //If it's a new node, push down in the stack one.
-                    case HierarchyDataTypes.NewNode:
-                        newNode = new SceneGraph(node.Type, node.Index);
-                        i += BuildNodeRecursive(ref newNode, nodeList, i + 1);
-                        parent.Children.Add(newNode);
-                        break;
-
-                    //If it's the end node, we need to go up.
-                    case HierarchyDataTypes.EndNode:
-                        return i - listIndex + 1;
-
-                    //If it's a material, joint, or shape, just produce them.
-                    case HierarchyDataTypes.Material:
-                    case HierarchyDataTypes.Joint:
-                    case HierarchyDataTypes.Batch:
-                    case HierarchyDataTypes.Finish:
-                        break;
-                    default:
-                        Console.WriteLine("You broke something.");
-                        break;
-                }
-
-                //Update what we're about to add, because NewNodes can change it.
-                node = nodeList[i];
-                parent.Children.Add(new SceneGraph(node.Type, node.Index));
-            }
-
-            return 0;
-        }
-
-        private List<J3DRenderer.VertexFormatLayout> _vertData;
-
-        public override void Save(BinaryWriter stream)
-        {
-            stream.Write(_origDataCache);
-        }
-
-        private struct PrimitiveList
-        {
-            public int VertexStart;
-            public int VertexCount;
-            public PrimitiveType DrawType;
-        }
-
-        private Dictionary<int, List<PrimitiveList>> _renderList = new Dictionary<int, List<PrimitiveList>>();
-        private int _glVbo;
-
-        public T GetChunkByType<T>() where T : class
-        {
-            return _chunkList.OfType<T>().Select(file => file).FirstOrDefault();
-        }
-
-        private List<J3DRenderer.VertexFormatLayout> BuildVertexArraysFromFile(byte[] data)
-        {
-            Vtx1Chunk vtxChunk = GetChunkByType<Vtx1Chunk>();
-            List<J3DRenderer.VertexFormatLayout> finalData = new List<J3DRenderer.VertexFormatLayout>();
-
-            Shp1Chunk shp1Chunk = GetChunkByType<Shp1Chunk>();
-            Drw1Chunk drw1Chunk = GetChunkByType<Drw1Chunk>();
-            Jnt1Chunk jnt1Chunk = GetChunkByType<Jnt1Chunk>();
-
-            //Now, let's try to get our data.
-            for (uint i = 0; i < shp1Chunk.GetBatchCount(); i++)
-            {
-                Shp1Chunk.Batch batch = shp1Chunk.GetBatch(i);
-
-                //Console.WriteLine("[{0}] Unk0: {5}, Attb: {6} Mtx Type: {1} #Packets {2}[{3}] Matrix Index: {4}", i, batch.MatrixType, batch.PacketCount, batch.PacketIndex, batch.FirstMatrixIndex, batch.Unknown0, batch.AttribOffset);
-
-
-                uint attributeCount = 0;
-                for (uint attribIndex = 0; attribIndex < 13; attribIndex++)
-                {
-                    Shp1Chunk.BatchAttribute attrib = shp1Chunk.GetAttribute(attribIndex, batch.AttribOffset);
-                    if (attrib.AttribType == ArrayTypes.NullAttr)
-                        break;
-
-                    attributeCount++;
-                }
-
-                /*bool isWeighted = drw1Chunk.IsWeighted(batch.FirstMatrixIndex);
-                if (!isWeighted)
-                {
-                    ushort jointIndex = drw1Chunk.GetIndex(batch.FirstMatrixIndex);
-                    var joint = jnt1Chunk.GetJoint(jointIndex);
-                    Console.WriteLine(joint);
-                }*/
-
-                _renderList[(int)i] = new List<PrimitiveList>();
-                for (uint p = 0; p < batch.PacketCount; p++)
-                {
-                    Shp1Chunk.BatchPacketLocation packetLoc = shp1Chunk.GetBatchPacketLocation(batch.PacketIndex + p);
-
-                    uint numPrimitiveBytesRead = packetLoc.Offset;
-
-                    while (numPrimitiveBytesRead < packetLoc.Offset + packetLoc.PacketSize)
-                    {
-                        //The data is going to be stored as:
-                        //[Primitive][Primitive.VertexCount * (AttributeType.ElementCount * sizeof(AttributeType.DataType))]
-
-                        Shp1Chunk.BatchPrimitive primitive = new Shp1Chunk.BatchPrimitive();
-                        primitive.Load(shp1Chunk._dataCopy, shp1Chunk._primitiveDataOffset + numPrimitiveBytesRead);
-                        numPrimitiveBytesRead += Shp1Chunk.BatchPrimitive.Size;
-
-                        //Game pads the chunks out with zeros, so this is signal for early break.
-                        if (primitive.Type == 0)
-                        {
-                            break;
-                        }
-
-                        var primList = new PrimitiveList();
-                        primList.VertexCount = primitive.VertexCount;
-                        primList.VertexStart = finalData.Count;
-                        primList.DrawType = primitive.Type == PrimitiveTypes.TriangleStrip ? PrimitiveType.TriangleStrip : PrimitiveType.TriangleFan;
-
-                        _renderList[(int)i].Add(primList);
-
-
-                        //Todo: that's pretty shitty too.
-
-                        //Now, for each Vertex we're going to read the right number of bytes... we're hacking it in this case
-                        //to fixed amount of 8...
-
-                        for (int vert = 0; vert < primitive.VertexCount; vert++)
-                        {
-                            J3DRenderer.VertexFormatLayout newVertex = new J3DRenderer.VertexFormatLayout();
-                            for (uint vertIndex = 0; vertIndex < attributeCount; vertIndex++)
-                            {
-                                ushort curIndex =
-                                    (ushort)FSHelpers.Read16(shp1Chunk._dataCopy, (int)(shp1Chunk._primitiveDataOffset + numPrimitiveBytesRead));
-
-                                var batchAttrib = shp1Chunk.GetAttribute(vertIndex, batch.AttribOffset);
-
-                                if (GetAttribElementSize(batchAttrib.DataType) == 1)
-                                {
-                                    curIndex =
-                                        (ushort)
-                                            FSHelpers.Read8(shp1Chunk._dataCopy,
-                                                (int)(shp1Chunk._primitiveDataOffset + numPrimitiveBytesRead));
-                                }
-
-
-                                ArrayTypes attribType = batchAttrib.AttribType;
-
-                                switch (attribType)
-                                {
-                                    case ArrayTypes.Position:
-                                        newVertex.Position = vtxChunk.GetPosition(curIndex);
-                                        break;
-                                    case ArrayTypes.Normal:
-                                        newVertex.Color = new Vector4(vtxChunk.GetNormal(curIndex, 14), 1); //temp
-                                        break;
-                                    case ArrayTypes.Color0:
-                                        newVertex.Color = vtxChunk.GetColor0(curIndex);
-                                        break;
-                                    case ArrayTypes.Tex0:
-                                        newVertex.TexCoord = vtxChunk.GetTex0(curIndex, 8);
-                                        break;
-
-
-                                }
-
-                                numPrimitiveBytesRead += GetAttribElementSize(batchAttrib.DataType);
-                            }
-
-                            //Add our vertex to our list of Vertexes
-                            finalData.Add(newVertex);
-                        }
-                    }
-                }
-
-                //Console.WriteLine("Finished batch {0}, triangleStrip count: {1}", i, _renderList.Count);
-            }
-
-            return finalData;
-        }
-
         #region File Formats
 
         private class Header
@@ -530,12 +165,12 @@ namespace WindViewer.FileFormats
             }
         }
 
-        private class BaseChunk
+        public class BaseChunk
         {
             public string Type;
             public int ChunkSize;
 
-            public byte[] _dataCopy;
+            protected byte[] _dataCopy;
 
             public virtual void Load(byte[] data, ref int offset)
             {
@@ -566,7 +201,7 @@ namespace WindViewer.FileFormats
             }
         }
 
-        private class Inf1Chunk : BaseChunk
+        public class InfoChunk : BaseChunk
         {
             /* All other chunks have a 4 byte tag, a 4 byte chunk size, and then
              * a 2 byte "entry" count (+ 2 more bytes padding) at the start. This
@@ -619,7 +254,21 @@ namespace WindViewer.FileFormats
             }
         }
 
-        private class Vtx1Chunk : BaseChunk
+        public class HierarchyData
+        {
+            public HierarchyDataTypes Type { get; private set; }
+            public ushort Index { get; private set; }
+
+            public void Load(byte[] data, uint offset)
+            {
+                Type = (HierarchyDataTypes)FSHelpers.Read16(data, (int)offset);
+                Index = (ushort)FSHelpers.Read16(data, (int)offset + 0x2);
+            }
+
+            public const uint Size = 4;
+        }
+
+        public class VertexChunk : BaseChunk
         {
             private uint _vertexFormatsOffset;
             private uint _positionDataOffset;
@@ -725,8 +374,26 @@ namespace WindViewer.FileFormats
             }
 
         }
+        
+        public class VertexFormat
+        {
+            public ArrayTypes ArrayType { get; private set; }
+            public uint ArrayCount { get; private set; }
+            public DataTypes DataType { get; private set; }
+            public byte DecimalPoint { get; private set; }
 
-        private class Evp1Chunk : BaseChunk
+            public void Load(byte[] data, uint offset)
+            {
+                ArrayType = (ArrayTypes)FSHelpers.Read32(data, (int)offset);
+                ArrayCount = (uint)FSHelpers.Read32(data, (int)offset + 4);
+                DataType = (DataTypes)FSHelpers.Read32(data, (int)offset + 8);
+                DecimalPoint = FSHelpers.Read8(data, (int)offset + 12);
+            }
+
+            public const int Size = 16;
+        }
+
+        public class EnvelopeChunk : BaseChunk
         {
             private ushort _sectionCount; //BST has 3 
             private uint _countsArrayOffset; //BST values: 2, 2, 2
@@ -779,7 +446,7 @@ namespace WindViewer.FileFormats
             }
         }
 
-        private class Drw1Chunk : BaseChunk
+        public class DrawChunk : BaseChunk
         {
             private ushort _sectionCount;
             private uint _isWeightedOffset;
@@ -794,11 +461,6 @@ namespace WindViewer.FileFormats
                 _dataOffset = (uint)FSHelpers.Read32(data, offset + 0x10);
 
                 offset += ChunkSize;
-
-                for (ushort i = 0; i < _sectionCount; i++)
-                {
-                    //Console.WriteLine("[{0}] - {1} / {2}", i, IsWeighted(i), GetIndex(i));
-                }
             }
 
             public bool IsWeighted(ushort index)
@@ -812,7 +474,7 @@ namespace WindViewer.FileFormats
             }
         }
 
-        private class Jnt1Chunk : BaseChunk
+        public class JointChunk : BaseChunk
         {
             private ushort _jointCount;
             private uint _entryOffset;
@@ -829,13 +491,6 @@ namespace WindViewer.FileFormats
                 _stringTableOffset = (uint)FSHelpers.Read32(data, offset + 0x14);
 
                 offset += ChunkSize;
-
-                for (ushort i = 0; i < _jointCount; i++)
-                {
-                    /*JntEntry jnt = GetJoint(i);
-                    Console.WriteLine("[{0}] - {1} / {2} ({3})", i, jnt.GetUnknown1(), jnt.GetUnknown2(),
-                        GetString(GetStringTableEntry(i)));*/
-                }
             }
 
             public ushort GetUnknown(ushort index)
@@ -843,10 +498,10 @@ namespace WindViewer.FileFormats
                 return (ushort)FSHelpers.Read16(_dataCopy, (int)_stringIdTableOffset + (index * 0x2));
             }
 
-            public JntEntry GetJoint(ushort index)
+            public Joint GetJoint(ushort index)
             {
-                JntEntry joint = new JntEntry();
-                joint.Load(_dataCopy, _entryOffset + (index * JntEntry.Size));
+                Joint joint = new Joint();
+                joint.Load(_dataCopy, _entryOffset + (index * Joint.Size));
 
                 return joint;
             }
@@ -875,165 +530,78 @@ namespace WindViewer.FileFormats
             {
                 return FSHelpers.ReadString(_dataCopy, (int)_stringTableOffset + entry.StringOffset);
             }
-
-            public struct StringTableEntry
-            {
-                public ushort UnknownIndex;
-                public ushort StringOffset;
-
-                public override string ToString()
-                {
-                    return string.Format("[{0}] - {1}", UnknownIndex, StringOffset);
-                }
-            }
-
-            public class JntEntry
-            {
-                private ushort _unknown1; //0 = has unknown2, bboxmin, bboxmax. 
-                private byte _unknown2; //Unknown
-                private Vector3 _scale;
-                private HalfRotation _rotation;
-                private Vector3 _translation;
-                private float _unknown3;
-                private Vector3 _boundingBoxMin;
-                private Vector3 _boundingBoxMax;
-
-                public void Load(byte[] data, uint offset)
-                {
-                    _unknown1 = (ushort)FSHelpers.Read16(data, (int)offset + 0x0);
-                    //One byte padding.
-                    _unknown2 = (byte)FSHelpers.Read16(data, (int)offset + 0x3);
-                    _scale = FSHelpers.ReadVector3(data, (int)offset + 0x4);
-                    _rotation = FSHelpers.ReadHalfRot(data, offset + 0x10);
-                    //2 bytes padding
-                    _translation = FSHelpers.ReadVector3(data, (int)offset + 0x18);
-                    _unknown3 = FSHelpers.ReadFloat(data, (int)offset + 0x24);
-                    _boundingBoxMin = FSHelpers.ReadVector3(data, (int)offset + 0x28);
-                    _boundingBoxMax = FSHelpers.ReadVector3(data, (int)offset + 0x34);
-                }
-
-                public ushort GetUnknown1()
-                {
-                    return _unknown1;
-                }
-
-                public byte GetUnknown2()
-                {
-                    return _unknown2;
-                }
-
-                public Vector3 GetScale()
-                {
-                    return _scale;
-                }
-
-                public HalfRotation GetRotation()
-                {
-                    return _rotation;
-                }
-
-                public Vector3 GetTranslation()
-                {
-                    return _translation;
-                }
-
-                public float GetUnknownFloat()
-                {
-                    return _unknown3;
-                }
-
-                public Vector3 GetBoundingBoxMin()
-                {
-                    return _boundingBoxMin;
-                }
-
-                public Vector3 GetBoundingBoxMax()
-                {
-                    return _boundingBoxMax;
-                }
-
-                public const uint Size = 64;
-            }
-
         }
 
-        /// <summary>
-        /// Since primitives have different attributes (ie: some have position, some have normals, some have texcoords)
-        /// each different primitive is placed into a "batch", and each batch ahs a fixed set of vertex attributes. Each 
-        /// batch can then have several "packets", which are used for animations. A packet is a collection of primitives.
-        /// </summary>
-        private class Shp1Chunk : BaseChunk
+        public class Joint
         {
-            public class Batch
+            private ushort _unknown1; //0 = has unknown2, bboxmin, bboxmax. 
+            private byte _unknown2; //Unknown
+            private Vector3 _scale;
+            private HalfRotation _rotation;
+            private Vector3 _translation;
+            private float _unknown3;
+            private Vector3 _boundingBoxMin;
+            private Vector3 _boundingBoxMax;
+
+            public void Load(byte[] data, uint offset)
             {
-                public byte MatrixType;
-                public byte Unknown0;
-                public ushort PacketCount;
-                public ushort AttribOffset;
-                public ushort FirstMatrixIndex;
-                public ushort PacketIndex;
-
-                public float Unknown;
-                public Vector3 BoundingBoxMin;
-                public Vector3 BoundingBoxMax;
-
-                //Bleh
-                public List<BatchAttribute> BatchAttributes = new List<BatchAttribute>();
-
-                public void Load(byte[] data, uint offset)
-                {
-                    MatrixType = FSHelpers.Read8(data, (int)offset);
-                    Unknown0 = FSHelpers.Read8(data, (int)offset + 1);
-                    PacketCount = (ushort)FSHelpers.Read16(data, (int)offset + 0x2);
-                    AttribOffset = (ushort)FSHelpers.Read16(data, (int)offset + 0x4);
-                    FirstMatrixIndex = (ushort)FSHelpers.Read16(data, (int)offset + 0x6);
-                    PacketIndex = (ushort)FSHelpers.Read16(data, (int)offset + 0x8);
-
-                    Unknown = FSHelpers.ReadFloat(data, (int)offset + 0xC);
-                    BoundingBoxMin = FSHelpers.ReadVector3(data, (int)offset + 0x10);
-                    BoundingBoxMax = FSHelpers.ReadVector3(data, (int)offset + 0x1C);
-                }
-
-                public const uint Size = 40;
+                _unknown1 = (ushort)FSHelpers.Read16(data, (int)offset + 0x0);
+                //One byte padding.
+                _unknown2 = (byte)FSHelpers.Read16(data, (int)offset + 0x3);
+                _scale = FSHelpers.ReadVector3(data, (int)offset + 0x4);
+                _rotation = FSHelpers.ReadHalfRot(data, offset + 0x10);
+                //2 bytes padding
+                _translation = FSHelpers.ReadVector3(data, (int)offset + 0x18);
+                _unknown3 = FSHelpers.ReadFloat(data, (int)offset + 0x24);
+                _boundingBoxMin = FSHelpers.ReadVector3(data, (int)offset + 0x28);
+                _boundingBoxMax = FSHelpers.ReadVector3(data, (int)offset + 0x34);
             }
 
-            public class BatchAttribute
+            public ushort GetUnknown1()
             {
-                public ArrayTypes AttribType;
-                public DataTypes DataType;
-
-                public void Load(byte[] data, uint offset)
-                {
-                    AttribType = (ArrayTypes)FSHelpers.Read32(data, (int)offset);
-                    DataType = (DataTypes)FSHelpers.Read32(data, (int)offset + 0x4);
-                }
-
-                public const uint Size = 8;
+                return _unknown1;
             }
 
-            public struct BatchPacketLocation
+            public byte GetUnknown2()
             {
-                public uint PacketSize;
-                public uint Offset;
-
-                //Not part of the BPLocation header
-                public const uint Size = 8;
+                return _unknown2;
             }
 
-            public class BatchPrimitive
+            public Vector3 GetScale()
             {
-                public PrimitiveTypes Type;
-                public ushort VertexCount;
-
-                public void Load(byte[] data, uint offset)
-                {
-                    Type = (PrimitiveTypes)FSHelpers.Read8(data, (int)offset);
-                    VertexCount = (ushort)FSHelpers.Read16(data, (int)offset + 0x1);
-                }
-
-                public const uint Size = 3;
+                return _scale;
             }
 
+            public HalfRotation GetRotation()
+            {
+                return _rotation;
+            }
+
+            public Vector3 GetTranslation()
+            {
+                return _translation;
+            }
+
+            public float GetUnknownFloat()
+            {
+                return _unknown3;
+            }
+
+            public Vector3 GetBoundingBoxMin()
+            {
+                return _boundingBoxMin;
+            }
+
+            public Vector3 GetBoundingBoxMax()
+            {
+                return _boundingBoxMax;
+            }
+
+            public const uint Size = 64;
+        }
+
+        public class ShapeChunk : BaseChunk
+        {
             private ushort _batchCount;
             private uint _batchDataOffset;
             private uint _unknownTableOffset;
@@ -1114,6 +682,99 @@ namespace WindViewer.FileFormats
 
                 return attribs;
             }
+
+            public BatchPrimitive GetPrimitive(uint offset)
+            {
+                var primitive = new BatchPrimitive();
+                primitive.Load(_dataCopy, _primitiveDataOffset + offset);
+
+                return primitive;
+            }
+
+            public ushort GetPrimitiveIndex(uint offset, BatchAttribute primitiveAttrib)
+            {
+                switch (primitiveAttrib.DataType)
+                {
+                    case DataTypes.Signed16:
+                        return (ushort) FSHelpers.Read16(_dataCopy, (int)(_primitiveDataOffset + offset));
+                    case DataTypes.Signed8:
+                        return FSHelpers.Read8(_dataCopy, (int) (_primitiveDataOffset + offset));
+                    default:
+                        throw new Exception("Unknown datatype index.");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Since primitives have different attributes (ie: some have position, some have normals, some have texcoords)
+        /// each different primitive is placed into a "batch", and each batch ahs a fixed set of vertex attributes. Each 
+        /// batch can then have several "packets", which are used for animations. A packet is a collection of primitives.
+        /// </summary>
+        public class Batch
+        {
+            public byte MatrixType;
+            public byte Unknown0;
+            public ushort PacketCount;
+            public ushort AttribOffset;
+            public ushort FirstMatrixIndex;
+            public ushort PacketIndex;
+
+            public float Unknown;
+            public Vector3 BoundingBoxMin;
+            public Vector3 BoundingBoxMax;
+
+            public void Load(byte[] data, uint offset)
+            {
+                MatrixType = FSHelpers.Read8(data, (int)offset);
+                Unknown0 = FSHelpers.Read8(data, (int)offset + 1);
+                PacketCount = (ushort)FSHelpers.Read16(data, (int)offset + 0x2);
+                AttribOffset = (ushort)FSHelpers.Read16(data, (int)offset + 0x4);
+                FirstMatrixIndex = (ushort)FSHelpers.Read16(data, (int)offset + 0x6);
+                PacketIndex = (ushort)FSHelpers.Read16(data, (int)offset + 0x8);
+
+                Unknown = FSHelpers.ReadFloat(data, (int)offset + 0xC);
+                BoundingBoxMin = FSHelpers.ReadVector3(data, (int)offset + 0x10);
+                BoundingBoxMax = FSHelpers.ReadVector3(data, (int)offset + 0x1C);
+            }
+
+            public const uint Size = 40;
+        }
+
+        public class BatchAttribute
+        {
+            public ArrayTypes AttribType;
+            public DataTypes DataType;
+
+            public void Load(byte[] data, uint offset)
+            {
+                AttribType = (ArrayTypes)FSHelpers.Read32(data, (int)offset);
+                DataType = (DataTypes)FSHelpers.Read32(data, (int)offset + 0x4);
+            }
+
+            public const uint Size = 8;
+        }
+
+        public struct BatchPacketLocation
+        {
+            public uint PacketSize;
+            public uint Offset;
+
+            //Not part of the BPLocation header
+            public const uint Size = 8;
+        }
+
+        public class BatchPrimitive
+        {
+            public PrimitiveTypes Type;
+            public ushort VertexCount;
+
+            public void Load(byte[] data, uint offset)
+            {
+                Type = (PrimitiveTypes)FSHelpers.Read8(data, (int)offset);
+                VertexCount = (ushort)FSHelpers.Read16(data, (int)offset + 0x1);
+            }
+
+            public const uint Size = 3;
         }
 
         /// <summary>
@@ -1122,7 +783,7 @@ namespace WindViewer.FileFormats
         /// each image. The TEX1 chunk stores _textureCount headers immediately after
         /// the chunk, and then the data for those textures comes.
         /// </summary>
-        private class Tex1Chunk : BaseChunk
+        public class TextureChunk : BaseChunk
         {
             private ushort _textureCount;
             private uint _textureHeaderOffset;
@@ -1141,18 +802,16 @@ namespace WindViewer.FileFormats
             public BinaryTextureImage GetTexture(uint index)
             {
                 if (index > _textureCount)
-                {
-                    new Exception("Invalid index provided to GetTexture!");
-                }
+                    throw new Exception("Invalid index provided to GetTexture!");
 
-                BinaryTextureImage tex = new BinaryTextureImage();
+                var texture = new BinaryTextureImage();
 
                 //Before load the texture we need to modify the source byte array, because reasons.
                 uint headerOffset = ((index) * 32);
 
-                tex.Load(_dataCopy, _textureHeaderOffset + headerOffset, headerOffset + 32);
+                texture.Load(_dataCopy, _textureHeaderOffset + headerOffset, headerOffset + 32);
 
-                return tex;
+                return texture;
             }
 
             public ushort GetTextureCount()
@@ -1161,29 +820,29 @@ namespace WindViewer.FileFormats
             }
         }
 
-        private class Mat3Chunk : BaseChunk
+        public class Material3Chunk : BaseChunk
         {
             private ushort _materialCount;
             private uint _materialInitDataOffset;
-            private uint _materialIndexOffset; //"Us" ? Seems to index tex coords.
+            private uint _materialIndexOffset;
             private uint _stringTableOffset;
             private uint _indirectTextureOffset; //Indirect textures is using the output of of one TEV stage as tex coords for another.
             private uint _gxCullModeOffset;
             private uint _gxColorOffset;
-            private uint _colorChannelNumOffset; //UC?
+            private uint _colorChannelNumOffset; 
             private uint _colorChannelInfoOffset;
             private uint _gxColor2Offset;
             private uint _lightInfoOffset;
-            private uint _texGenNumberOffset; //UC?
+            private uint _texGenNumberOffset; 
             private uint _texCoordInfoOffset;
             private uint _texCoordInfo2Offset;
             private uint _texMatrixInfoOffset;
             private uint _texMatrix2InfoOffset;
-            private uint _texCoordOrMatrixOffset; //US? Related to _materialIndexOffsetS? Unknown.
+            private uint _textureIndex;
             private uint _tevOrderInfoOffset;
             private uint _gxColorS10Offset; //(Signed 10-bit value)
             private uint _gxColor3Offset;
-            private uint _tevStageNumInfoOffset; //UC?
+            private uint _tevStageNumInfoOffset; 
             private uint _tevStageInfoOffset;
             private uint _tevSwapModeInfoOffset;
             private uint _tevSwapModeTableInfoOffset;
@@ -1191,7 +850,7 @@ namespace WindViewer.FileFormats
             private uint _alphaCompareInfoOffset;
             private uint _blendInfoOffset;
             private uint _zModeInfoOffset; //Depth mode
-            private uint _zCompareInfoOffset; //UC?
+            private uint _zCompareInfoOffset; 
             private uint _ditherINfoOffset;
             private uint _nbtScaleInfoOffset;
 
@@ -1216,7 +875,7 @@ namespace WindViewer.FileFormats
                 _texCoordInfo2Offset = (uint)FSHelpers.Read32(data, offset + 0x3C);
                 _texMatrixInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x40);
                 _texMatrix2InfoOffset = (uint)FSHelpers.Read32(data, offset + 0x44);
-                _texCoordOrMatrixOffset = (uint)FSHelpers.Read32(data, offset + 0x48);
+                _textureIndex = (uint)FSHelpers.Read32(data, offset + 0x48);
                 _tevOrderInfoOffset = (uint)FSHelpers.Read32(data, offset + 0x4C);
                 _gxColorS10Offset = (uint)FSHelpers.Read32(data, offset + 0x50);
                 _gxColor3Offset = (uint)FSHelpers.Read32(data, offset + 0x54);
@@ -1251,7 +910,7 @@ namespace WindViewer.FileFormats
 
             public ushort GetMaterialIndex(uint index)
             {
-                return (ushort)FSHelpers.Read16(_dataCopy, (int)(_texCoordOrMatrixOffset + (index * 0x2)));
+                return (ushort)FSHelpers.Read16(_dataCopy, (int)(_textureIndex + (index * 0x2)));
             }
 
 
@@ -1259,7 +918,7 @@ namespace WindViewer.FileFormats
 
             public ushort GetMaterialRemapTable(ushort index)
             {
-                return (ushort) FSHelpers.Read16(_dataCopy, (int) (_materialIndexOffset + (index*0x2)));
+                return (ushort)FSHelpers.Read16(_dataCopy, (int)(_materialIndexOffset + (index * 0x2)));
             }
         }
 
@@ -1343,109 +1002,16 @@ namespace WindViewer.FileFormats
             public const int Size = 332;
         }
 
-        #endregion
 
-        #region Editor stuff to figure out later
-
-        private Dictionary<int, int> _textureCache = new Dictionary<int, int>();
-        private int GetGLTexIdFromCache(int j3dTextureId)
+        public struct StringTableEntry
         {
-            if (_textureCache.ContainsKey(j3dTextureId))
-                return _textureCache[j3dTextureId];
-
-            //Console.WriteLine("Generating GL texture for id: " + j3dTextureId);
-
-            //Look up the material first.
-            Mat3Chunk matChunk = GetChunkByType<Mat3Chunk>();
-            matChunk.GetMaterialRemapTable((ushort) j3dTextureId);
-            MaterialInitData matData = matChunk.GetMaterialInitData(matChunk.GetMaterialRemapTable((ushort) j3dTextureId));
-
-            //If the texture cache doesn't contain the ID, we're going to load it here.
-            Tex1Chunk texChunk = GetChunkByType<Tex1Chunk>();
-            ushort textureIndex = matData.GetTextureIndex(0);
-            if (textureIndex == 0xFF || textureIndex == 0xFFFF)
-            {
-                _textureCache[j3dTextureId] = 0;
-                return 0;
-            }
-            BinaryTextureImage image = texChunk.GetTexture(matChunk.GetMaterialIndex(textureIndex));
-            //image.WriteImageToFile("image_" + matChunk.GetMaterialIndex(matData.GetTextureIndex(0)) + image.Format + ".png");
-
-            byte[] imageData = image.GetData();
-            ushort imageWidth = image.Width;
-            ushort imageHeight = image.Height;
-
-            //Generate a black and white textureboard if the texture format is not supported.
-            if (imageData.Length == 0)
-            {
-                imageData = new byte[]
-                {
-                    0, 0, 0, 255, 255, 255, 255, 255,
-                    255, 255, 255, 255, 0, 0, 0, 255
-                };
-                imageWidth = 2;
-                imageHeight = 2;
-            }
-
-
-            int glTextureId;
-            GL.GenTextures(1, out glTextureId);
-            GL.BindTexture(TextureTarget.Texture2D, glTextureId);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Nearest);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Nearest);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)All.Repeat);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)All.Repeat);
-
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, imageWidth, imageHeight, 0, PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, imageData);
-
-
-            _textureCache[j3dTextureId] = glTextureId;
-            return glTextureId;
-        }
-
-        private class SceneGraph
-        {
-            public List<SceneGraph> Children;
-            public HierarchyDataTypes NodeType { get; private set; }
-            public ushort DataIndex { get; private set; }
-
-            public SceneGraph(HierarchyDataTypes type, ushort index)
-            {
-                Children = new List<SceneGraph>();
-                NodeType = type;
-                DataIndex = index;
-            }
-
-            public SceneGraph()
-            {
-                Children = new List<SceneGraph>();
-                NodeType = 0;
-                DataIndex = 0;
-            }
+            public ushort UnknownIndex;
+            public ushort StringOffset;
 
             public override string ToString()
             {
-                return string.Format("{0} [{1}]", NodeType, Children.Count);
+                return string.Format("[{0}] - {1}", UnknownIndex, StringOffset);
             }
-        }
-
-        private uint GetAttribElementSize(DataTypes dataType)
-        {
-            switch (dataType)
-            {
-                case DataTypes.Unsigned8:
-                case DataTypes.Signed8:
-                    return 1;
-                case DataTypes.Unsigned16:
-                case DataTypes.Signed16:
-                    return 2;
-                case DataTypes.Float32:
-                case DataTypes.Rgba8:
-                    return 4;
-            }
-
-            Console.WriteLine("Unknown attrib datatype {0}, guessing at 2!", dataType);
-            return 2;
         }
 
         #endregion

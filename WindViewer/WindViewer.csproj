@@ -67,6 +67,7 @@
     <Compile Include="src\Editor\Renderer\J3DRenderer.cs" />
     <Compile Include="src\Editor\Display.cs" />
     <Compile Include="src\Editor\Tools\MovementGizmo.cs" />
+    <Compile Include="src\Editor\WindWaker\JStudioModel.cs" />
     <Compile Include="src\Editor\WindWaker\Project.cs" />
     <Compile Include="src\Editor\WindWaker\Room.cs" />
     <Compile Include="src\Editor\WindWaker\Stage.cs" />
@@ -82,7 +83,7 @@
     <Compile Include="src\Editor\WorldspaceProject.cs" />
     <Compile Include="src\FileFormats\BinaryTextureImage.cs" />
     <Compile Include="src\FileFormats\GenericArchiveData.cs" />
-    <Compile Include="src\FileFormats\JStudioModel.cs" />
+    <Compile Include="src\FileFormats\J3DFormat.cs" />
     <Compile Include="src\FileFormats\StaticCollisionModel.cs" />
     <Compile Include="src\FileFormats\WindWakerEntityData.cs">
       <SubType>Code</SubType>
