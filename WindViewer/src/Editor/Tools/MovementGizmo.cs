@@ -114,7 +114,7 @@ namespace WindViewer.Editor.Tools
             //Get the difference on the x axis
             float deltaX = curRayPos.X - _gizmoPosAtStart.X;
 
-            transform.Position =  transform.Right * deltaX + new Vector3(_gizmoRayOffset, 0, 0);
+            transform.Position = _gizmoPosAtStart + (transform.Right * deltaX) + new Vector3(_gizmoRayOffset, 0, 0);
         }
 
         private void HandleYAxisMovement()
@@ -140,7 +140,7 @@ namespace WindViewer.Editor.Tools
             //Get the difference on the x axis
             float deltaY = curRayPos.Y - _gizmoPosAtStart.Y;
 
-            transform.Position = transform.Up*deltaY + new Vector3(0, _gizmoRayOffset, 0);
+            transform.Position = _gizmoPosAtStart + (transform.Up*deltaY) + new Vector3(0, _gizmoRayOffset, 0);
         }
 
         private void HandleZAxisMovement()
@@ -166,7 +166,7 @@ namespace WindViewer.Editor.Tools
             //Get the difference on the x axis
             float deltaZ = curRayPos.Z - _gizmoPosAtStart.Z;
 
-            transform.Position = transform.Forward * deltaZ + new Vector3(0, 0, _gizmoRayOffset);
+            transform.Position = _gizmoPosAtStart + (transform.Forward * deltaZ) + new Vector3(0, 0, _gizmoRayOffset);
         }
 
         private AxisDirections CheckSelectedAxis()
