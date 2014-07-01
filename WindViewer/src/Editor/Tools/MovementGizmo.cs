@@ -53,9 +53,6 @@ namespace WindViewer.Editor.Tools
             //Z Axis
             _axisBoundingBoxes[2] = new BoundingBox(new Vector3(-_gizmoAxisWidth, -_gizmoAxisWidth, 0),
                 new Vector3(_gizmoAxisWidth, _gizmoAxisWidth, _gizmoScale));
-
-
-            transform.Rotate(new Vector3(0, 1, 0).Normalized(), 45f);
         }
 
         public void Update()
@@ -80,6 +77,12 @@ namespace WindViewer.Editor.Tools
                     case AxisDirections.X:
                         HandleXAxisMovement();
                         break;
+                    case AxisDirections.Y:
+                        HandleYAxisMovement();
+                        break;
+                    case AxisDirections.Z:
+                        HandleZAxisMovement();
+                        break;
                 }
             }
 
@@ -91,13 +94,6 @@ namespace WindViewer.Editor.Tools
         private void HandleXAxisMovement()
         {
             Ray mouseRay = Camera.Current.ViewportPointToRay(Input.MousePosition);
-
-            //Transform the ray into AABB space based on the rotation.
-            Quaternion invertRot = transform.Rotation;
-            invertRot.Conjugate();
-            mouseRay.Origin = invertRot.Mult(mouseRay.Origin);
-            mouseRay.Direction = invertRot.Mult(mouseRay.Direction);
-            mouseRay.Direction.Normalize();
 
             if (!_gizmoIsTracking)
             {
@@ -118,28 +114,65 @@ namespace WindViewer.Editor.Tools
             //Get the difference on the x axis
             float deltaX = curRayPos.X - _gizmoPosAtStart.X;
 
-            transform.Position = _gizmoPosAtStart + (transform.Right*deltaX);
-            Console.WriteLine("delta: " + deltaX);
+            transform.Position = _gizmoPosAtStart + (transform.Right * deltaX) + new Vector3(_gizmoRayOffset, 0, 0);
+        }
+
+        private void HandleYAxisMovement()
+        {
+            Ray mouseRay = Camera.Current.ViewportPointToRay(Input.MousePosition);
+
+            if (!_gizmoIsTracking)
+            {
+
+                Vector3 rayIntersect;
+                float distance;
+
+                _gizmoIsTracking = Physics.RayVsPlane(mouseRay, transform.Position, Camera.Current.Transform.Forward, out distance, out rayIntersect);
+                _gizmoPosAtStart = transform.Position;
+                _gizmoRayOffset = (_gizmoPosAtStart - rayIntersect).Y;
+            }
+
+            //Get their current mouse position
+            Vector3 curRayPos;
+
+            Physics.RayVsPlane(mouseRay, transform.Position, Camera.Current.Transform.Forward, out curRayPos);
+
+            //Get the difference on the x axis
+            float deltaY = curRayPos.Y - _gizmoPosAtStart.Y;
+
+            transform.Position = _gizmoPosAtStart + (transform.Up*deltaY) + new Vector3(0, _gizmoRayOffset, 0);
+        }
+
+        private void HandleZAxisMovement()
+        {
+            Ray mouseRay = Camera.Current.ViewportPointToRay(Input.MousePosition);
+
+            if (!_gizmoIsTracking)
+            {
+
+                Vector3 rayIntersect;
+                float distance;
+
+                _gizmoIsTracking = Physics.RayVsPlane(mouseRay, transform.Position, transform.Up, out distance, out rayIntersect);
+                _gizmoPosAtStart = transform.Position;
+                _gizmoRayOffset = (_gizmoPosAtStart - rayIntersect).Z;
+            }
+
+            //Get their current mouse position
+            Vector3 curRayPos;
+
+            Physics.RayVsPlane(mouseRay, transform.Position, transform.Up, out curRayPos);
+
+            //Get the difference on the x axis
+            float deltaZ = curRayPos.Z - _gizmoPosAtStart.Z;
+
+            transform.Position = _gizmoPosAtStart + (transform.Forward * deltaZ) + new Vector3(0, 0, _gizmoRayOffset);
         }
 
         private AxisDirections CheckSelectedAxis()
         {
             Ray mouseRay = Camera.Current.ViewportPointToRay(Input.MousePosition);
-            DebugRenderer.DrawLine(mouseRay.Origin, mouseRay.Origin + mouseRay.Direction * 25000, Color.Green, 5f);
-
-
-            //Transform the ray into AABB space based on the rotation.
-            Quaternion invertRot = transform.Rotation;
-            invertRot.Conjugate();
-
-            Vector3 prevOrig = mouseRay.Origin;
-            mouseRay.Origin = invertRot.Mult(mouseRay.Origin);
-            mouseRay.Direction = invertRot.Mult(mouseRay.Direction);
-            mouseRay.Direction.Normalize();
-
-            Console.WriteLine("Prev: {0} Post: {1}", prevOrig, mouseRay.Origin);
-
-            DebugRenderer.DrawLine(mouseRay.Origin, mouseRay.Origin + mouseRay.Direction * 25000, Color.Yellow, 5f);
+            //DebugRenderer.DrawLine(mouseRay.Origin, mouseRay.Origin + mouseRay.Direction * 25000, Color.Green, 5f);
 
             float closestAxis = float.MaxValue;
             int selected = -1;
