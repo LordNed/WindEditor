@@ -102,13 +102,14 @@ namespace WindViewer.Editor.WindWaker
                         GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
                         GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Position);
 
-                        // 1. Draw the back-faces:
-                        /*GL.CullFace(CullFaceMode.Back);
-                        GL.Uniform3(renderer._currentShader.UniformColor, new Vector3(0.77f, 0.38f, 0.06f));
+                        // 1. Draw the back-faces with a stipple:
+                        GL.CullFace(CullFaceMode.Back);
+                        GL.Uniform3(renderer._currentShader.UniformColor, new Vector3(0.23f, 0.27f, 0.29f));
+                        
                         foreach (var primitive in _renderList[curNode.DataIndex])
                         {
                             GL.DrawArrays(primitive.DrawType, primitive.VertexStart, primitive.VertexCount);
-                        }*/
+                        }
 
                         // 2. Draw the front-faces:
                         GL.CullFace(CullFaceMode.Front);
