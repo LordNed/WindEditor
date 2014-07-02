@@ -27,7 +27,12 @@ namespace WindViewer.Editor.WindWaker
             _file.Load(data);
             _dataCache = data;
 
-            Selected = false;
+            Selected = true;
+
+
+            /* Dump info for debugging */
+            Console.WriteLine("Model: {0}, Vertex Count: {1} Batch Count: {2} Joint Count: {3}", FileName, _file.Info.GetVertexCount(), _file.Info.GetBatchCount(), _file.Joints.GetJointCount());
+            Console.WriteLine("Envelope Count: {0} Draw Count: {1}", _file.Envelopes.GetEnvelopeCount(), _file.Draw.GetDrawCount());
 
             //Extract the data from the file format into something we can use.
             var vertData = BuildVertexArraysFromFile();
@@ -97,7 +102,7 @@ namespace WindViewer.Editor.WindWaker
 
                         GL.LineWidth(1);
                         GL.Enable(EnableCap.CullFace);
-                        GL.Disable(EnableCap.DepthTest);
+                        //GL.Disable(EnableCap.DepthTest);
                         GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
                         GL.EnableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Position);
 
@@ -119,7 +124,7 @@ namespace WindViewer.Editor.WindWaker
 
                         GL.DisableVertexAttribArray((int)BaseRenderer.ShaderAttributeIds.Position);
                         GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
-                        GL.Enable(EnableCap.DepthTest);
+                        //GL.Enable(EnableCap.DepthTest);
                         GL.LineWidth(1);
                     }
                     else
@@ -271,21 +276,20 @@ namespace WindViewer.Editor.WindWaker
                     attributeCount++;
                 }
 
-                /*bool isWeighted = drw1Chunk.IsWeighted(batch.FirstMatrixIndex);
-                if (!isWeighted)
-                {
-                    ushort jointIndex = drw1Chunk.GetIndex(batch.FirstMatrixIndex);
-                    var joint = jnt1Chunk.GetJoint(jointIndex);
-                    Console.WriteLine(joint);
-                }*/
-
                 _renderList[(int)i] = new List<PrimitiveList>();
-                for (uint p = 0; p < batch.PacketCount; p++)
+                for (ushort p = 0; p < batch.PacketCount; p++)
                 {
-                    J3DFormat.BatchPacketLocation packetLoc = _file.Shapes.GetBatchPacketLocation(batch.PacketIndex + p);
+                    //Matrix Data
+                    J3DFormat.PacketMatrixData pmd = _file.Shapes.GetPacketMatrixData((ushort) (batch.FirstMatrixIndex + p));
+                    for (ushort mtx = 0; mtx < pmd.Count; mtx++)
+                    {
+                        //Console.WriteLine("{0} Packet: {1} Index: {2} PMD Unknown: {3}", i, p, _file.Shapes.GetMatrixTableIndex((ushort) (pmd.FirstIndex + mtx)), pmd.Unknown);
 
+                    }
+
+                    J3DFormat.BatchPacketLocation packetLoc =
+                        _file.Shapes.GetBatchPacketLocation((ushort) (batch.PacketIndex + p));
                     uint numPrimitiveBytesRead = packetLoc.Offset;
-
                     while (numPrimitiveBytesRead < packetLoc.Offset + packetLoc.PacketSize)
                     {
                         //The data is going to be stored as:
@@ -332,7 +336,12 @@ namespace WindViewer.Editor.WindWaker
                                         newVertex.TexCoord = _file.Vertexes.GetTex0(curIndex, 8);
                                         break;
 
-
+                                    case J3DFormat.ArrayTypes.PositionMatrixIndex:
+                                        //Console.WriteLine("Index: {0}", curIndex);
+                                        break;
+                                    default:
+                                        Console.WriteLine("Unknown AttribType {0}, Index: {1}", batchAttrib.AttribType, curIndex);
+                                        break;
                                 }
 
                                 numPrimitiveBytesRead += GetAttribElementSize(batchAttrib.DataType);

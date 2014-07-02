@@ -415,6 +415,11 @@ namespace WindViewer.FileFormats
                 offset += ChunkSize;
             }
 
+            public ushort GetEnvelopeCount()
+            {
+                return _sectionCount;
+            }
+
             public byte GetCount(uint index)
             {
                 return FSHelpers.Read8(_dataCopy, (int)(_countsArrayOffset + index));
@@ -463,6 +468,11 @@ namespace WindViewer.FileFormats
                 offset += ChunkSize;
             }
 
+            public ushort GetDrawCount()
+            {
+                return _sectionCount;
+            }
+
             public bool IsWeighted(ushort index)
             {
                 return Convert.ToBoolean(FSHelpers.Read8(_dataCopy, (int)_isWeightedOffset + index));
@@ -496,6 +506,11 @@ namespace WindViewer.FileFormats
             public ushort GetUnknown(ushort index)
             {
                 return (ushort)FSHelpers.Read16(_dataCopy, (int)_stringIdTableOffset + (index * 0x2));
+            }
+
+            public ushort GetJointCount()
+            {
+                return _jointCount;
             }
 
             public Joint GetJoint(ushort index)
@@ -628,6 +643,18 @@ namespace WindViewer.FileFormats
                 _packetLocationOffset = (uint)FSHelpers.Read32(data, offset + 0x28);
 
                 offset += ChunkSize;
+            }
+
+            public ushort GetMatrixTableIndex(ushort index)
+            {
+                return (ushort) FSHelpers.Read16(_dataCopy, (int) (_matrixTableOffset + (index*0x2)));
+            }
+
+            public PacketMatrixData GetPacketMatrixData(ushort index)
+            {
+                PacketMatrixData pmd = new PacketMatrixData();
+                pmd.Load(_dataCopy, (uint) (_matrixDataOffset + (index * PacketMatrixData.Size)));
+                return pmd;
             }
 
             public Batch GetBatch(uint index)
@@ -775,6 +802,22 @@ namespace WindViewer.FileFormats
             }
 
             public const uint Size = 3;
+        }
+
+        public class PacketMatrixData
+        {
+            public ushort Unknown;
+            public ushort Count;
+            public uint FirstIndex;
+
+            public void Load(byte[] data, uint offset)
+            {
+                Unknown = (ushort) FSHelpers.Read16(data, (int) (offset + 0x0));
+                Count = (ushort)FSHelpers.Read16(data, (int)(offset + 0x2));
+                FirstIndex = (uint)FSHelpers.Read32(data, (int)(offset + 0x4));
+            }
+
+            public const uint Size = 8;
         }
 
         /// <summary>
