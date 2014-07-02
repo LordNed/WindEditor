@@ -208,17 +208,20 @@ namespace WindViewer.FileFormats
              * chunk doesn't seem to ever initialize the entry count and the only 
              * varying data in this chunk seems uses a different method of finding
              * the last entry. */
-            private ushort _unusedEntryCount; //Not unused, a lot of Links models have it.
-            private uint _batchCount;
+            private ushort _unknown; //Not unused, a lot of Links models have it.
+            /// <summary> The total number of packets across all batches within the <see cref="ShapeChunk"/>. </summary>
+            private uint _packetCount;
+            /// <summary> The total number of vertexes in this model, across all batches within the <see cref="ShapeChunk"/>. </summary>
             private uint _vertexCount;
+            /// <summary> Offset to the <see cref="HierarchyData"/> that defines the scene graph for this model. Relative to <see cref="InfoChunk"/> header start. </summary>
             private uint _hierarchyDataOffset;
 
             public override void Load(byte[] data, ref int offset)
             {
                 base.Load(data, ref offset);
 
-                _unusedEntryCount = (ushort)FSHelpers.Read16(data, offset + 8);
-                _batchCount = (uint)FSHelpers.Read32(data, offset + 12); //2 bytes padding after _unusedEntryCount
+                _unknown = (ushort)FSHelpers.Read16(data, offset + 8);
+                _packetCount = (uint)FSHelpers.Read32(data, offset + 12); //2 bytes padding after _unusedEntryCount
                 _vertexCount = (uint)FSHelpers.Read32(data, offset + 16);
                 _hierarchyDataOffset = (uint)FSHelpers.Read32(data, offset + 20);
 
@@ -230,9 +233,9 @@ namespace WindViewer.FileFormats
                 return _vertexCount;
             }
 
-            public uint GetBatchCount()
+            public uint GetPacketCount()
             {
-                return _batchCount;
+                return _packetCount;
             }
 
             public List<HierarchyData> GetHierarchyData()
