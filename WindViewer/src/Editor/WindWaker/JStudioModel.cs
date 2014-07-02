@@ -99,15 +99,17 @@ namespace WindViewer.Editor.WindWaker
         {
             /* Recursively iterate through the J3D scene graph to bind and draw all
              * of the batches within the J3D model. */
-            DrawModelRecursive(_root, renderer, false);
+            Matrix4 root = Matrix4.Identity;
+            DrawModelRecursive(ref root, _root, renderer, false);
 
             if (Selected)
             {
-                DrawModelRecursive(_root, renderer, true);
+                Matrix4 root2 = Matrix4.Identity;
+                DrawModelRecursive(ref root2, _root, renderer, true);
             }
         }
 
-        private void DrawModelRecursive(SceneGraph curNode, BaseRenderer renderer, bool bSelectedPass)
+        private void DrawModelRecursive(ref Matrix4 jointMatrix, SceneGraph curNode, BaseRenderer renderer, bool bSelectedPass)
         {
             switch (curNode.NodeType)
             {
@@ -227,7 +229,7 @@ namespace WindViewer.Editor.WindWaker
                                             //If the vertex is not weighted, we're just going to use the position
                                             //from the bone matrix. This probably requires us to have walked the
                                             //joint array but bleh.
-                                            ushort jointIndex = _file.Draw.GetIndex(drawIndex);
+                                            /*ushort jointIndex = _file.Draw.GetIndex(drawIndex);
 
                                             var jnt = _file.Joints.GetJoint(jointIndex);
                                             Vector3 jntRot = jnt.GetRotation().ToDegrees();
@@ -237,11 +239,13 @@ namespace WindViewer.Editor.WindWaker
                                                                 Matrix4.CreateRotationZ(jntRot.Z);
                                             Matrix4 sclMatrix = Matrix4.CreateScale(jnt.GetScale());
 
-                                            Matrix4 final = trnMatrix * rtMatrix * sclMatrix;
-                                            renderer.SetModelMatrix(final);
+                                            Matrix4 final = trnMatrix * rtMatrix * sclMatrix;*/
+                                            renderer.SetModelMatrix(jointMatrix);
                                         }
                                     }
                                 }
+                                float[] front_face_wireframe_color = { 1.0f, 1.0f, 1.0f, 1.0f };
+                                GL.VertexAttrib4((int)BaseRenderer.ShaderAttributeIds.Color, front_face_wireframe_color);
                                 GL.DrawArrays(primitive.DrawType, primitive.VertexStart, primitive.VertexCount);
                                 //Uhh... 
                                 /*if (vertexIndex < primitive.PosMatrixIndex.Count - 1)
@@ -321,7 +325,7 @@ namespace WindViewer.Editor.WindWaker
 
             foreach (SceneGraph subNode in curNode.Children)
             {
-                DrawModelRecursive(subNode, renderer, bSelectedPass);
+                DrawModelRecursive(ref jointMatrix, subNode, renderer, bSelectedPass);
             }
         }
 
