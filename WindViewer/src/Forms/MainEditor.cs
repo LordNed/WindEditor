@@ -57,6 +57,9 @@ namespace WindViewer.Forms
             {
                 Console.WriteLine("Changing Ent file...");
             };
+
+            //Register a handler for WorldspaceProjectLoaded that sets the Window's title.
+            WorldspaceProjectLoaded += OnWorldSpaceProjectLoaded;
         }
 
         private void MainEditor_Load(object sender, EventArgs e)
@@ -818,6 +821,11 @@ namespace WindViewer.Forms
         {
             AutomatedTestingSuite ats = new AutomatedTestingSuite(this);
             ats.Show();
+        }
+
+        private void OnWorldSpaceProjectLoaded(WorldspaceProject worldspaceProject)
+        {
+            this.Text = string.Format("Wind Editor ({0} - {1})", worldspaceProject.Name, worldspaceProject.ProjectFilePath);
         }
     }
 }
