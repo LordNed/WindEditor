@@ -193,8 +193,9 @@ namespace WindViewer.Editor.WindWaker
                     {
                         SetVertexAttribArraysForBatch(true, curNode.DataIndex);
                         //GL.CullFace(CullFaceMode.Front);
-                        foreach (var packet in _renderList[curNode.DataIndex].Packets)
+                        for (int packetIndex = 0; packetIndex < _renderList[curNode.DataIndex].Packets.Count; packetIndex++)
                         {
+                            RenderPacket packet = _renderList[curNode.DataIndex].Packets[packetIndex];
                             foreach (var primitive in packet.PrimList)
                             {
                                 renderer.SetModelMatrix(Matrix4.Identity);
@@ -206,6 +207,16 @@ namespace WindViewer.Editor.WindWaker
                                         ushort vertIndex = primitive.PosMatrixIndex[vertexIndex];
                                         ushort drawIndex = packet.DrawIndexes[vertIndex / 3];
 
+                                        //ehh
+                                        int seriously = 0;
+                                        while (drawIndex == 0xFFFF)
+                                        {
+                                            RenderPacket prevPacket =
+                                                _renderList[curNode.DataIndex].Packets[packetIndex - seriously];
+                                            drawIndex = prevPacket.DrawIndexes[vertIndex/3];
+                                            seriously++;
+                                        }
+
                                         bool isWeighted = _file.Draw.IsWeighted(drawIndex);
                                         if (isWeighted)
                                         {
@@ -215,10 +226,19 @@ namespace WindViewer.Editor.WindWaker
                                         {
                                             //If the vertex is not weighted, we're just going to use the position
                                             //from the bone matrix. This probably requires us to have walked the
-                                            //mesh 
-                                            Matrix4 blah = new Matrix4();
-                                            Vector3 meh = new Vector3();
-                                            
+                                            //joint array but bleh.
+                                            ushort jointIndex = _file.Draw.GetIndex(drawIndex);
+
+                                            var jnt = _file.Joints.GetJoint(jointIndex);
+                                            Vector3 jntRot = jnt.GetRotation().ToDegrees();
+                                            Vector3 trans = jnt.GetTranslation();
+                                            Matrix4 trnMatrix = Matrix4.CreateTranslation(trans);
+                                            Matrix4 rtMatrix = Matrix4.CreateRotationX(jntRot.X) * Matrix4.CreateRotationY(jntRot.Y) *
+                                                                Matrix4.CreateRotationZ(jntRot.Z);
+                                            Matrix4 sclMatrix = Matrix4.CreateScale(jnt.GetScale());
+
+                                            Matrix4 final = trnMatrix * rtMatrix * sclMatrix;
+                                            renderer.SetModelMatrix(final);
                                         }
                                     }
                                 }
