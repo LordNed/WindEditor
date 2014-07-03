@@ -19,7 +19,7 @@ namespace WindViewer.Editor.WindWaker
         private SceneGraph _root;
         private List<RenderBatch> _renderList;
         private Dictionary<int, int> _textureCache;
-
+        private List<SkeletonJoint> _skeleton; 
         public bool Selected;
 
         private List<J3DRenderer.VertexFormatLayout> _vertDataBind;
@@ -44,6 +44,7 @@ namespace WindViewer.Editor.WindWaker
 
             //Build our scene-graph so we can iterate through it.
             _root = BuildSceneGraphFromInfo();
+            _skeleton = BuildSkeletonFromHierarchy();
 
             //Generate our VBO, and upload the data
             GL.GenBuffers(1, out _glVbo);
@@ -58,6 +59,50 @@ namespace WindViewer.Editor.WindWaker
         public override void Save(BinaryWriter stream)
         {
             stream.Write(_dataCache);
+        }
+
+        private List<SkeletonJoint> BuildSkeletonFromHierarchy()
+        {
+            List<SkeletonJoint> joints = new List<SkeletonJoint>();
+            IterateHierarchyForSkeletonRecursive(_root, joints, -1);
+
+            return joints;
+        }
+
+
+        private void IterateHierarchyForSkeletonRecursive(SceneGraph curNode, List<SkeletonJoint> jointList, int parentId) 
+        {
+            switch (curNode.NodeType)
+            {
+                case J3DFormat.HierarchyDataTypes.NewNode:
+                    parentId = jointList.Count-1;
+                    break;
+
+                case J3DFormat.HierarchyDataTypes.Joint:
+                    J3DFormat.Joint j3dJoint = _file.Joints.GetJoint(curNode.DataIndex);
+                    SkeletonJoint joint = new SkeletonJoint();
+                    joint.Name = _file.Joints.GetString(_file.Joints.GetStringTableEntry(_file.Joints.GetStringIndex(curNode.DataIndex))); //Todo: You have got to be kidding me.
+                    joint.Rotation = new Quaternion(j3dJoint.GetRotation().ToDegrees(), 0f);
+                    joint.Transform = j3dJoint.GetTranslation();
+                    joint.ParentId = parentId;
+
+                    jointList.Add(joint);
+                    break;
+            }
+
+            foreach (SceneGraph child in curNode.Children)
+            {
+                IterateHierarchyForSkeletonRecursive(child, jointList, parentId);
+            }
+        }
+
+        private class SkeletonJoint
+        {
+            public string Name;
+            public Quaternion Rotation;
+            public Vector3 Transform;
+
+            public int ParentId;
         }
 
         private class RenderBatch
