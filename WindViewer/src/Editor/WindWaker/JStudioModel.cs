@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
 using OpenTK;
@@ -20,6 +22,8 @@ namespace WindViewer.Editor.WindWaker
 
         public bool Selected;
 
+        private List<J3DRenderer.VertexFormatLayout> _vertDataBind;
+
         public override void Load(byte[] data)
         {
             _file = new J3DFormat();
@@ -36,7 +40,7 @@ namespace WindViewer.Editor.WindWaker
             Console.WriteLine("Envelope Count: {0} Draw Count: {1}", _file.Envelopes.GetEnvelopeCount(), _file.Draw.GetDrawCount());
 
             //Extract the data from the file format into something we can use.
-            var vertData = BuildVertexArraysFromFile();
+            _vertDataBind = BuildVertexArraysFromFile();
 
             //Build our scene-graph so we can iterate through it.
             _root = BuildSceneGraphFromInfo();
@@ -44,7 +48,7 @@ namespace WindViewer.Editor.WindWaker
             //Generate our VBO, and upload the data
             GL.GenBuffers(1, out _glVbo);
             GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(vertData.Count * 9 * 4), vertData.ToArray(),
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(_vertDataBind.Count * 9 * 4), _vertDataBind.ToArray(),
                 BufferUsageHint.StaticDraw);
 
             //Make sure we get drawn
@@ -99,17 +103,59 @@ namespace WindViewer.Editor.WindWaker
         {
             /* Recursively iterate through the J3D scene graph to bind and draw all
              * of the batches within the J3D model. */
-            Matrix4 root = Matrix4.Identity;
-            DrawModelRecursive(ref root, _root, renderer, false);
+            Matrix4[] root = new Matrix4[_file.Joints.GetJointCount()];
+            for (int i = 0; i < root.Length; i++)
+                root[i] = Matrix4.Identity;
+
+            Matrix4 ident = Matrix4.Identity;
+            WalkModelJointRecursive(ref root, ref ident, _root, 0);
+            //DrawModelRecursive(ref root, _root, renderer, false);
 
             if (Selected)
             {
                 Matrix4 root2 = Matrix4.Identity;
-                DrawModelRecursive(ref root2, _root, renderer, true);
+                //DrawModelRecursive(ref root2, _root, renderer, true);
             }
         }
 
-        private void DrawModelRecursive(ref Matrix4 jointMatrix, SceneGraph curNode, BaseRenderer renderer, bool bSelectedPass)
+        private void WalkModelJointRecursive(ref Matrix4[] jointMatrix, ref Matrix4 jointParent, SceneGraph curNode, int sceneDepth)
+        {
+            switch (curNode.NodeType)
+            {
+                case J3DFormat.HierarchyDataTypes.Joint:
+                    var joint = _file.Joints.GetJoint(curNode.DataIndex);
+                    string jointName = _file.Joints.GetString(
+                        _file.Joints.GetStringTableEntry(_file.Joints.GetStringIndex(curNode.DataIndex)));
+
+                    Vector3 jointRot = joint.GetRotation().ToDegrees();
+                    Vector3 translation = joint.GetTranslation();
+                    Matrix4 tranMatrix = Matrix4.CreateTranslation(translation);
+                    Matrix4 rotMatrix = Matrix4.CreateRotationX(jointRot.X) * Matrix4.CreateRotationY(jointRot.Y) * Matrix4.CreateRotationZ(jointRot.Z);
+                    Matrix4 scaleMatrix = Matrix4.CreateScale(joint.GetScale());
+                    Matrix4 modelMatrix = tranMatrix * rotMatrix * scaleMatrix;
+
+
+                    jointMatrix[curNode.DataIndex] = modelMatrix*jointParent;
+                    Vector3 finalJointTranslation = jointMatrix[curNode.DataIndex].ExtractTranslation();
+                    Vector3 parentJointTrans = (Vector3.TransformPosition(Vector3.Zero, jointParent));
+                    DebugRenderer.DrawLine(finalJointTranslation, parentJointTrans, Color.White);
+
+                    jointParent = jointMatrix[curNode.DataIndex];
+                    Console.WriteLine("Joint {0} at depth: {1}", jointName, sceneDepth);
+                    break;
+
+                case J3DFormat.HierarchyDataTypes.NewNode:
+                    sceneDepth++;
+                    break;
+            }
+
+            foreach (SceneGraph subNode in curNode.Children)
+            {
+                WalkModelJointRecursive(ref jointMatrix, ref jointParent, subNode, sceneDepth);
+            }
+        }
+
+        private void DrawModelRecursive(ref Matrix4[] jointMatrix, SceneGraph curNode, BaseRenderer renderer, bool bSelectedPass)
         {
             switch (curNode.NodeType)
             {
@@ -201,6 +247,8 @@ namespace WindViewer.Editor.WindWaker
                             foreach (var primitive in packet.PrimList)
                             {
                                 renderer.SetModelMatrix(Matrix4.Identity);
+                                var transformedData =
+                                    new J3DRenderer.VertexFormatLayout[primitive.VertexCount];
                                 if (primitive.PosMatrixIndex.Count > 0)
                                 {
                                     //For each vertex within this primitive, we're going to get its id.
@@ -227,9 +275,14 @@ namespace WindViewer.Editor.WindWaker
                                         else
                                         {
                                             //If the vertex is not weighted, we're just going to use the position
-                                            //from the bone matrix. This probably requires us to have walked the
-                                            //joint array but bleh.
-                                            /*ushort jointIndex = _file.Draw.GetIndex(drawIndex);
+                                            //from the bone matrix. Something like this.
+                                            Vector3 vertPosition =
+                                                _vertDataBind[primitive.VertexStart + vertexIndex].Position;
+
+                                            transformedData[vertexIndex] =
+                                                _vertDataBind[primitive.VertexStart + vertexIndex];
+                                            transformedData[vertexIndex].Position = Vector3.TransformPosition(vertPosition, jointMatrix[_file.Draw.GetIndex(drawIndex)]);
+                                            /*ushort jointIndex = ;
 
                                             var jnt = _file.Joints.GetJoint(jointIndex);
                                             Vector3 jntRot = jnt.GetRotation().ToDegrees();
@@ -240,51 +293,19 @@ namespace WindViewer.Editor.WindWaker
                                             Matrix4 sclMatrix = Matrix4.CreateScale(jnt.GetScale());
 
                                             Matrix4 final = trnMatrix * rtMatrix * sclMatrix;*/
-                                            renderer.SetModelMatrix(jointMatrix);
+                                            //renderer.SetModelMatrix(Matrix4.Identity);
                                         }
                                     }
                                 }
+
+                                //Re-upload the subsection to the buffer.
+                                GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
+                                GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr)(primitive.VertexStart*(9*4)),
+                                    (IntPtr)(primitive.VertexCount*(9*4)), transformedData);
+
                                 float[] front_face_wireframe_color = { 1.0f, 1.0f, 1.0f, 1.0f };
                                 GL.VertexAttrib4((int)BaseRenderer.ShaderAttributeIds.Color, front_face_wireframe_color);
-                                GL.DrawArrays(primitive.DrawType, primitive.VertexStart, primitive.VertexCount);
-                                //Uhh... 
-                                /*if (vertexIndex < primitive.PosMatrixIndex.Count - 1)
-                                {
-                                    ushort drawIndex = packet.DrawIndexes[primitive.PosMatrixIndex[vertexIndex] / 3];
-                                    if (drawIndex != 0xFFFF)
-                                    {
-                                        bool isWeighted = _file.Draw.IsWeighted(drawIndex);
-
-                                        if (isWeighted)
-                                        {
-                                            //EVP1 index
-                                            Matrix3x4 matrix =
-                                                _file.Envelopes.GetMatrix(
-                                                    _file.Envelopes.GetIndex(_file.Draw.GetIndex(drawIndex)));
-                                            Matrix4 morMatrix = new Matrix4(matrix.Row0, matrix.Row1, matrix.Row2, new Vector4(0, 0, 0, 1));
-                                            renderer.SetModelMatrix(morMatrix);
-                                        }
-                                        else
-                                        {
-                                            var jnt = _file.Joints.GetJoint(_file.Draw.GetIndex(drawIndex));
-                                            Vector3 jntRot = jnt.GetRotation().ToDegrees();
-                                            Vector3 trans = jnt.GetTranslation();
-                                            Matrix4 trnMatrix = Matrix4.CreateTranslation(trans);
-                                            Matrix4 rtMatrix = Matrix4.CreateRotationX(jntRot.X) * Matrix4.CreateRotationY(jntRot.Y) *
-                                                                Matrix4.CreateRotationZ(jntRot.Z);
-                                            Matrix4 sclMatrix = Matrix4.CreateScale(jnt.GetScale());
-
-                                            Matrix4 final = trnMatrix * rtMatrix * sclMatrix;
-
-                                            //renderer.SetModelMatrix(Matrix4.Identity);
-                                            renderer.SetModelMatrix(final);
-                                        }
-                                    }
-                                    
-                                }*/
-                                
-
-                                
+                                GL.DrawArrays(primitive.DrawType, primitive.VertexStart, primitive.VertexCount);                                
                             }
 
                         }
@@ -292,34 +313,6 @@ namespace WindViewer.Editor.WindWaker
                         SetVertexAttribArraysForBatch(false, curNode.DataIndex);
                     }
 
-                    break;
-
-                case J3DFormat.HierarchyDataTypes.Joint:
-                    var joint = _file.Joints.GetJoint(curNode.DataIndex);
-                    Vector3 jointRot = joint.GetRotation().ToDegrees();
-                    Vector3 translation = joint.GetTranslation();
-
-                    if (ParentArchive != null)
-                    {
-                        if (FileName == "model.bdl")
-                        {
-                            Room room = ParentArchive as Room;
-                            if (room != null)
-                            {
-                                translation += new Vector3(room.Translation.X, 0, room.Translation.Y);
-                                jointRot.Y += room.Rotation.ToDegrees();
-                            }
-                        }
-                    }
-
-                    Matrix4 tranMatrix = Matrix4.CreateTranslation(translation);
-                    Matrix4 rotMatrix = Matrix4.CreateRotationX(jointRot.X) * Matrix4.CreateRotationY(jointRot.Y) *
-                                        Matrix4.CreateRotationZ(jointRot.Z);
-                    Matrix4 scaleMatrix = Matrix4.CreateScale(joint.GetScale());
-
-                    Matrix4 modelMatrix = tranMatrix * rotMatrix * scaleMatrix;
-
-                    //renderer.SetModelMatrix(Matrix4.Identity);
                     break;
             }
 

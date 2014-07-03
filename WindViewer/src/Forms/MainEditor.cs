@@ -76,7 +76,7 @@ namespace WindViewer.Forms
             _cameras.Add(_camera);
 
             _editorTools = new List<IEditorTool>();
-            _editorTools.Add(new MovementGizmo());
+            //_editorTools.Add(new MovementGizmo());
 
             //Add our renderers to the list 
             _renderer = new J3DRenderer();
