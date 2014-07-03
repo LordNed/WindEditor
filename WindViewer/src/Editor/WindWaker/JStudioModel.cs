@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
+using System.Windows.Forms;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using WindViewer.Editor.Renderer;
@@ -61,11 +62,12 @@ namespace WindViewer.Editor.WindWaker
             stream.Write(_dataCache);
         }
 
+        
         private List<SkeletonJoint> BuildSkeletonFromHierarchy()
         {
             List<SkeletonJoint> joints = new List<SkeletonJoint>();
             IterateHierarchyForSkeletonRecursive(_root, joints, -1);
-
+            
             return joints;
         }
 
@@ -82,9 +84,15 @@ namespace WindViewer.Editor.WindWaker
                     J3DFormat.Joint j3dJoint = _file.Joints.GetJoint(curNode.DataIndex);
                     SkeletonJoint joint = new SkeletonJoint();
                     joint.Name = _file.Joints.GetString(_file.Joints.GetStringTableEntry(_file.Joints.GetStringIndex(curNode.DataIndex))); //Todo: You have got to be kidding me.
-                    joint.Rotation = new Quaternion(j3dJoint.GetRotation().ToDegrees(), 0f);
-                    joint.Transform = j3dJoint.GetTranslation();
+
+                    Vector3 jointAngles = j3dJoint.GetRotation().ToDegrees();
+                    joint.Rotation = Matrix4.CreateRotationX(jointAngles.X) * Matrix4.CreateRotationY(jointAngles.Y)*Matrix4.CreateRotationZ(jointAngles.Z);
+                    
+                    //joint.Rotation.Normalize();
+                    joint.Position = j3dJoint.GetTranslation();
                     joint.ParentId = parentId;
+                    joint.Scale = j3dJoint.GetScale();
+                    Console.WriteLine("{0} - Pos: {1} Rot: {2}", joint, joint.Position, jointAngles);
 
                     jointList.Add(joint);
                     break;
@@ -96,13 +104,19 @@ namespace WindViewer.Editor.WindWaker
             }
         }
 
-        private class SkeletonJoint
+        private struct SkeletonJoint
         {
             public string Name;
-            public Quaternion Rotation;
-            public Vector3 Transform;
+            public Matrix4 Rotation;
+            public Vector3 Position;
+            public Vector3 Scale;
 
             public int ParentId;
+
+            public override string ToString()
+            {
+                return string.Format("{0} - [{1}]", Name, ParentId);
+            }
         }
 
         private class RenderBatch
@@ -144,8 +158,41 @@ namespace WindViewer.Editor.WindWaker
             GL.BindBuffer(BufferTarget.ArrayBuffer, _glVbo);
         }
 
+        private int numJoints = -1;
         public void Draw(BaseRenderer renderer)
         {
+            if (numJoints == -1)
+                numJoints = _skeleton.Count;
+            if (Input.GetKeyDown(Keys.O))
+            {
+                numJoints--;
+                Console.WriteLine("numJoins: " + numJoints);
+            }
+            if (Input.GetKeyDown(Keys.P))
+            {
+                numJoints++;
+                Console.WriteLine("numJoins: " + numJoints);
+            }
+
+            SkeletonJoint[] skeleCopy = new SkeletonJoint[_skeleton.Count];
+            _skeleton.CopyTo(skeleCopy);
+            for (int i = 0; i < Math.Min(Math.Max(0, numJoints), _skeleton.Count); i++)
+            {
+                SkeletonJoint joint = skeleCopy[i];
+                if (joint.ParentId >= 0)
+                {
+                    SkeletonJoint parentJoint = skeleCopy[joint.ParentId];
+
+                    Vector3 rotPos = Vector3.Transform(joint.Position, parentJoint.Rotation);
+                    joint.Position = parentJoint.Position + rotPos;
+                    //joint.Rotation = parentJoint.Rotation * joint.Rotation;
+                    //joint.Rotation.Normalize();
+                    skeleCopy[i] = joint;
+
+                    DebugRenderer.DrawLine(parentJoint.Position, joint.Position, Color.YellowGreen);
+                }
+            }
+
             /* Recursively iterate through the J3D scene graph to bind and draw all
              * of the batches within the J3D model. */
             Matrix4[] root = new Matrix4[_file.Joints.GetJointCount()];
@@ -153,7 +200,7 @@ namespace WindViewer.Editor.WindWaker
                 root[i] = Matrix4.Identity;
 
             Matrix4 ident = Matrix4.Identity;
-            WalkModelJointRecursive(ref root, ref ident, _root, 0);
+            //WalkModelJointRecursive(ref root, ref ident, _root, 0);
             //DrawModelRecursive(ref root, _root, renderer, false);
 
             if (Selected)

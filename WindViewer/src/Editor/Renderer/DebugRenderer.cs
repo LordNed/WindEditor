@@ -236,6 +236,7 @@ namespace WindViewer.Editor.Renderer
             foreach (LineInstance instance in linePendRemoval)
             {
                 _lineRenderList.Remove(instance);
+                instance.Dispose();
             }
         }
     }

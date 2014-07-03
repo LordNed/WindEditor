@@ -11,7 +11,7 @@ namespace WindViewer.FileFormats
     public class HalfRotation
     {
         /// <summary> Used to convert from -32768/32767 to -180/180 </summary>
-        private const float RotationConversion = 182.04444444444f;
+        //private const float RotationConversion = 32768f * 180f;
 
         public short X, Y, Z;
 
@@ -37,18 +37,18 @@ namespace WindViewer.FileFormats
         public Vector3 ToDegrees()
         {
             Vector3 rot = new Vector3();
-            rot.X = X / RotationConversion;
-            rot.Y = Y / RotationConversion;
-            rot.Z = Z / RotationConversion;
+            rot.X = (X / 32768f) * 180f;
+            rot.Y = (Y / 32768f )* 180f;
+            rot.Z = (Z / 32768f )* 180f;
 
             return rot;
         }
 
         public void SetDegrees(Vector3 rot)
         {
-            X = (short)(rot.X * RotationConversion);
-            Y = (short)(rot.Y * RotationConversion);
-            Z = (short)(rot.Z * RotationConversion);
+            X = (short)(rot.X * 32768f * 180f);
+            Y = (short)(rot.Y * 32768f * 180f);
+            Z = (short)(rot.Z * 32768f * 180f);
         }
 
         [Obsolete("Use Write instead.")]
