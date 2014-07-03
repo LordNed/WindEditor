@@ -86,7 +86,8 @@ namespace WindViewer.Editor.WindWaker
                     joint.Name = _file.Joints.GetString(_file.Joints.GetStringTableEntry(_file.Joints.GetStringIndex(curNode.DataIndex))); //Todo: You have got to be kidding me.
 
                     Vector3 jointAngles = j3dJoint.GetRotation().ToDegrees();
-                    joint.Rotation = Matrix4.CreateRotationX(jointAngles.X) * Matrix4.CreateRotationY(jointAngles.Y)*Matrix4.CreateRotationZ(jointAngles.Z);
+                    //joint.Rotation = Matrix4.CreateRotationX(jointAngles.X) * Matrix4.CreateRotationY(jointAngles.Y)*Matrix4.CreateRotationZ(jointAngles.Z);
+                    joint.Rotation = Matrix4.CreateRotationX(MathHelper.DegreesToRadians(jointAngles.X)) * Matrix4.CreateRotationY(MathHelper.DegreesToRadians(jointAngles.Y)) * Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(jointAngles.Z));
                     
                     //joint.Rotation.Normalize();
                     joint.Position = j3dJoint.GetTranslation();
@@ -185,7 +186,7 @@ namespace WindViewer.Editor.WindWaker
 
                     Vector3 rotPos = Vector3.Transform(joint.Position, parentJoint.Rotation);
                     joint.Position = parentJoint.Position + rotPos;
-                    joint.Rotation = parentJoint.Rotation * joint.Rotation;
+                    joint.Rotation = joint.Rotation*parentJoint.Rotation;
                     joint.Rotation.Normalize();
                     skeleCopy[i] = joint;
 
