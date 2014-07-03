@@ -185,8 +185,8 @@ namespace WindViewer.Editor.WindWaker
 
                     Vector3 rotPos = Vector3.Transform(joint.Position, parentJoint.Rotation);
                     joint.Position = parentJoint.Position + rotPos;
-                    //joint.Rotation = parentJoint.Rotation * joint.Rotation;
-                    //joint.Rotation.Normalize();
+                    joint.Rotation = parentJoint.Rotation * joint.Rotation;
+                    joint.Rotation.Normalize();
                     skeleCopy[i] = joint;
 
                     DebugRenderer.DrawLine(parentJoint.Position, joint.Position, Color.YellowGreen);
