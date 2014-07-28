@@ -428,9 +428,14 @@ namespace WindViewer.FileFormats
                 return FSHelpers.Read8(_dataCopy, (int)(_countsArrayOffset + index));
             }
 
-            public ushort GetIndex(uint index)
+            public ushort GetIndex(ushort index)
             {
                 return (ushort)FSHelpers.Read16(_dataCopy, (int)(_indicesOffset + (index * 0x2)));
+            }
+
+            public ushort GetIndexOffset(ushort offset)
+            {
+                return (ushort) FSHelpers.Read16(_dataCopy, (int) _indicesOffset + offset);
             }
 
             public float GetWeight(uint index)
