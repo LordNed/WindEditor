@@ -68,7 +68,6 @@ namespace WindViewer.Editor.Renderer
         private List<LineInstance> _lineRenderList;
 
         private static DebugRenderer _instance;
-        private int _uniformColor;
 
         //Instances of Geometry
         private IRenderable _cubeMeshWire;
@@ -82,36 +81,41 @@ namespace WindViewer.Editor.Renderer
             _cubeMeshWire = new CubeMeshWire();
             _cubeMeshSolid = new CubeMeshSolid();
 
-            CreateShaderFromFile("shaders/debug_vs.glsl", "shaders/debug_fs.glsl");
+            CreateShaderFromFile("debug", "shaders/debug_vs.glsl", "shaders/debug_fs.glsl");
         }
 
-        protected override void CreateShaderFromFile(string vertShader, string fragShader)
+        protected override void CreateShaderFromFile(string name, string vertShader, string fragShader)
         {
+            Shader shader = new Shader();
+            shader.Name = name;
+
             //Initialize the OpenGL Program
-            _programId = GL.CreateProgram();
+            shader.ProgramId = GL.CreateProgram();
 
             int vertShaderId, fragShaderId;
-            LoadShader(vertShader, ShaderType.VertexShader, _programId, out vertShaderId);
-            LoadShader(fragShader, ShaderType.FragmentShader, _programId, out fragShaderId);
+            LoadShader(vertShader, ShaderType.VertexShader, shader.ProgramId, out vertShaderId);
+            LoadShader(fragShader, ShaderType.FragmentShader, shader.ProgramId, out fragShaderId);
 
             //Deincriment the reference count on the shaders so that they 
             //don't exist until the context is destroyed.
             GL.DeleteShader(vertShaderId);
             GL.DeleteShader(fragShaderId);
 
-            GL.BindAttribLocation(_programId, (int)ShaderAttributeIds.Position, "vertexPos");
+            GL.BindAttribLocation(shader.ProgramId, (int)ShaderAttributeIds.Position, "vertexPos");
 
             //Link shaders 
-            GL.LinkProgram(_programId);
+            GL.LinkProgram(shader.ProgramId);
 
             if (GL.GetError() != ErrorCode.NoError)
-                Console.WriteLine(GL.GetProgramInfoLog(_programId));
+                Console.WriteLine(GL.GetProgramInfoLog(shader.ProgramId));
 
-            _uniformMVP = GL.GetUniformLocation(_programId, "modelview");
-            _uniformColor = GL.GetUniformLocation(_programId, "inColor");
+            shader.UniformMVP = GL.GetUniformLocation(shader.ProgramId, "modelview");
+            shader.UniformColor = GL.GetUniformLocation(shader.ProgramId, "inColor");
 
             if (GL.GetError() != ErrorCode.NoError)
-                Console.WriteLine(GL.GetProgramInfoLog(_programId));
+                Console.WriteLine(GL.GetProgramInfoLog(shader.ProgramId));
+
+            _shaders.Add(name, shader);
         }
 
         public override void OnSceneUnload()
@@ -121,7 +125,7 @@ namespace WindViewer.Editor.Renderer
 
         public override void Render(Camera camera)
         {
-            GL.UseProgram(_programId);
+            UseShader("debug");
 
             //State Muckin'
             GL.Enable(EnableCap.DepthTest);
@@ -144,10 +148,10 @@ namespace WindViewer.Editor.Renderer
                     Matrix4 finalMatrix = worldMatrix * viewProjMatrix;
 
                     //Upload the WVP to the GPU
-                    GL.UniformMatrix4(_uniformMVP, false, ref finalMatrix);
+                    GL.UniformMatrix4(_currentShader.UniformMVP, false, ref finalMatrix);
 
                     //Upload this primitives color.
-                    GL.Uniform3(_uniformColor, new Vector3(instance.Color.X, instance.Color.Y, instance.Color.Z));
+                    GL.Uniform3(_currentShader.UniformColor, new Vector3(instance.Color.X, instance.Color.Y, instance.Color.Z));
 
                     meshType.Key.Draw(this);
                 }
@@ -157,7 +161,7 @@ namespace WindViewer.Editor.Renderer
 
             //Now draw all of our debug lines
             //Upload the WVP to the GPU
-            GL.UniformMatrix4(_uniformMVP, false, ref viewProjMatrix);
+            GL.UniformMatrix4(_currentShader.UniformMVP, false, ref viewProjMatrix);
             foreach (LineInstance instance in _lineRenderList)
             {
                 //Bind the object buffer, enable attribs and set layout.
@@ -166,7 +170,7 @@ namespace WindViewer.Editor.Renderer
                 GL.EnableVertexAttribArray((int)ShaderAttributeIds.Position);
 
                 //Upload the primitives color.
-                GL.Uniform3(_uniformColor, new Vector3(instance.Color.X, instance.Color.Y, instance.Color.Z));
+                GL.Uniform3(_currentShader.UniformColor, new Vector3(instance.Color.X, instance.Color.Y, instance.Color.Z));
 
                 instance.Draw(this);
 
