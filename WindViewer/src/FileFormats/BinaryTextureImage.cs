@@ -162,10 +162,11 @@ namespace WindViewer.FileFormats
             private uint _unknown2; //0 in MKWii (RGBA for border?)
             public FilterMode FilterSettingMin { get; private set; } //1 or 0? (Assumed filters are in min/mag order)
             public FilterMode FilterSettingMag { get; private set; } //
-            private ushort _padding1; //0 in MKWii. //Padding
+            private byte _minLod; //FixedPoint number, 1/8 = conversion
+            private byte _maxLod; //FixedPoint number, 1/8 = conversion
             private byte _imageCount; //(= numMipmaps + 1)
-            private byte _padding2; //0 in MKWii //Padding
-            private ushort _padding3; //0 in MKWii
+            private byte _unknown3; //0 in MKWii //Padding
+            private ushort _lodBias; //FixedPoint number, 1/100 = conversion
             public uint ImageDataOffset { get; private set; } //Relative to file header
 
 
@@ -184,10 +185,11 @@ namespace WindViewer.FileFormats
                 _unknown2 = (uint)FSHelpers.Read32(data, (int)offset + 0x10);
                 FilterSettingMin = (FilterMode)FSHelpers.Read8(data, (int)offset + 0x14);
                 FilterSettingMag = (FilterMode)FSHelpers.Read8(data, (int)offset + 0x15);
-                _padding1 = (ushort)FSHelpers.Read16(data, (int)offset + 0x16);
+                _minLod = FSHelpers.Read8(data, (int)offset + 0x16);
+                _maxLod = FSHelpers.Read8(data, (int)offset + 0x17);
                 _imageCount = FSHelpers.Read8(data, (int)offset + 0x18);
-                _padding2 = FSHelpers.Read8(data, (int)offset + 0x19);
-                _padding3 = (ushort)FSHelpers.Read16(data, (int)offset + 0x1A);
+                _unknown3 = FSHelpers.Read8(data, (int)offset + 0x19);
+                _lodBias = (ushort)FSHelpers.Read16(data, (int)offset + 0x1A);
                 ImageDataOffset = (uint)FSHelpers.Read32(data, (int)offset + 0x1C);
             }
         }
