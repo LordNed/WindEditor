@@ -385,8 +385,9 @@ namespace WindViewer.Editor.WindWaker
                                                     envMatrix.Row2, new Vector4(0, 0, 0, 1));
 
                                                 SkeletonJoint joint = _skeleCopy[boneIndex];
-                                                Matrix4 transMatrix = Matrix4.CreateTranslation(joint.Position);
-                                                Matrix4 jointMtx = joint.Rotation * transMatrix;
+                                                //Matrix4 transMatrix = Matrix4.CreateTranslation(joint.Position);
+                                                //We need to use the bone's matrix from EVP1 to get the joint matrix
+                                                Matrix4 jointMtx = joint.Rotation * newEnvelopeMtx;
 
                                                 //finalTransform = Matrix4.Mult(jointMtx * newEnvelopeMtx, boneWeight) * finalTransform;
                                                 AddScaleMatrix(ref finalTransform,
@@ -443,24 +444,26 @@ namespace WindViewer.Editor.WindWaker
 
         void AddScaleMatrix(ref Matrix4 Target, Matrix4 Source, float Scale)
         {
-            Target.M11 += Scale * Source.M11;
-            Target.M12 += Scale * Source.M12;
-            Target.M13 += Scale * Source.M13;
+            //Forcing scale to (1,1,1) seems to work, but why? Miyamoto only knows.
+
+            Target.M11 = 1.0f;
+            Target.M12 = 0.0f;
+            Target.M13 = 0.0f;
             Target.M14 = 0.0f;
 
-            Target.M21 += Scale * Source.M21;
-            Target.M22 += Scale * Source.M22;
-            Target.M23 += Scale * Source.M23;
+            Target.M21 = 0.0f;
+            Target.M22 = 1.0f;
+            Target.M23 = 0.0f;
             Target.M24 = 0.0f;
 
-            Target.M31 += Scale * Source.M31;
-            Target.M32 += Scale * Source.M32;
-            Target.M33 += Scale * Source.M33;
+            Target.M31 = 0.0f;
+            Target.M32 = 0.0f;
+            Target.M33 = 1.0f;
             Target.M34 = 0.0f;
 
-            Target.M41 += Scale * Source.M41;
-            Target.M42 += Scale * Source.M42;
-            Target.M43 += Scale * Source.M43;
+            Target.M41 = 0.0f;
+            Target.M42 = 0.0f;
+            Target.M43 = 0.0f;
             Target.M44 = 1.0f;
         }
 
