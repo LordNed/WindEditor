@@ -16,7 +16,6 @@ using WindViewer.FileFormats;
 using WindViewer.Forms.Dialogs;
 using WindViewer.Forms.EntityEditors;
 using WindViewer.src.Forms;
-using WindViewer.src.Forms.Dialogs;
 
 namespace WindViewer.Forms
 {
@@ -93,12 +92,15 @@ namespace WindViewer.Forms
             _renderer.Initialize();
 
             _debugRenderer = new DebugRenderer();
-            _debugRenderer.Initialize();
+            _debugRenderer.Initialize(); 
             _editorTools.Add(_debugRenderer);
 
             _glControlInitalized = true;
 
             // Check to see if they've set up user prefs before.
+#if DEBUG
+            Properties.Settings.Default.rootDiskDir = "E:\\Killerkat_Storage_Backup\\WindwakerModding\\root";
+#endif
             if (string.IsNullOrEmpty(Properties.Settings.Default.rootDiskDir))
             {
                 MessageBox.Show(

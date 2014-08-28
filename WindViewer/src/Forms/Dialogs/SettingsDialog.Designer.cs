@@ -1,4 +1,4 @@
-﻿namespace WindViewer.src.Forms.Dialogs
+﻿namespace WindViewer.Forms.Dialogs
 {
     partial class SettingsDialog
     {

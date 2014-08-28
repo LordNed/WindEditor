@@ -32,6 +32,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="GameFormatReader">
+      <HintPath>.\GameFormatReader.dll</HintPath>
+    </Reference>
     <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>.\OpenTK.dll</HintPath>
@@ -62,6 +65,7 @@
     <Compile Include="src\Editor\Bluh\Physics.cs" />
     <Compile Include="src\Editor\Bluh\Plane.cs" />
     <Compile Include="src\Editor\Bluh\Ray.cs" />
+    <Compile Include="src\Editor\FileSystem.cs" />
     <Compile Include="src\Editor\Renderer\CubeMesh.cs" />
     <Compile Include="src\Editor\Renderer\DebugRenderer.cs" />
     <Compile Include="src\Editor\Renderer\IRenderable.cs" />
