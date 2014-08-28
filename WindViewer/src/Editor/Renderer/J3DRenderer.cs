@@ -24,7 +24,8 @@ namespace WindViewer.Editor.Renderer
         {
             Instance = this;
             _renderList = new List<IRenderable>();
-            CreateShaderFromFile("shaders/j3d_vs.glsl", "shaders/j3d_fs.glsl");
+            CreateShaderFromFile("debug", "shaders/debug_vs.glsl", "shaders/debug_fs.glsl");
+            CreateShaderFromFile("j3d", "shaders/j3d_vs.glsl", "shaders/j3d_fs.glsl");
         }
 
         public override void OnSceneUnload()
@@ -41,50 +42,53 @@ namespace WindViewer.Editor.Renderer
         {
             _renderList.Remove(renderable);
         }
-        
 
-        protected override void CreateShaderFromFile(string vertShader, string fragShader)
+
+        protected override void CreateShaderFromFile(string name, string vertShader, string fragShader)
         {
+            Shader shader = new Shader();
+            shader.Name = name;
+
             //Initialize the OpenGL Program
-            _programId = GL.CreateProgram();
+            shader.ProgramId = GL.CreateProgram();
 
             int vertShaderId, fragShaderId;
-            LoadShader(vertShader, ShaderType.VertexShader, _programId, out vertShaderId);
-            LoadShader(fragShader, ShaderType.FragmentShader, _programId, out fragShaderId);
+            LoadShader(vertShader, ShaderType.VertexShader, shader.ProgramId, out vertShaderId);
+            LoadShader(fragShader, ShaderType.FragmentShader, shader.ProgramId, out fragShaderId);
 
             //Deincriment the reference count on the shaders so that they 
             //don't exist until the context is destroyed.
             GL.DeleteShader(vertShaderId);
             GL.DeleteShader(fragShaderId);
-            
-            GL.BindAttribLocation(_programId, (int) ShaderAttributeIds.Position, "vertexPos");
-            GL.BindAttribLocation(_programId, (int) ShaderAttributeIds.Color, "inColor");
-            GL.BindAttribLocation(_programId, (int) ShaderAttributeIds.TexCoord, "vertexUV");
+
+            GL.BindAttribLocation(shader.ProgramId, (int)ShaderAttributeIds.Position, "vertexPos");
+            GL.BindAttribLocation(shader.ProgramId, (int)ShaderAttributeIds.Color, "inColor");
+            GL.BindAttribLocation(shader.ProgramId, (int)ShaderAttributeIds.TexCoord, "vertexUV");
 
             //Link shaders 
-            GL.LinkProgram(_programId);
+            GL.LinkProgram(shader.ProgramId);
 
-            _uniformMVP = GL.GetUniformLocation(_programId, "modelview");
+            shader.UniformMVP = GL.GetUniformLocation(shader.ProgramId, "modelview");
+            shader.UniformColor = GL.GetUniformLocation(shader.ProgramId, "inColor");
 
             if (GL.GetError() != ErrorCode.NoError)
-                Console.WriteLine(GL.GetProgramInfoLog(_programId));
+                Console.WriteLine(GL.GetProgramInfoLog(shader.ProgramId));
+
+            _shaders.Add(name, shader);
         }
 
-        public override void Render(Camera camera, float aspectRatio)
+        public override void Render(Camera camera)
         {
-            GL.UseProgram(_programId);
+            UseShader("j3d");
 
             //State Muckin'
             GL.Enable(EnableCap.DepthTest);
 
             //Clear any previously bound buffer
-            GL.BindBuffer(BufferTarget.ArrayBuffer, 0); 
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 
-
-            //Todo: Temp
-            Matrix4 projMatrix = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4f, aspectRatio, 250f, 15000f);
-            Matrix4 viewMatrix = camera.GetViewMatrix();
-            _viewProjMatrix = viewMatrix*projMatrix;
+            //Build a View Projection Matrix out of camera settings.
+            _viewProjMatrix = camera.GetViewProjMatrix();
 
             /* Because the J3D models are very complex, we're going to 
              * allow them to completely render themselves, including
@@ -103,11 +107,20 @@ namespace WindViewer.Editor.Renderer
             GL.Flush();
         }
 
+        public override void UseShader(string name)
+        {
+            base.UseShader(name);
+            Matrix4 finalMatrix = _cachedModelMatrix * _viewProjMatrix;
+            GL.UniformMatrix4(_currentShader.UniformMVP, false, ref finalMatrix);
+        }
+
+        private Matrix4 _cachedModelMatrix = Matrix4.Identity;
         public override void SetModelMatrix(Matrix4 modelMatrix)
         {
             //Upload matrix to the GPU
+            _cachedModelMatrix = modelMatrix;
             Matrix4 finalMatrix = modelMatrix * _viewProjMatrix;
-            GL.UniformMatrix4(_uniformMVP, false, ref finalMatrix);
+            GL.UniformMatrix4(_currentShader.UniformMVP, false, ref finalMatrix);
         }
     }
 }

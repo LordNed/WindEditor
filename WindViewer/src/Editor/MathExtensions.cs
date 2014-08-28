@@ -12,10 +12,10 @@ namespace WindViewer.Editor
             vectorQuat = new Quaternion(vec.X, vec.Y, vec.Z, 0f);
             inverseQuat = value.Invert_Custom();
             resultQuat = vectorQuat * inverseQuat;
-            resultQuat = value*resultQuat;
+            resultQuat = value * resultQuat;
 
             resultVector = new Vector3(resultQuat.X, resultQuat.Y, resultQuat.Z);
-            return resultVector.Normalized();
+            return resultVector;
         }
 
         public static Quaternion Invert_Custom(this Quaternion value)
@@ -28,6 +28,16 @@ namespace WindViewer.Editor
             newQuat.W *= length;
 
             return newQuat;
+        }
+
+        public static float Clamp(float value, float min, float max)
+        {
+            if (value > max)
+                value = max;
+            if (value < min)
+                value = min;
+
+            return value;
         }
     }
 }

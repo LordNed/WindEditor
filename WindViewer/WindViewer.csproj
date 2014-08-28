@@ -52,6 +52,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\Editor\Bluh\BinaryTextureImage.cs" />
+    <Compile Include="src\Editor\Bluh\CubeMeshSolid.cs" />
+    <Compile Include="src\Editor\Bluh\CubeMeshWire.cs" />
+    <Compile Include="src\Editor\Bluh\Display.cs" />
+    <Compile Include="src\Editor\Bluh\Input.cs" />
+    <Compile Include="src\Editor\Bluh\J3DFormat.cs" />
+    <Compile Include="src\Editor\Bluh\JStudioModel.cs" />
+    <Compile Include="src\Editor\Bluh\Physics.cs" />
+    <Compile Include="src\Editor\Bluh\Plane.cs" />
+    <Compile Include="src\Editor\Bluh\Ray.cs" />
     <Compile Include="src\Editor\Renderer\CubeMesh.cs" />
     <Compile Include="src\Editor\Renderer\DebugRenderer.cs" />
     <Compile Include="src\Editor\Renderer\IRenderable.cs" />
@@ -64,11 +74,10 @@
     <Compile Include="src\Editor\FSHelpers.cs" />
     <Compile Include="src\Editor\Renderer\BaseRenderer.cs" />
     <Compile Include="src\Editor\MathExtensions.cs" />
+    <Compile Include="src\Editor\Tools\MovementGizmo.cs" />
     <Compile Include="src\Editor\Transform.cs" />
     <Compile Include="src\Editor\WorldspaceProject.cs" />
-    <Compile Include="src\FileFormats\BinaryTextureImage.cs" />
     <Compile Include="src\FileFormats\GenericArchiveData.cs" />
-    <Compile Include="src\FileFormats\JStudioModel.cs" />
     <Compile Include="src\FileFormats\StaticCollisionModel.cs" />
     <Compile Include="src\FileFormats\WindWakerEntityData.cs" />
     <Compile Include="src\Forms\Dialogs\AboutWindow.cs">

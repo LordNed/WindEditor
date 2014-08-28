@@ -26,18 +26,18 @@ namespace WindViewer.Editor
         public Vector3 ToDegrees()
         {
             Vector3 rot = new Vector3();
-            rot.X = X / 182.04444444444f;
-            rot.Y = Y / 182.04444444444f;
-            rot.Z = Z / 182.04444444444f;
+            rot.X = (X / 32768f) * 180f;
+            rot.Y = (Y / 32768f) * 180f;
+            rot.Z = (Z / 32768f) * 180f;
 
             return rot;
         }
 
         public void SetDegrees(Vector3 rot)
         {
-            X = (short)(rot.X * 182.04444444444f);
-            Y = (short)(rot.Y * 182.04444444444f);
-            Z = (short)(rot.Z * 182.04444444444f);
+            X = (short)(rot.X * 32768f * 180f);
+            Y = (short)(rot.Y * 32768f * 180f);
+            Z = (short)(rot.Z * 32768f * 180f);
         }
 
         public byte[] GetBytes()

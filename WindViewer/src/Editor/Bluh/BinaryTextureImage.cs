@@ -162,10 +162,11 @@ namespace WindViewer.FileFormats
             private uint _unknown2; //0 in MKWii (RGBA for border?)
             public FilterMode FilterSettingMin { get; private set; } //1 or 0? (Assumed filters are in min/mag order)
             public FilterMode FilterSettingMag { get; private set; } //
-            private ushort _padding1; //0 in MKWii. //Padding
+            private byte _minLod; //FixedPoint number, 1/8 = conversion
+            private byte _maxLod; //FixedPoint number, 1/8 = conversion
             private byte _imageCount; //(= numMipmaps + 1)
-            private byte _padding2; //0 in MKWii //Padding
-            private ushort _padding3; //0 in MKWii
+            private byte _unknown3; //0 in MKWii //Padding
+            private ushort _lodBias; //FixedPoint number, 1/100 = conversion
             public uint ImageDataOffset { get; private set; } //Relative to file header
 
 
@@ -184,10 +185,11 @@ namespace WindViewer.FileFormats
                 _unknown2 = (uint)FSHelpers.Read32(data, (int)offset + 0x10);
                 FilterSettingMin = (FilterMode)FSHelpers.Read8(data, (int)offset + 0x14);
                 FilterSettingMag = (FilterMode)FSHelpers.Read8(data, (int)offset + 0x15);
-                _padding1 = (ushort)FSHelpers.Read16(data, (int)offset + 0x16);
+                _minLod = FSHelpers.Read8(data, (int)offset + 0x16);
+                _maxLod = FSHelpers.Read8(data, (int)offset + 0x17);
                 _imageCount = FSHelpers.Read8(data, (int)offset + 0x18);
-                _padding2 = FSHelpers.Read8(data, (int)offset + 0x19);
-                _padding3 = (ushort)FSHelpers.Read16(data, (int)offset + 0x1A);
+                _unknown3 = FSHelpers.Read8(data, (int)offset + 0x19);
+                _lodBias = (ushort)FSHelpers.Read16(data, (int)offset + 0x1A);
                 ImageDataOffset = (uint)FSHelpers.Read32(data, (int)offset + 0x1C);
             }
         }
@@ -612,7 +614,7 @@ namespace WindViewer.FileFormats
                                 continue;
 
                             //Now we're looping through each pixel in a block, but a pixel is four bytes long. 
-                            uint destIndex = (uint) (4*(width*((yBlock*4) + pY) + (xBlock*4) + pX));
+                            uint destIndex = (uint)(4 * (width * ((yBlock * 4) + pY) + (xBlock * 4) + pX));
                             decodedData[destIndex + 3] = fileData[dataOffset + 0];
                             decodedData[destIndex + 2] = fileData[dataOffset + 1];
                             decodedData[destIndex + 1] = fileData[dataOffset + 1];
@@ -646,11 +648,11 @@ namespace WindViewer.FileFormats
                             if ((xBlock * 8 + pX >= width) || (yBlock * 8 + pY >= height))
                                 continue;
 
-                            byte t = (byte) (fileData[dataOffset] & 0xF0);
+                            byte t = (byte)(fileData[dataOffset] & 0xF0);
                             byte t2 = (byte)(fileData[dataOffset] & 0x0F);
                             uint destIndex = (uint)(4 * (width * ((yBlock * 8) + pY) + (xBlock * 8) + pX));
 
-                            decodedData[destIndex + 3] = (byte) (t*0x11);
+                            decodedData[destIndex + 3] = (byte)(t * 0x11);
                             decodedData[destIndex + 2] = (byte)(t * 0x11);
                             decodedData[destIndex + 1] = (byte)(t * 0x11);
                             decodedData[destIndex + 0] = 0xFF;
@@ -689,9 +691,9 @@ namespace WindViewer.FileFormats
                             if ((xBlock * 4 + pX >= width) || (yBlock * 4 + pY >= height))
                                 continue;
 
-                            ushort sourcePixel = (ushort)FSHelpers.Read16(fileData, (int) dataOffset);
+                            ushort sourcePixel = (ushort)FSHelpers.Read16(fileData, (int)dataOffset);
                             RGB5A3ToRGBA8(sourcePixel, ref decodedData,
-                                (int) (4*(width*((yBlock*4) + pY) + (xBlock*4) + pX)));
+                                (int)(4 * (width * ((yBlock * 4) + pY) + (xBlock * 4) + pX)));
 
                             dataOffset += 2;
                         }
