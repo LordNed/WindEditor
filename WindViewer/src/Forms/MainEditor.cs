@@ -16,6 +16,7 @@ using WindViewer.FileFormats;
 using WindViewer.Forms.Dialogs;
 using WindViewer.Forms.EntityEditors;
 using WindViewer.src.Forms;
+using WindViewer.src.Forms.Dialogs;
 
 namespace WindViewer.Forms
 {
@@ -67,14 +68,14 @@ namespace WindViewer.Forms
 
             //Register a handler for WorldspaceProjectLoaded that sets the Window's title.
             WorldspaceProjectLoaded += OnWorldSpaceProjectLoaded;
-            glControl.Paint += this.glControl_Paint;
+
+            glControl.Paint += glControl_Paint;
             glControl.KeyDown += Input.Internal_EventKeyDown;
             glControl.KeyUp += Input.Internal_EventKeyUp;
             glControl.MouseDown += Input.Internal_EventMouseDown;
             glControl.MouseMove += Input.Internal_EventMouseMove;
             glControl.MouseUp += Input.Internal_EventMouseUp;
             glControl.Resize += Display.Internal_EventResize;
-
         }
 
         private void MainEditor_Load(object sender, EventArgs e)
@@ -95,10 +96,15 @@ namespace WindViewer.Forms
             _debugRenderer.Initialize();
             _editorTools.Add(_debugRenderer);
 
-            DebugRenderer.DrawWireCube(Vector3.Zero, Color.Snow, Quaternion.Identity, Vector3.One);
-
-
             _glControlInitalized = true;
+
+            // Check to see if they've set up user prefs before.
+            if (string.IsNullOrEmpty(Properties.Settings.Default.rootDiskDir))
+            {
+                MessageBox.Show(
+                    "Application paths have not been configured. Not all tools will function. Please configure via Tools->Options.",
+                    "Please Set Editor Paths", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
 
@@ -772,6 +778,12 @@ namespace WindViewer.Forms
         private void OnWorldSpaceProjectLoaded(WorldspaceProject worldspaceProject)
         {
             this.Text = string.Format("Wind Editor ({0} - {1})", worldspaceProject.Name, worldspaceProject.ProjectFilePath);
+        }
+
+        private void optionsToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            var settings = new SettingsDialog();
+            settings.Show();
         }
     }
 }

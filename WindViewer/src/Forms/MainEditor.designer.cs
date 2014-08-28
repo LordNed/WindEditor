@@ -78,6 +78,7 @@
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mainArea = new System.Windows.Forms.Panel();
+            this.optionsToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.MainSplitter)).BeginInit();
             this.MainSplitter.Panel1.SuspendLayout();
             this.MainSplitter.Panel2.SuspendLayout();
@@ -117,7 +118,6 @@
             this.glControl.TabIndex = 1;
             this.glControl.VSync = true;
             this.glControl.Load += new System.EventHandler(this.glControl_Load);
-            this.glControl.Paint += new System.Windows.Forms.PaintEventHandler(this.glControl_Paint);
             // 
             // MainSplitter
             // 
@@ -499,7 +499,8 @@
             // 
             this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.floatConverterToolStripMenuItem,
-            this.automatedTestSuiteToolStripMenuItem});
+            this.automatedTestSuiteToolStripMenuItem,
+            this.optionsToolStripMenuItem1});
             this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
             this.toolsToolStripMenuItem.Size = new System.Drawing.Size(48, 20);
             this.toolsToolStripMenuItem.Text = "&Tools";
@@ -564,6 +565,13 @@
             this.mainArea.Padding = new System.Windows.Forms.Padding(3, 3, 3, 24);
             this.mainArea.Size = new System.Drawing.Size(1362, 656);
             this.mainArea.TabIndex = 0;
+            // 
+            // optionsToolStripMenuItem1
+            // 
+            this.optionsToolStripMenuItem1.Name = "optionsToolStripMenuItem1";
+            this.optionsToolStripMenuItem1.Size = new System.Drawing.Size(197, 22);
+            this.optionsToolStripMenuItem1.Text = "&Options...";
+            this.optionsToolStripMenuItem1.Click += new System.EventHandler(this.optionsToolStripMenuItem1_Click);
             // 
             // MainEditor
             // 
@@ -663,5 +671,6 @@
         private System.Windows.Forms.ToolStripMenuItem exportChunksOfTypeToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem deleteAllChunksOfTypeToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem automatedTestSuiteToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem optionsToolStripMenuItem1;
     }
 }
