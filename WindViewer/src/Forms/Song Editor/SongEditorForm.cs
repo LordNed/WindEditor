@@ -266,6 +266,11 @@ namespace WindViewer.Editor
                 note4Box.Image = Properties.Resources.WWleft;
             }
 
+            if (songArray[songSelector.SelectedIndex].note4 == 5)
+            {
+                note4Box.Image = Properties.Resources.WWempty;
+            }
+
             #endregion
 
             #region Note 5
@@ -293,6 +298,11 @@ namespace WindViewer.Editor
             if (songArray[songSelector.SelectedIndex].note5 == 4)
             {
                 note5Box.Image = Properties.Resources.WWleft;
+            }
+
+            if (songArray[songSelector.SelectedIndex].note5 == 5)
+            {
+                note5Box.Image = Properties.Resources.WWempty;
             }
 
             #endregion
@@ -324,6 +334,10 @@ namespace WindViewer.Editor
                 note6Box.Image = Properties.Resources.WWleft;
             }
 
+            if (songArray[songSelector.SelectedIndex].note6 == 5)
+            {
+                note6Box.Image = Properties.Resources.WWempty;
+            }
             #endregion
         }
 
