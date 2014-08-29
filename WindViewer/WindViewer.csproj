@@ -56,10 +56,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-<<<<<<< HEAD
     <Compile Include="Helpers.cs" />
-=======
->>>>>>> upstream/master
     <Compile Include="src\Editor\Bluh\BinaryTextureImage.cs" />
     <Compile Include="src\Editor\Bluh\CubeMeshSolid.cs" />
     <Compile Include="src\Editor\Bluh\CubeMeshWire.cs" />
@@ -87,12 +84,9 @@
     <Compile Include="src\Editor\Tools\MovementGizmo.cs" />
     <Compile Include="src\Editor\Transform.cs" />
     <Compile Include="src\Editor\WorldspaceProject.cs" />
-<<<<<<< HEAD
     <Compile Include="src\FileFormats\BMGExporter.cs" />
     <Compile Include="src\FileFormats\BMC.cs" />
     <Compile Include="src\FileFormats\BMCExporter.cs" />
-=======
->>>>>>> upstream/master
     <Compile Include="src\FileFormats\GenericArchiveData.cs" />
     <Compile Include="src\FileFormats\StaticCollisionModel.cs" />
     <Compile Include="src\FileFormats\WindWakerEntityData.cs" />

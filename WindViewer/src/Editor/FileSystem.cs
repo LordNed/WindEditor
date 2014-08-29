@@ -1,14 +1,9 @@
-<<<<<<< HEAD
 ﻿using System;
 using System.Configuration;
 using System.IO;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows.Forms;
-=======
-﻿using System.Configuration;
-using System.IO;
->>>>>>> upstream/master
 using GameFormatReader.Common;
 using WindViewer.Properties;
 
@@ -46,7 +41,6 @@ namespace WindViewer.Editor
 
             return new EndianBinaryReader(File.Open(combinedFilePath, FileMode.Open, FileAccess.Read), endian);
         }
-<<<<<<< HEAD
 
         /*public static void dumpArcToFile(GameFormatReader.GCWii.Binaries.GC.RARC archive, string destDir)
         {
@@ -165,7 +159,5 @@ namespace WindViewer.Editor
                 }
             }
         }
-=======
->>>>>>> upstream/master
     }
 }

@@ -83,7 +83,6 @@
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mainArea = new System.Windows.Forms.Panel();
-            this.optionsToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.MainSplitter)).BeginInit();
             this.MainSplitter.Panel1.SuspendLayout();
             this.MainSplitter.Panel2.SuspendLayout();
@@ -604,13 +603,6 @@
             this.mainArea.Size = new System.Drawing.Size(1362, 656);
             this.mainArea.TabIndex = 0;
             // 
-            // optionsToolStripMenuItem1
-            // 
-            this.optionsToolStripMenuItem1.Name = "optionsToolStripMenuItem1";
-            this.optionsToolStripMenuItem1.Size = new System.Drawing.Size(197, 22);
-            this.optionsToolStripMenuItem1.Text = "&Options...";
-            this.optionsToolStripMenuItem1.Click += new System.EventHandler(this.optionsToolStripMenuItem1_Click);
-            // 
             // MainEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -711,11 +703,8 @@
         private System.Windows.Forms.ToolStripMenuItem deleteAllChunksOfTypeToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem automatedTestSuiteToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem optionsToolStripMenuItem1;
-<<<<<<< HEAD
         private System.Windows.Forms.ToolStripMenuItem editorsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem textEditorToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem songEditorToolStripMenuItem;
-=======
->>>>>>> upstream/master
     }
 }
