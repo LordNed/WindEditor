@@ -104,7 +104,11 @@ namespace WindViewer.Forms
 
             // Check to see if they've set up user prefs before.
 #if DEBUG
+<<<<<<< HEAD
             Properties.Settings.Default.rootDiskDir = "C:\\Program Files (x86)\\SZS Tools\\Root Copy";
+=======
+            Properties.Settings.Default.rootDiskDir = "E:\\Killerkat_Storage_Backup\\WindwakerModding\\root";
+>>>>>>> upstream/master
 #endif
             if (string.IsNullOrEmpty(Properties.Settings.Default.rootDiskDir))
             {
@@ -277,6 +281,7 @@ namespace WindViewer.Forms
 
                 GL.Viewport((int)(camera.Rect.X * Display.Width), (int)(camera.Rect.Y * Display.Height), camera.PixelWidth, camera.PixelHeight);
                 GL.Scissor((int)(camera.Rect.X * Display.Width), (int)(camera.Rect.Y * Display.Height), camera.PixelWidth, camera.PixelHeight);
+<<<<<<< HEAD
 
 
                 //Actual render stuff
@@ -289,6 +294,20 @@ namespace WindViewer.Forms
                 _debugRenderer.Render(camera);
 
 
+=======
+
+
+                //Actual render stuff
+                GL.ClearColor(camera.ClearColor);
+                GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+
+                //ToDo: Put these in a list...
+                _renderer.Render(camera);
+                _debugRenderer.Render(camera);
+
+
+>>>>>>> upstream/master
             }
             GL.Disable(EnableCap.ScissorTest);
 
@@ -312,6 +331,7 @@ namespace WindViewer.Forms
             {
                 _camera.Rotate(Input.MouseDelta.X, Input.MouseDelta.Y);
             }
+<<<<<<< HEAD
 
             if (Input.GetKeyDown(Keys.Q))
             {
@@ -325,6 +345,21 @@ namespace WindViewer.Forms
                 DebugRenderer.DrawLine(mouseRay.Origin, mouseRay.Origin + mouseRay.Direction * 250f);
                 Console.WriteLine("Intersects: {0}, Distance: {1} At: {2}", bIntersects, distance, point);
 
+=======
+
+            if (Input.GetKeyDown(Keys.Q))
+            {
+                Ray mouseRay = _camera.ViewportPointToRay(Input.MousePosition);
+                float distance;
+                Vector3 point;
+
+                bool bIntersects = Physics.RayVsPlane(mouseRay, new Plane(Vector3.Zero, Vector3.UnitY),
+                    out distance, out point);
+
+                DebugRenderer.DrawLine(mouseRay.Origin, mouseRay.Origin + mouseRay.Direction * 250f);
+                Console.WriteLine("Intersects: {0}, Distance: {1} At: {2}", bIntersects, distance, point);
+
+>>>>>>> upstream/master
             }
 
             Input.Internal_UpdateInputState();
@@ -785,6 +820,7 @@ namespace WindViewer.Forms
             var settings = new SettingsDialog();
             settings.Show();
         }
+<<<<<<< HEAD
 
         private void textEditorToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -844,5 +880,7 @@ namespace WindViewer.Forms
 
             songEditorToolStripMenuItem.Enabled = true;
         }
+=======
+>>>>>>> upstream/master
     }
 }
