@@ -8,12 +8,15 @@ using FolderSelect;
 using JWC;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Math;
 using WindViewer.Editor;
 using WindViewer.Editor.Renderer;
+using WindViewer.Editor.Tools;
 using WindViewer.FileFormats;
 using WindViewer.Forms.Dialogs;
 using WindViewer.Forms.EntityEditors;
 using WindViewer.src.Forms;
+using WindViewer.Properties;
 
 namespace WindViewer.Forms
 {
@@ -31,6 +34,10 @@ namespace WindViewer.Forms
         //Rendering stuffs
         private J3DRenderer _renderer;
         private DebugRenderer _debugRenderer;
+        private List<Camera> _cameras;
+
+        private List<IEditorTool> _editorTools;
+
 
         //Events
         public static event Action<WindWakerEntityData> SelectedEntityFileChanged;
@@ -46,10 +53,15 @@ namespace WindViewer.Forms
         public static float DeltaTime;
         public static float Time;
 
+        //Checks for if editors are loaded
+        public bool isTextEditorLoaded = false;
+        public bool isSongEditorLoaded = false;
+
         public MainEditor()
         {
             //Initialize the WinForm
             InitializeComponent();
+            KeyPreview = true;
 
             _mruMenu = new MruStripMenu(mruList, OnMruClickedHandler, _mruRegKey + "\\MRU", 6);
 
@@ -60,6 +72,14 @@ namespace WindViewer.Forms
 
             //Register a handler for WorldspaceProjectLoaded that sets the Window's title.
             WorldspaceProjectLoaded += OnWorldSpaceProjectLoaded;
+
+            glControl.Paint += glControl_Paint;
+            glControl.KeyDown += Input.Internal_EventKeyDown;
+            glControl.KeyUp += Input.Internal_EventKeyUp;
+            glControl.MouseDown += Input.Internal_EventMouseDown;
+            glControl.MouseMove += Input.Internal_EventMouseMove;
+            glControl.MouseUp += Input.Internal_EventMouseUp;
+            glControl.Resize += Display.Internal_EventResize;
         }
 
         private void MainEditor_Load(object sender, EventArgs e)
@@ -67,19 +87,31 @@ namespace WindViewer.Forms
             _loadedWorldspaceProject = null;
 
             _camera = new Camera();
+            _camera.ClearColor = Color.DarkSlateGray;
+            _cameras = new List<Camera>();
+            _cameras.Add(_camera);
 
+            _editorTools = new List<IEditorTool>();
             //Add our renderers to the list 
             _renderer = new J3DRenderer();
             _renderer.Initialize();
 
             _debugRenderer = new DebugRenderer();
-            _debugRenderer.Initialize();
-
-
-            DebugRenderer.DrawWireCube(Vector3.Zero, Color.Snow, Quaternion.Identity, Vector3.One);
-
+            _debugRenderer.Initialize(); 
+            _editorTools.Add(_debugRenderer);
 
             _glControlInitalized = true;
+
+            // Check to see if they've set up user prefs before.
+#if DEBUG
+            Properties.Settings.Default.rootDiskDir = "C:\\Program Files (x86)\\SZS Tools\\Root Copy";
+#endif
+            if (string.IsNullOrEmpty(Properties.Settings.Default.rootDiskDir))
+            {
+                MessageBox.Show(
+                    "Application paths have not been configured. Not all tools will function. Please configure via Tools->Options.",
+                    "Please Set Editor Paths", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
 
@@ -100,76 +132,6 @@ namespace WindViewer.Forms
         void glControl_Paint(object sender, PaintEventArgs e)
         {
             RenderFrame();
-        }
-
-        void glControl_Resize(object sender, EventArgs e)
-        {
-            if (!_glControlInitalized)
-                return;
-
-            glControl.Invalidate();
-        }
-
-
-
-        void glControl_KeyDown(object sender, KeyEventArgs e)
-        {
-            EditorHelpers.KeysDown[e.KeyValue] = true;
-
-            //Console.WriteLine("cam pos: " + _camera.transform.Position);
-        }
-
-        void glControl_KeyUp(object sender, KeyEventArgs e)
-        {
-            EditorHelpers.KeysDown[e.KeyValue] = false;
-        }
-
-        void glControl_MouseDown(object sender, MouseEventArgs e)
-        {
-            switch (e.Button)
-            {
-                case MouseButtons.Left:
-                    EditorHelpers.MouseState.LDown = true;
-                    break;
-                case MouseButtons.Right:
-                    EditorHelpers.MouseState.RDown = true;
-                    break;
-                case MouseButtons.Middle:
-                    EditorHelpers.MouseState.MDown = true;
-                    break;
-            }
-
-            EditorHelpers.MouseState.Center = new Vector2(e.X, e.Y);
-        }
-
-        void glControl_MouseMove(object sender, MouseEventArgs e)
-        {
-            Vector2 newMousePos = new Vector2(e.X, e.Y);
-            Vector2 delta = newMousePos - EditorHelpers.MouseState.Center;
-            EditorHelpers.MouseState.Center = newMousePos;
-
-            EditorHelpers.MouseState.Delta = delta;
-
-            if (EditorHelpers.MouseState.LDown)
-            {
-                _camera.Rotate(-delta.X, delta.Y);
-            }
-        }
-
-        void glControl_MouseUp(object sender, MouseEventArgs e)
-        {
-            switch (e.Button)
-            {
-                case MouseButtons.Left:
-                    EditorHelpers.MouseState.LDown = false;
-                    break;
-                case MouseButtons.Right:
-                    EditorHelpers.MouseState.RDown = false;
-                    break;
-                case MouseButtons.Middle:
-                    EditorHelpers.MouseState.MDown = false;
-                    break;
-            }
         }
 
         #endregion
@@ -200,14 +162,6 @@ namespace WindViewer.Forms
 
             if (!surpressMRU)
                 _mruMenu.AddFile(_loadedWorldspaceProject.ProjectFilePath);
-
-            //Temp
-            /*foreach (ZArchive archive in _loadedWorldspaceProject.GetAllArchives())
-            {
-                StaticCollisionModel scm = archive.GetFileByType<StaticCollisionModel>();
-                if(scm!=null)
-                    _collisionRenderer.AddRenderable(scm.Renderable);
-            }*/
 
             if (WorldspaceProjectLoaded != null)
                 WorldspaceProjectLoaded(_loadedWorldspaceProject);
@@ -309,69 +263,74 @@ namespace WindViewer.Forms
             DeltaTime = Program.DeltaTimeStopwatch.Elapsed.Milliseconds / 1000f;
             Time += DeltaTime;
             Program.DeltaTimeStopwatch.Restart();
-            /*toolStripStatusLabel1.Text = (1 / DeltaTime).ToString("00") + " fps.";
 
             foreach (IEditorTool tool in _editorTools)
             {
-                tool.PreUpdate();
+                tool.Update();
             }
 
-            //Hack...
-            /*if (_loadedWorldspaceProject != null)
+            DebugRenderer.DrawWireCube(Vector3.Zero, Color.DarkRed, Quaternion.Identity, new Vector3(10, 10, 10));
+
+            GL.Enable(EnableCap.ScissorTest);
+            foreach (var camera in _cameras)
             {
-                
-                foreach (var archive in _loadedWorldspaceProject.GetAllArchives())
-                {
-                    WindWakerEntityData entData = archive.GetFileByType<WindWakerEntityData>();
-                    if (entData != null)
-                    {
-                        foreach (var kvp in entData.GetAllChunks())
-                        {
-                            foreach (WindWakerEntityData.BaseChunk chunk in kvp.Value)
-                            {
-                                var spatial = chunk as WindWakerEntityData.BaseChunkSpatial;
-                                if (spatial != null)
-                                {
-                                    Vector3 flippedZ = spatial.Transform.Position;
-                                    flippedZ.X = -flippedZ.X;
-                                    flippedZ.Z = -flippedZ.Z;
-                                    DebugRenderer.DrawWireCube(flippedZ);
-                                }
-                            }
-                        }
-                    }
-                }
+
+                GL.Viewport((int)(camera.Rect.X * Display.Width), (int)(camera.Rect.Y * Display.Height), camera.PixelWidth, camera.PixelHeight);
+                GL.Scissor((int)(camera.Rect.X * Display.Width), (int)(camera.Rect.Y * Display.Height), camera.PixelWidth, camera.PixelHeight);
+
+
+                //Actual render stuff
+                GL.ClearColor(camera.ClearColor);
+                GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+
+                //ToDo: Put these in a list...
+                _renderer.Render(camera);
+                _debugRenderer.Render(camera);
+
+
             }
+            GL.Disable(EnableCap.ScissorTest);
 
             foreach (IEditorTool tool in _editorTools)
             {
-                tool.LateUpdate();
-            }*/
+                tool.PostRenderUpdate();
+            }
 
 
-            //Actual render stuff
-            GL.ClearColor(Color.YellowGreen);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-            GL.Viewport(0, 0, glControl.Width, glControl.Height);
-
-            _renderer.Render(_camera, (float)glControl.Width / (float)glControl.Height);
-            _debugRenderer.Render(_camera, (float)glControl.Width / (float)glControl.Height);
-
-            if (EditorHelpers.KeysDown[(int)Keys.W])
+            //ToDo: This should be moved inside the camera, camera should be an IEditorTool
+            if (Input.GetKey(Keys.W))
                 _camera.Move(0f, 0f, 1);
-            if (EditorHelpers.KeysDown[(int)Keys.S])
+            if (Input.GetKey(Keys.S))
                 _camera.Move(0f, 0f, -1);
-            if (EditorHelpers.KeysDown[(int)Keys.A])
+            if (Input.GetKey(Keys.A))
                 _camera.Move(1, 0f, 0f);
-            if (EditorHelpers.KeysDown[(int)Keys.D])
+            if (Input.GetKey(Keys.D))
                 _camera.Move(-1, 0f, 0f);
 
+            if (Input.GetMouseButton(1))
+            {
+                _camera.Rotate(Input.MouseDelta.X, Input.MouseDelta.Y);
+            }
+
+            if (Input.GetKeyDown(Keys.Q))
+            {
+                Ray mouseRay = _camera.ViewportPointToRay(Input.MousePosition);
+                float distance;
+                Vector3 point;
+
+                bool bIntersects = Physics.RayVsPlane(mouseRay, new Plane(Vector3.Zero, Vector3.UnitY),
+                    out distance, out point);
+
+                DebugRenderer.DrawLine(mouseRay.Origin, mouseRay.Origin + mouseRay.Direction * 250f);
+                Console.WriteLine("Intersects: {0}, Distance: {1} At: {2}", bIntersects, distance, point);
+
+            }
+
+            Input.Internal_UpdateInputState();
             glControl.SwapBuffers();
-
-
-            EditorHelpers.UpdateKeysDownArray();
         }
+
 
 
         private void UpdateEntityTreeview()
@@ -692,35 +651,28 @@ namespace WindViewer.Forms
             workingDir = Path.Combine(outputFolder, worldspaceName + ".wrkDir");
             foreach (string filePath in archiveFilePaths)
             {
-                string arcExtractorFileName = Path.Combine(Application.StartupPath, "ExternalTools/arcExtract.exe");
-                string folderName = Path.Combine(workingDir, Path.GetFileNameWithoutExtension(filePath));
+                string tempFilePath = filePath;
 
-                //ArcExtractor can't seem to output to a specified location, so we're going to cheat
-                //here, and copy the arc over, then extract it, and then delete it. Yay!
-                string newFileName = Path.Combine(folderName, Path.GetFileName(filePath));
-                Directory.CreateDirectory(folderName);
-                File.Copy(filePath, newFileName);
+                if (GameFormatReader.GCWii.Compression.Yaz0.IsYaz0Compressed(tempFilePath))
+                {
+                    byte[] decompData = GameFormatReader.GCWii.Compression.Yaz0.Decode(tempFilePath);
 
+                    //var test = new GameFormatReader.GCWii.Binaries.GC.RARC(decompData);
+                }
 
-                Console.WriteLine("Invoking external tool arcExtract on {0}", filePath);
-                ProcessStartInfo arcExtract = new ProcessStartInfo(arcExtractorFileName);
-                arcExtract.WorkingDirectory = folderName;
-                arcExtract.WindowStyle = ProcessWindowStyle.Hidden;
-                arcExtract.Arguments = "\"" + newFileName + "\"";
-                Process.Start(arcExtract);
+                var tempArc = new GameFormatReader.GCWii.Binaries.GC.RARC(tempFilePath);
+
+                FileSystem.arcContentsToFile(tempArc, workingDir);
             }
 
-            //HackHack: The process does funny things and if we delete the file
-            //immediately it doesn't extract + it never raises Exited events properly.
-            System.Threading.Thread.Sleep(1000);
+            string[] directoryFiles = Directory.GetFiles(workingDir);
 
-
-            //Delete the falsely copied archives
-            foreach (string filePath in archiveFilePaths)
+            foreach (string str in directoryFiles)
             {
-                string folderName = Path.Combine(workingDir, Path.GetFileNameWithoutExtension(filePath));
-                string newFileName = Path.Combine(folderName, Path.GetFileName(filePath));
-                File.Delete(newFileName);
+                if (str == "temparc.tmp")
+                {
+                    File.Delete(Path.Combine(workingDir, "temparc.tmp"));
+                }
             }
 
             return workingDir;
@@ -826,6 +778,71 @@ namespace WindViewer.Forms
         private void OnWorldSpaceProjectLoaded(WorldspaceProject worldspaceProject)
         {
             this.Text = string.Format("Wind Editor ({0} - {1})", worldspaceProject.Name, worldspaceProject.ProjectFilePath);
+        }
+
+        private void optionsToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            var settings = new SettingsDialog();
+            settings.Show();
+        }
+
+        private void textEditorToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (!isTextEditorLoaded)
+                loadTextEditor();
+        }
+
+        private void loadTextEditor()
+        {
+                var archive = new GameFormatReader.GCWii.Binaries.GC.RARC(Path.Combine(Settings.Default.rootDiskDir, "res/Msg/bmgres.arc"));
+                
+                TextEditorForm textEditor = new TextEditorForm();
+
+                isTextEditorLoaded = true;
+
+                textEditorToolStripMenuItem.Enabled = false;
+
+                textEditor.loadBmgRes(archive);
+
+                textEditor.Show();
+
+                textEditor.Disposed += new EventHandler(textEditor_Disposed);
+        }
+
+        void textEditor_Disposed(object sender, EventArgs e)
+        {
+            isTextEditorLoaded = false;
+
+            textEditorToolStripMenuItem.Enabled = true;
+        }
+
+        private void songEditorToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            loadSongEditor();
+        }
+
+        private void loadSongEditor()
+        {
+                byte[] data = Helpers.LoadBinary(Path.Combine(Settings.Default.rootDiskDir, "&&systemdata\\Start.dol"));
+
+                isSongEditorLoaded = true;
+
+                songEditorToolStripMenuItem.Enabled = false;
+
+                SongEditor songEditor = new SongEditor();
+
+                songEditor.load(data);
+
+                songEditor.Show();
+
+                songEditor.Disposed += new EventHandler(songEditor_Disposed);
+        }
+
+        void songEditor_Disposed(object sender, EventArgs e)
+        {
+            isSongEditorLoaded = false;
+
+            songEditorToolStripMenuItem.Enabled = true;
         }
     }
 }

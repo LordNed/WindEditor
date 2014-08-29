@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
+using WindViewer.Editor.WindWaker;
 using WindViewer.FileFormats;
 using WindViewer.Forms;
 

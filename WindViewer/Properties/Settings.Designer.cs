@@ -22,5 +22,17 @@ namespace WindViewer.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string rootDiskDir {
+            get {
+                return ((string)(this["rootDiskDir"]));
+            }
+            set {
+                this["rootDiskDir"] = value;
+            }
+        }
     }
 }
