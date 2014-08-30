@@ -34,5 +34,17 @@ namespace WindViewer.Properties {
                 this["rootDiskDir"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool shouldUpgradeSettings {
+            get {
+                return ((bool)(this["shouldUpgradeSettings"]));
+            }
+            set {
+                this["shouldUpgradeSettings"] = value;
+            }
+        }
     }
 }

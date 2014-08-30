@@ -86,7 +86,7 @@ namespace WindViewer.Forms
             _cameras = new List<Camera>();
             _cameras.Add(_camera);
 
-            _editorTools = new List<IEditorTool>();
+            _editorTools = new List<IEditorTool>(); 
             //Add our renderers to the list 
             _renderer = new J3DRenderer();
             _renderer.Initialize();
@@ -98,9 +98,6 @@ namespace WindViewer.Forms
             _glControlInitalized = true;
 
             // Check to see if they've set up user prefs before.
-#if DEBUG
-            Properties.Settings.Default.rootDiskDir = "E:\\Killerkat_Storage_Backup\\WindwakerModding\\root";
-#endif
             if (string.IsNullOrEmpty(Properties.Settings.Default.rootDiskDir))
             {
                 MessageBox.Show(
