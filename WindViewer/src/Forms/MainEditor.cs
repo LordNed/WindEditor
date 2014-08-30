@@ -28,16 +28,6 @@ namespace WindViewer.Forms
         private WindWakerEntityData _selectedEntityFile;
         private EditorHelpers.EntityLayer _selectedEntityLayer;
 
-        //private Camera _camera;
-
-        //Rendering stuffs
-        //private J3DRenderer _renderer;
-        //private DebugRenderer _debugRenderer;
-        //private List<Camera> _cameras;
-
-        //private List<IEditorTool> _editorTools;
-
-
         //Events
         public static event Action<WindWakerEntityData> SelectedEntityFileChanged;
         public static event Action<WindWakerEntityData.BaseChunk> SelectedEntityChanged;
@@ -47,10 +37,6 @@ namespace WindViewer.Forms
         private MruStripMenu _mruMenu;
         private string _mruRegKey = "SOFTWARE\\Wind Viewer";
         private bool _glControlInitalized;
-
-        //Framerate Independent Camera Movement
-        //public static float DeltaTime;
-        //public static float Time;
 
         private EditorCore _editorCore;
 
@@ -71,13 +57,39 @@ namespace WindViewer.Forms
             WorldspaceProjectLoaded += OnWorldSpaceProjectLoaded;
 
             glControl.Paint += glControl_Paint;
-            glControl.KeyDown += Input.Internal_EventKeyDown;
-            glControl.KeyUp += Input.Internal_EventKeyUp;
-            glControl.MouseDown += Input.Internal_EventMouseDown;
-            glControl.MouseMove += Input.Internal_EventMouseMove;
-            glControl.MouseUp += Input.Internal_EventMouseUp;
+            glControl.KeyDown += HandleEventKeyDown;
+            glControl.KeyUp += HandleEventKeyUp;
+            glControl.MouseDown += HandleEventMouseDown;
+            glControl.MouseMove += HandleEventMouseMove;
+            glControl.MouseUp += HandleEventMouseUp;
             glControl.Resize += Display.Internal_EventResize;
         }
+
+        private void HandleEventKeyDown(object sender, KeyEventArgs e)
+        {
+            _editorCore.InputSetKeyState(e.KeyCode, true);
+        }
+
+        private void HandleEventKeyUp(object sender, KeyEventArgs e)
+        {
+            _editorCore.InputSetKeyState(e.KeyCode, false);
+        }
+
+        private void HandleEventMouseDown(object sender, MouseEventArgs e)
+        {
+            _editorCore.InputSetMouseBtnState(e.Button, true);
+        }
+
+        private void HandleEventMouseMove(object sender, MouseEventArgs e)
+        {
+            _editorCore.InputSetMousePos(new Vector2(e.X, e.Y));
+        }
+
+        private void HandleEventMouseUp(object sender, MouseEventArgs e)
+        {
+            _editorCore.InputSetMouseBtnState(e.Button, false);
+        }
+
 
         private void MainEditor_Load(object sender, EventArgs e)
         {
@@ -765,7 +777,7 @@ namespace WindViewer.Forms
             Console.WriteLine("Project Export completed.");
         }
 
-        private void toolStripMenuItem2_Click(object sender, EventArgs e)
+        private void unloadWorldspaceProject_Click(object sender, EventArgs e)
         {
             UnloadLoadedWorldspaceProject();
 
@@ -780,7 +792,8 @@ namespace WindViewer.Forms
 
         private void OnWorldSpaceProjectLoaded(WorldspaceProject worldspaceProject)
         {
-            this.Text = string.Format("Wind Editor ({0} - {1})", worldspaceProject.Name, worldspaceProject.ProjectFilePath);
+            // Modify the title of the WinForm UI to reflect the currently loaded Worldspace Project.
+            Text = string.Format("Wind Editor ({0} - {1})", worldspaceProject.Name, worldspaceProject.ProjectFilePath);
         }
 
         private void optionsToolStripMenuItem1_Click(object sender, EventArgs e)

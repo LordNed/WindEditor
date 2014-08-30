@@ -62,35 +62,19 @@ namespace WindViewer.Editor
             _prevMousePos = MousePosition;
         }
 
-
-        internal static void Internal_EventKeyDown(object sender, KeyEventArgs e)
-        {
-            Internal_SetKeyState(e.KeyCode, true);
-        }
-
-        internal static void Internal_EventKeyUp(object sender, KeyEventArgs e)
-        {
-            Internal_SetKeyState(e.KeyCode, false);
-        }
-
-        private static void Internal_SetKeyState(Keys keyCode, bool bPressed)
+        internal static void Internal_SetKeyState(Keys keyCode, bool bPressed)
         {
             _keysDown[(int)keyCode] = bPressed;
         }
 
-        public static void Internal_EventMouseDown(object sender, MouseEventArgs e)
+        internal static void Internal_SetMouseBtnState(MouseButtons button, bool bPressed)
         {
-            _mouseBtnsDown[MouseButtonEnumToInt(e.Button)] = true;
+            _mouseBtnsDown[MouseButtonEnumToInt(button)] = bPressed;
         }
 
-        public static void Internal_EventMouseUp(object sender, MouseEventArgs e)
+        internal static void Internal_SetMousePos(Vector2 mousePos)
         {
-            _mouseBtnsDown[MouseButtonEnumToInt(e.Button)] = false;
-        }
-
-        public static void Internal_EventMouseMove(object sender, MouseEventArgs e)
-        {
-            MousePosition = new Vector3(e.X, e.Y, 0);
+            MousePosition = new Vector3(mousePos.X, mousePos.Y, 0);
         }
 
         private static int MouseButtonEnumToInt(MouseButtons button)

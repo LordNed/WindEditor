@@ -87,7 +87,7 @@ namespace WindViewer.Editor
                     renderer.Render(camera);
 
 
-                // temp...
+                // ToDo: Anything but this.
                 if (Input.GetKey(Keys.W))
                     camera.Move(0f, 0f, 1);
                 if (Input.GetKey(Keys.S))
@@ -123,6 +123,36 @@ namespace WindViewer.Editor
                 tool.PostRenderUpdate();
 
             DebugRenderer.DrawWireCube(Vector3.Zero, Color.DarkRed, Quaternion.Identity, new Vector3(10, 10, 10));
+        }
+
+        /// <summary>
+        /// Wrapper around the Input system.
+        /// </summary>
+        /// <param name="keyCode">Keycode of the key that was pressed.</param>
+        /// <param name="bPressed">If the key was pressed down or released.</param>
+        public void InputSetKeyState(Keys keyCode, bool bPressed)
+        {
+            Input.Internal_SetKeyState(keyCode, bPressed);
+        }
+
+        /// <summary>
+        /// Wrapper around the Input system.
+        /// </summary>
+        /// <param name="button">MouseButton of the pressed button. Supports
+        /// LMB, RMB, MMB.</param>
+        /// <param name="bPressed">Whether or not the button was pressed.</param>
+        public void InputSetMouseBtnState(MouseButtons button, bool bPressed)
+        {
+            Input.Internal_SetMouseBtnState(button, bPressed);
+        }
+
+        /// <summary>
+        /// Wrapper around the Input system.
+        /// </summary>
+        /// <param name="mousePos">Position of mouse in pixels relative to render.</param>
+        public void InputSetMousePos(Vector2 mousePos)
+        {
+            Input.Internal_SetMousePos(mousePos);
         }
     }
 }

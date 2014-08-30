@@ -468,7 +468,7 @@
             this.unloadWorldspaceProjectToolStripMenuItem.Name = "unloadWorldspaceProjectToolStripMenuItem";
             this.unloadWorldspaceProjectToolStripMenuItem.Size = new System.Drawing.Size(190, 22);
             this.unloadWorldspaceProjectToolStripMenuItem.Text = "&Unload All";
-            this.unloadWorldspaceProjectToolStripMenuItem.Click += new System.EventHandler(this.toolStripMenuItem2_Click);
+            this.unloadWorldspaceProjectToolStripMenuItem.Click += new System.EventHandler(this.unloadWorldspaceProject_Click);
             // 
             // exitToolStripMenuItem
             // 
