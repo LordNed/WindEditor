@@ -72,6 +72,7 @@
     <Compile Include="src\Editor\Renderer\DebugRenderer.cs" />
     <Compile Include="src\Editor\Renderer\IRenderable.cs" />
     <Compile Include="src\Editor\Renderer\J3DRenderer.cs" />
+    <Compile Include="src\Editor\Tools\ItemIDEnum.cs" />
     <Compile Include="src\FileFormats\BMG.cs" />
     <Compile Include="src\Editor\Tools\IEditorTool.cs" />
     <Compile Include="src\Editor\Renderer\Camera.cs" />
@@ -88,6 +89,7 @@
     <Compile Include="src\FileFormats\BMC.cs" />
     <Compile Include="src\FileFormats\BMCExporter.cs" />
     <Compile Include="src\FileFormats\GenericArchiveData.cs" />
+    <Compile Include="src\FileFormats\ActorDat.cs" />
     <Compile Include="src\FileFormats\StaticCollisionModel.cs" />
     <Compile Include="src\FileFormats\WindWakerEntityData.cs" />
     <Compile Include="src\Forms\Dialogs\AboutWindow.cs">
@@ -306,6 +308,12 @@
     <Compile Include="src\Forms\EntityEditors\VirtEditor.Designer.cs">
       <DependentUpon>VirtEditor.cs</DependentUpon>
     </Compile>
+    <Compile Include="src\Forms\Item Drop Editor\DropEditorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Forms\Item Drop Editor\DropEditorForm.designer.cs">
+      <DependentUpon>DropEditorForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="src\Forms\MainEditor.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -450,6 +458,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\EntityEditors\VirtEditor.resx">
       <DependentUpon>VirtEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Forms\Item Drop Editor\DropEditorForm.resx">
+      <DependentUpon>DropEditorForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\MainEditor.resx">
       <DependentUpon>MainEditor.cs</DependentUpon>

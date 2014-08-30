@@ -465,5 +465,26 @@ namespace WindViewer.Editor
 
             bw.Close();
         }
+
+        private void openExternalToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            loadExternalDolFile();
+        }
+
+        public void loadExternalDolFile()
+        {
+            DialogResult result = openFileDialog1.ShowDialog();
+
+            if (result == DialogResult.OK)
+            {
+                data = Helpers.LoadBinary(openFileDialog1.FileName);
+
+                parse();
+
+                songSelector.Items.Clear();
+
+                fillSongSelector();
+            }
+        }
     }
 }

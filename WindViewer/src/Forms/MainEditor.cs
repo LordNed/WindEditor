@@ -53,9 +53,12 @@ namespace WindViewer.Forms
         public static float DeltaTime;
         public static float Time;
 
+        public bool hasRootDir = true;
+
         //Checks for if editors are loaded
         public bool isTextEditorLoaded = false;
         public bool isSongEditorLoaded = false;
+        public bool isDropEditorLoaded = false;
 
         public MainEditor()
         {
@@ -111,6 +114,8 @@ namespace WindViewer.Forms
                 MessageBox.Show(
                     "Application paths have not been configured. Not all tools will function. Please configure via Tools->Options.",
                     "Please Set Editor Paths", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                
+                hasRootDir = false;
             }
         }
 
@@ -794,19 +799,67 @@ namespace WindViewer.Forms
 
         private void loadTextEditor()
         {
-                var archive = new GameFormatReader.GCWii.Binaries.GC.RARC(Path.Combine(Settings.Default.rootDiskDir, "res/Msg/bmgres.arc"));
-                
+            if (hasRootDir)
+            {
+                if (File.Exists(Path.Combine(Settings.Default.rootDiskDir, "res/Msg/bmgres.arc")))
+                {
+                    var archive = new GameFormatReader.GCWii.Binaries.GC.RARC(Path.Combine(Settings.Default.rootDiskDir, "res/Msg/bmgres.arc"));
+
+                    TextEditorForm textEditor = new TextEditorForm();
+
+                    isTextEditorLoaded = true;
+
+                    textEditorToolStripMenuItem.Enabled = false;
+
+                    textEditor.loadBmgRes(archive);
+
+                    textEditor.Show();
+
+                    textEditor.Disposed += new EventHandler(textEditor_Disposed);
+                }
+
+                else
+                {
+                    if (MessageBox.Show(Path.Combine(Settings.Default.rootDiskDir, "res\\Msg\\bmgres.arc") + " not found. Select a bmgres.arc from disc, or the editor cannot be opened.", "Failed to open bmgres.arc", MessageBoxButtons.OKCancel) == DialogResult.OK)
+                    {
+                        TextEditorForm textEditor = new TextEditorForm();
+
+                        isTextEditorLoaded = true;
+
+                        textEditorToolStripMenuItem.Enabled = false;
+
+                        //textEditor.loadExternalRes();
+
+                        textEditor.Show();
+
+                        textEditor.Disposed += new EventHandler(textEditor_Disposed);
+                    }
+
+                    else
+                    {
+                        isSongEditorLoaded = false;
+
+                        songEditorToolStripMenuItem.Enabled = true;
+
+                        return;
+                    }
+                }
+            }
+
+            else
+            {
                 TextEditorForm textEditor = new TextEditorForm();
 
                 isTextEditorLoaded = true;
 
                 textEditorToolStripMenuItem.Enabled = false;
 
-                textEditor.loadBmgRes(archive);
+                //textEditor.loadExternalRes();
 
                 textEditor.Show();
 
                 textEditor.Disposed += new EventHandler(textEditor_Disposed);
+            }
         }
 
         void textEditor_Disposed(object sender, EventArgs e)
@@ -823,19 +876,71 @@ namespace WindViewer.Forms
 
         private void loadSongEditor()
         {
-                byte[] data = Helpers.LoadBinary(Path.Combine(Settings.Default.rootDiskDir, "&&systemdata\\Start.dol"));
+            //Check for root dir existence
+            if (hasRootDir)
+            {
+                //Check if file exists
+                if (File.Exists(Path.Combine(Settings.Default.rootDiskDir, "&&systemdata\\Start.dol")))
+                {
+                    byte[] data = Helpers.LoadBinary(Path.Combine(Settings.Default.rootDiskDir, "&&systemdata\\Start.dol"));
 
+                    isSongEditorLoaded = true;
+
+                    songEditorToolStripMenuItem.Enabled = false;
+
+                    SongEditor songEditor = new SongEditor();
+
+                    songEditor.load(data);
+
+                    songEditor.Show();
+
+                    songEditor.Disposed += new EventHandler(songEditor_Disposed);
+                }
+
+                //File doesn't exist error
+                else
+                {
+                    if (MessageBox.Show(Path.Combine(Settings.Default.rootDiskDir, "&&systemdata\\Start.dol") + " not found. Select a Start.dol from disc, or the editor cannot be opened.", "Failed to open Start.dol", MessageBoxButtons.OKCancel) == DialogResult.OK)
+                    {
+                        isSongEditorLoaded = true;
+
+                        songEditorToolStripMenuItem.Enabled = false;
+
+                        SongEditor songEditor = new SongEditor();
+
+                        songEditor.loadExternalDolFile();
+
+                        songEditor.Show();
+
+                        songEditor.Disposed += new EventHandler(dropEditor_Disposed);
+                    }
+
+                    else
+                    {
+                        isSongEditorLoaded = false;
+
+                        songEditorToolStripMenuItem.Enabled = true;
+
+                        return;
+                    }
+                }
+            }
+
+            //No root action
+            else
+            {
                 isSongEditorLoaded = true;
 
                 songEditorToolStripMenuItem.Enabled = false;
 
                 SongEditor songEditor = new SongEditor();
 
-                songEditor.load(data);
+                songEditor.loadExternalDolFile();
 
                 songEditor.Show();
 
-                songEditor.Disposed += new EventHandler(songEditor_Disposed);
+                songEditor.Disposed += new EventHandler(dropEditor_Disposed);
+            }
         }
 
         void songEditor_Disposed(object sender, EventArgs e)
@@ -843,6 +948,90 @@ namespace WindViewer.Forms
             isSongEditorLoaded = false;
 
             songEditorToolStripMenuItem.Enabled = true;
+        }
+
+        private void enemyDropEditorToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            loadEnemyDropEditor();
+        }
+
+        private void loadEnemyDropEditor()
+        {
+            if (hasRootDir)
+            {
+
+                if (File.Exists(Path.Combine(Settings.Default.rootDiskDir, "res\\ActorDat\\ActorDat.bin")))
+                {
+                    byte[] data = Helpers.LoadBinary(Path.Combine(Settings.Default.rootDiskDir, "res\\ActorDat\\ActorDat.bin"));
+
+                    isDropEditorLoaded = true;
+
+                    enemyDropEditorToolStripMenuItem.Enabled = false;
+
+                    ItemDropEditor dropEditor = new ItemDropEditor();
+
+                    dropEditor.load(data);
+
+                    dropEditor.Show();
+
+                    dropEditor.Disposed += new EventHandler(dropEditor_Disposed);
+                }
+
+                else
+                {
+                    if (MessageBox.Show(Path.Combine(Settings.Default.rootDiskDir, "res\\ActorDat\\ActorDat.bin") + " not found. Select an ActorDat.bin on disc, or the editor cannot be opened.", "Failed to open ActorDat.bin", MessageBoxButtons.OKCancel) == DialogResult.OK)
+                    {
+                        isDropEditorLoaded = true;
+
+                        enemyDropEditorToolStripMenuItem.Enabled = false;
+
+                        ItemDropEditor dropEditor = new ItemDropEditor();
+
+                        dropEditor.loadExternalDropFile();
+
+                        dropEditor.Show();
+
+                        dropEditor.Disposed += new EventHandler(dropEditor_Disposed);
+                    }
+
+                    return;
+                }
+            }
+
+
+            else
+            {
+                isDropEditorLoaded = true;
+
+                enemyDropEditorToolStripMenuItem.Enabled = false;
+
+                ItemDropEditor dropEditor = new ItemDropEditor();
+
+                dropEditor.loadExternalDropFile();
+
+                dropEditor.Show();
+
+                dropEditor.Disposed += new EventHandler(dropEditor_Disposed);
+            }
+        }
+
+        private void dropEditor_Disposed(object sender, EventArgs e)
+        {
+            isDropEditorLoaded = false;
+
+            enemyDropEditorToolStripMenuItem.Enabled = true;
+        }
+
+        private bool checkRootDir()
+        {
+            bool result = true;
+
+            if (string.IsNullOrEmpty(Settings.Default.rootDiskDir))
+            {
+                result = false;
+            }
+
+            return result;
         }
     }
 }

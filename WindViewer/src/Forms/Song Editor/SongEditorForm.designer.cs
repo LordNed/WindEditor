@@ -48,6 +48,7 @@
             this.note3Box = new System.Windows.Forms.PictureBox();
             this.note2Box = new System.Windows.Forms.PictureBox();
             this.note1Box = new System.Windows.Forms.PictureBox();
+            this.openExternalToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.note6Box)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.note5Box)).BeginInit();
@@ -70,6 +71,7 @@
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.openExternalToolStripMenuItem,
             this.saveToolStripMenuItem});
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
             this.openToolStripMenuItem.Size = new System.Drawing.Size(46, 20);
@@ -78,7 +80,7 @@
             // saveToolStripMenuItem
             // 
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(98, 22);
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.saveToolStripMenuItem.Text = "Save";
             this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
             // 
@@ -266,6 +268,13 @@
             this.note1Box.TabIndex = 1;
             this.note1Box.TabStop = false;
             // 
+            // openExternalToolStripMenuItem
+            // 
+            this.openExternalToolStripMenuItem.Name = "openExternalToolStripMenuItem";
+            this.openExternalToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.openExternalToolStripMenuItem.Text = "Open external";
+            this.openExternalToolStripMenuItem.Click += new System.EventHandler(this.openExternalToolStripMenuItem_Click);
+            // 
             // SongEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -325,6 +334,7 @@
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         public System.Windows.Forms.ComboBox noteCountSelector;
         private System.Windows.Forms.ToolStripMenuItem saveToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem openExternalToolStripMenuItem;
     }
 }
 

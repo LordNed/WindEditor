@@ -83,6 +83,7 @@
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mainArea = new System.Windows.Forms.Panel();
+            this.enemyDropEditorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.MainSplitter)).BeginInit();
             this.MainSplitter.Panel1.SuspendLayout();
             this.MainSplitter.Panel2.SuspendLayout();
@@ -489,7 +490,8 @@
             // 
             this.editorsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.textEditorToolStripMenuItem,
-            this.songEditorToolStripMenuItem});
+            this.songEditorToolStripMenuItem,
+            this.enemyDropEditorToolStripMenuItem});
             this.editorsToolStripMenuItem.Name = "editorsToolStripMenuItem";
             this.editorsToolStripMenuItem.Size = new System.Drawing.Size(55, 20);
             this.editorsToolStripMenuItem.Text = "Editors";
@@ -497,7 +499,7 @@
             // textEditorToolStripMenuItem
             // 
             this.textEditorToolStripMenuItem.Name = "textEditorToolStripMenuItem";
-            this.textEditorToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
+            this.textEditorToolStripMenuItem.Size = new System.Drawing.Size(173, 22);
             this.textEditorToolStripMenuItem.Text = "Text Editor";
             this.textEditorToolStripMenuItem.ToolTipText = "Edit text and text colors.";
             this.textEditorToolStripMenuItem.Click += new System.EventHandler(this.textEditorToolStripMenuItem_Click);
@@ -505,7 +507,7 @@
             // songEditorToolStripMenuItem
             // 
             this.songEditorToolStripMenuItem.Name = "songEditorToolStripMenuItem";
-            this.songEditorToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
+            this.songEditorToolStripMenuItem.Size = new System.Drawing.Size(173, 22);
             this.songEditorToolStripMenuItem.Text = "Song Editor";
             this.songEditorToolStripMenuItem.ToolTipText = "Edit songs played on the Wind Waker.";
             this.songEditorToolStripMenuItem.Click += new System.EventHandler(this.songEditorToolStripMenuItem_Click);
@@ -602,6 +604,13 @@
             this.mainArea.Padding = new System.Windows.Forms.Padding(3, 3, 3, 24);
             this.mainArea.Size = new System.Drawing.Size(1362, 656);
             this.mainArea.TabIndex = 0;
+            // 
+            // enemyDropEditorToolStripMenuItem
+            // 
+            this.enemyDropEditorToolStripMenuItem.Name = "enemyDropEditorToolStripMenuItem";
+            this.enemyDropEditorToolStripMenuItem.Size = new System.Drawing.Size(173, 22);
+            this.enemyDropEditorToolStripMenuItem.Text = "Enemy Drop Editor";
+            this.enemyDropEditorToolStripMenuItem.Click += new System.EventHandler(this.enemyDropEditorToolStripMenuItem_Click);
             // 
             // MainEditor
             // 
@@ -706,5 +715,6 @@
         private System.Windows.Forms.ToolStripMenuItem editorsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem textEditorToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem songEditorToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem enemyDropEditorToolStripMenuItem;
     }
 }
