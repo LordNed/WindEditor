@@ -28,14 +28,14 @@ namespace WindViewer.Forms
         private WindWakerEntityData _selectedEntityFile;
         private EditorHelpers.EntityLayer _selectedEntityLayer;
 
-        private Camera _camera;
+        //private Camera _camera;
 
         //Rendering stuffs
-        private J3DRenderer _renderer;
-        private DebugRenderer _debugRenderer;
-        private List<Camera> _cameras;
+        //private J3DRenderer _renderer;
+        //private DebugRenderer _debugRenderer;
+        //private List<Camera> _cameras;
 
-        private List<IEditorTool> _editorTools;
+        //private List<IEditorTool> _editorTools;
 
 
         //Events
@@ -49,15 +49,17 @@ namespace WindViewer.Forms
         private bool _glControlInitalized;
 
         //Framerate Independent Camera Movement
-        public static float DeltaTime;
-        public static float Time;
+        //public static float DeltaTime;
+        //public static float Time;
+
+        private EditorCore _editorCore;
 
         public MainEditor()
         {
             //Initialize the WinForm
             InitializeComponent();
             KeyPreview = true;
-
+            
             _mruMenu = new MruStripMenu(mruList, OnMruClickedHandler, _mruRegKey + "\\MRU", 6);
 
             SelectedEntityFileChanged += delegate(WindWakerEntityData data)
@@ -81,7 +83,7 @@ namespace WindViewer.Forms
         {
             _loadedWorldspaceProject = null;
 
-            _camera = new Camera();
+            /*_camera = new Camera();
             _camera.ClearColor = Color.DarkSlateGray;
             _cameras = new List<Camera>();
             _cameras.Add(_camera);
@@ -93,7 +95,7 @@ namespace WindViewer.Forms
 
             _debugRenderer = new DebugRenderer();
             _debugRenderer.Initialize(); 
-            _editorTools.Add(_debugRenderer);
+            _editorTools.Add(_debugRenderer);*/
 
             _glControlInitalized = true;
 
@@ -119,6 +121,7 @@ namespace WindViewer.Forms
         void glControl_Load(object sender, EventArgs e)
         {
             Application.Idle += Application_Idle;
+            _editorCore = new EditorCore();
         }
 
         void glControl_Paint(object sender, PaintEventArgs e)
@@ -249,7 +252,7 @@ namespace WindViewer.Forms
 
         void RenderFrame()
         {
-            if (!_glControlInitalized)
+            /*if (!_glControlInitalized)
                 return;
 
             DeltaTime = Program.DeltaTimeStopwatch.Elapsed.Milliseconds / 1000f;
@@ -317,9 +320,10 @@ namespace WindViewer.Forms
                 DebugRenderer.DrawLine(mouseRay.Origin, mouseRay.Origin + mouseRay.Direction * 250f);
                 Console.WriteLine("Intersects: {0}, Distance: {1} At: {2}", bIntersects, distance, point);
 
-            }
+            }*/
 
-            Input.Internal_UpdateInputState();
+
+            _editorCore.ProcessFrame();
             glControl.SwapBuffers();
         }
 
@@ -688,7 +692,7 @@ namespace WindViewer.Forms
             _loadedWorldspaceProject = null;
             _selectedEntityFile = null;
             _selectedEntityLayer = EditorHelpers.EntityLayer.DefaultLayer;
-            _renderer.OnSceneUnload();
+            //_renderer.OnSceneUnload();
             UpdateProjectFolderTreeview();
             UpdateEntityTreeview();
             UpdateLayersView();

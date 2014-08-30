@@ -60,7 +60,7 @@ namespace WindViewer.Editor.Renderer
         {
             Transform = new Transform();
             Rect = new Rect(1, 1, 0, 0);
-            ClearColor = Color.SeaGreen;
+            ClearColor = Color.DodgerBlue;
             Current = this;
         }
 
@@ -124,7 +124,7 @@ namespace WindViewer.Editor.Renderer
             float moveSpeed = MoveSpeed;
             if (Input.GetKey(Keys.ShiftKey))
                 moveSpeed *= 2;
-            Transform.Position += Vector3.Multiply(offset, moveSpeed * MainEditor.DeltaTime);
+            Transform.Position += Vector3.Multiply(offset, moveSpeed * Time.DeltaTime);
         }
 
         public void Rotate(float x, float y)

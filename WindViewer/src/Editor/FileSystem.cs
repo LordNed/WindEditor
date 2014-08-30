@@ -26,6 +26,7 @@ namespace WindViewer.Editor
         /// function will eventually be Folder vs. ISO agnostic.
         /// </summary>
         /// <param name="relativeFilePath">Relative to the root dir of the WindWaker ISO extract.</param>
+        /// <param name="endian">Endian-ness of the file to load.</param>
         public static EndianBinaryReader LoadFileRelative(string relativeFilePath, Endian endian)
         {
             if (string.IsNullOrEmpty(Settings.Default.rootDiskDir))

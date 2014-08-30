@@ -66,11 +66,13 @@
     <Compile Include="src\Editor\Bluh\Physics.cs" />
     <Compile Include="src\Editor\Bluh\Plane.cs" />
     <Compile Include="src\Editor\Bluh\Ray.cs" />
+    <Compile Include="src\Editor\EditorCore.cs" />
     <Compile Include="src\Editor\FileSystem.cs" />
     <Compile Include="src\Editor\Renderer\CubeMesh.cs" />
     <Compile Include="src\Editor\Renderer\DebugRenderer.cs" />
     <Compile Include="src\Editor\Renderer\IRenderable.cs" />
     <Compile Include="src\Editor\Renderer\J3DRenderer.cs" />
+    <Compile Include="src\Editor\Time.cs" />
     <Compile Include="src\Editor\Tools\IEditorTool.cs" />
     <Compile Include="src\Editor\Renderer\Camera.cs" />
     <Compile Include="src\Editor\CommonClasses.cs" />

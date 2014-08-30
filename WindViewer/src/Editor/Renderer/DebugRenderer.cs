@@ -218,7 +218,7 @@ namespace WindViewer.Editor.Renderer
                 List<Instance> pendRemoval = new List<Instance>();
                 foreach (var instance in type.Value)
                 {
-                    instance.Lifetime -= MainEditor.DeltaTime;
+                    instance.Lifetime -= Time.DeltaTime;
                     if (instance.Lifetime <= 0f)
                         pendRemoval.Add(instance);
                 }
@@ -232,7 +232,7 @@ namespace WindViewer.Editor.Renderer
             List<LineInstance> linePendRemoval = new List<LineInstance>();
             foreach (var lineInstance in _lineRenderList)
             {
-                lineInstance.Lifetime -= MainEditor.DeltaTime;
+                lineInstance.Lifetime -= Time.DeltaTime;
 
                 if (lineInstance.Lifetime <= 0f)
                     linePendRemoval.Add(lineInstance);
