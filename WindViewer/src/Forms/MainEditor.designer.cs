@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainEditor));
             this.glControl = new OpenTK.GLControl();
             this.MainSplitter = new System.Windows.Forms.SplitContainer();
             this.leftColumGameSplit = new System.Windows.Forms.SplitContainer();
@@ -67,18 +68,22 @@
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.unloadWorldspaceProjectToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.editorsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.textEditorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.songEditorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.preferencesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.floatConverterToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.automatedTestSuiteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.optionsToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.wikiToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.issueTrackerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mainArea = new System.Windows.Forms.Panel();
-            this.optionsToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.enemyDropEditorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.MainSplitter)).BeginInit();
             this.MainSplitter.Panel1.SuspendLayout();
             this.MainSplitter.Panel2.SuspendLayout();
@@ -378,6 +383,7 @@
             // 
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
+            this.editorsToolStripMenuItem,
             this.optionsToolStripMenuItem,
             this.toolsToolStripMenuItem,
             this.helpToolStripMenuItem});
@@ -480,6 +486,32 @@
             this.exitToolStripMenuItem.Text = "E&xit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
+            // editorsToolStripMenuItem
+            // 
+            this.editorsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.textEditorToolStripMenuItem,
+            this.songEditorToolStripMenuItem,
+            this.enemyDropEditorToolStripMenuItem});
+            this.editorsToolStripMenuItem.Name = "editorsToolStripMenuItem";
+            this.editorsToolStripMenuItem.Size = new System.Drawing.Size(55, 20);
+            this.editorsToolStripMenuItem.Text = "Editors";
+            // 
+            // textEditorToolStripMenuItem
+            // 
+            this.textEditorToolStripMenuItem.Name = "textEditorToolStripMenuItem";
+            this.textEditorToolStripMenuItem.Size = new System.Drawing.Size(173, 22);
+            this.textEditorToolStripMenuItem.Text = "Text Editor";
+            this.textEditorToolStripMenuItem.ToolTipText = "Edit text and text colors.";
+            this.textEditorToolStripMenuItem.Click += new System.EventHandler(this.textEditorToolStripMenuItem_Click);
+            // 
+            // songEditorToolStripMenuItem
+            // 
+            this.songEditorToolStripMenuItem.Name = "songEditorToolStripMenuItem";
+            this.songEditorToolStripMenuItem.Size = new System.Drawing.Size(173, 22);
+            this.songEditorToolStripMenuItem.Text = "Song Editor";
+            this.songEditorToolStripMenuItem.ToolTipText = "Edit songs played on the Wind Waker.";
+            this.songEditorToolStripMenuItem.Click += new System.EventHandler(this.songEditorToolStripMenuItem_Click);
+            // 
             // optionsToolStripMenuItem
             // 
             this.optionsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -518,6 +550,13 @@
             this.automatedTestSuiteToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
             this.automatedTestSuiteToolStripMenuItem.Text = "&Automated Test Suite...";
             this.automatedTestSuiteToolStripMenuItem.Click += new System.EventHandler(this.automatedTestSuiteToolStripMenuItem_Click);
+            // 
+            // optionsToolStripMenuItem1
+            // 
+            this.optionsToolStripMenuItem1.Name = "optionsToolStripMenuItem1";
+            this.optionsToolStripMenuItem1.Size = new System.Drawing.Size(197, 22);
+            this.optionsToolStripMenuItem1.Text = "&Options...";
+            this.optionsToolStripMenuItem1.Click += new System.EventHandler(this.optionsToolStripMenuItem1_Click);
             // 
             // helpToolStripMenuItem
             // 
@@ -566,12 +605,12 @@
             this.mainArea.Size = new System.Drawing.Size(1362, 656);
             this.mainArea.TabIndex = 0;
             // 
-            // optionsToolStripMenuItem1
+            // enemyDropEditorToolStripMenuItem
             // 
-            this.optionsToolStripMenuItem1.Name = "optionsToolStripMenuItem1";
-            this.optionsToolStripMenuItem1.Size = new System.Drawing.Size(197, 22);
-            this.optionsToolStripMenuItem1.Text = "&Options...";
-            this.optionsToolStripMenuItem1.Click += new System.EventHandler(this.optionsToolStripMenuItem1_Click);
+            this.enemyDropEditorToolStripMenuItem.Name = "enemyDropEditorToolStripMenuItem";
+            this.enemyDropEditorToolStripMenuItem.Size = new System.Drawing.Size(173, 22);
+            this.enemyDropEditorToolStripMenuItem.Text = "Enemy Drop Editor";
+            this.enemyDropEditorToolStripMenuItem.Click += new System.EventHandler(this.enemyDropEditorToolStripMenuItem_Click);
             // 
             // MainEditor
             // 
@@ -581,6 +620,7 @@
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.mainArea);
             this.Controls.Add(this.menuStrip1);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "MainEditor";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
@@ -672,5 +712,9 @@
         private System.Windows.Forms.ToolStripMenuItem deleteAllChunksOfTypeToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem automatedTestSuiteToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem optionsToolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem editorsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem textEditorToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem songEditorToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem enemyDropEditorToolStripMenuItem;
     }
 }

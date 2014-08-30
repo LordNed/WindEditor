@@ -56,6 +56,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Helpers.cs" />
     <Compile Include="src\Editor\Bluh\BinaryTextureImage.cs" />
     <Compile Include="src\Editor\Bluh\CubeMeshSolid.cs" />
     <Compile Include="src\Editor\Bluh\CubeMeshWire.cs" />
@@ -71,6 +72,8 @@
     <Compile Include="src\Editor\Renderer\DebugRenderer.cs" />
     <Compile Include="src\Editor\Renderer\IRenderable.cs" />
     <Compile Include="src\Editor\Renderer\J3DRenderer.cs" />
+    <Compile Include="src\Editor\Tools\ItemIDEnum.cs" />
+    <Compile Include="src\FileFormats\BMG.cs" />
     <Compile Include="src\Editor\Tools\IEditorTool.cs" />
     <Compile Include="src\Editor\Renderer\Camera.cs" />
     <Compile Include="src\Editor\CommonClasses.cs" />
@@ -82,7 +85,11 @@
     <Compile Include="src\Editor\Tools\MovementGizmo.cs" />
     <Compile Include="src\Editor\Transform.cs" />
     <Compile Include="src\Editor\WorldspaceProject.cs" />
+    <Compile Include="src\FileFormats\BMGExporter.cs" />
+    <Compile Include="src\FileFormats\BMC.cs" />
+    <Compile Include="src\FileFormats\BMCExporter.cs" />
     <Compile Include="src\FileFormats\GenericArchiveData.cs" />
+    <Compile Include="src\FileFormats\ActorDat.cs" />
     <Compile Include="src\FileFormats\StaticCollisionModel.cs" />
     <Compile Include="src\FileFormats\WindWakerEntityData.cs" />
     <Compile Include="src\Forms\Dialogs\AboutWindow.cs">
@@ -301,6 +308,12 @@
     <Compile Include="src\Forms\EntityEditors\VirtEditor.Designer.cs">
       <DependentUpon>VirtEditor.cs</DependentUpon>
     </Compile>
+    <Compile Include="src\Forms\Item Drop Editor\DropEditorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Forms\Item Drop Editor\DropEditorForm.designer.cs">
+      <DependentUpon>DropEditorForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="src\Forms\MainEditor.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -309,6 +322,12 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="src\Forms\Song Editor\SongEditorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Forms\Song Editor\SongEditorForm.designer.cs">
+      <DependentUpon>SongEditorForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="src\Forms\TestUserControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -319,6 +338,18 @@
     <Compile Include="src\Editor\Util\MruStripMenu.cs" />
     <Compile Include="src\Editor\Util\ObjectExtensions.cs" />
     <Compile Include="src\Editor\Util\Reflector.cs" />
+    <Compile Include="src\Forms\Text Editor\TextColorEditorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Forms\Text Editor\TextColorEditorForm.Designer.cs">
+      <DependentUpon>TextColorEditorForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="src\Forms\Text Editor\TextEditorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Forms\Text Editor\TextEditorForm.designer.cs">
+      <DependentUpon>TextEditorForm.cs</DependentUpon>
+    </Compile>
     <EmbeddedResource Include="src\Forms\Dialogs\AboutWindow.resx">
       <DependentUpon>AboutWindow.cs</DependentUpon>
       <SubType>Designer</SubType>
@@ -428,6 +459,9 @@
     <EmbeddedResource Include="src\Forms\EntityEditors\VirtEditor.resx">
       <DependentUpon>VirtEditor.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="src\Forms\Item Drop Editor\DropEditorForm.resx">
+      <DependentUpon>DropEditorForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\MainEditor.resx">
       <DependentUpon>MainEditor.cs</DependentUpon>
     </EmbeddedResource>
@@ -441,8 +475,17 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <EmbeddedResource Include="src\Forms\Song Editor\SongEditorForm.resx">
+      <DependentUpon>SongEditorForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="src\Forms\TestUserControl.resx">
       <DependentUpon>TestUserControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Forms\Text Editor\TextColorEditorForm.resx">
+      <DependentUpon>TextColorEditorForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Forms\Text Editor\TextEditorForm.resx">
+      <DependentUpon>TextEditorForm.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="ClassDiagram1.cd" />
     <None Include="Properties\Settings.settings">
@@ -471,6 +514,13 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Resources\texteditorlogo.png" />
+    <Content Include="Resources\WWdown.png" />
+    <Content Include="Resources\WWempty.png" />
+    <None Include="Resources\WWleft %281%29.png" />
+    <Content Include="Resources\WWMiddleNew.png" />
+    <Content Include="Resources\WWright.png" />
+    <Content Include="Resources\WWup.png" />
     <None Include="ExternalTools\arcExtract.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -480,6 +530,7 @@
     <None Include="ExternalTools\yaz0enc.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <Content Include="GameFormatReader.dll" />
     <Content Include="Resources\aboutlogo.png" />
   </ItemGroup>
   <ItemGroup />
