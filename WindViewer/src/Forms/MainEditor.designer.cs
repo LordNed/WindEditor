@@ -115,7 +115,6 @@
             this.glControl.Size = new System.Drawing.Size(965, 629);
             this.glControl.TabIndex = 1;
             this.glControl.VSync = true;
-            this.glControl.Load += new System.EventHandler(this.glControl_Load);
             // 
             // MainSplitter
             // 

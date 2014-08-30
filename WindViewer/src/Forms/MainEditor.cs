@@ -1,17 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 using FolderSelect;
 using JWC;
 using OpenTK;
-using OpenTK.Graphics.OpenGL;
-using OpenTK.Math;
 using WindViewer.Editor;
-using WindViewer.Editor.Renderer;
-using WindViewer.Editor.Tools;
 using WindViewer.FileFormats;
 using WindViewer.Forms.Dialogs;
 using WindViewer.Forms.EntityEditors;
@@ -47,23 +42,44 @@ namespace WindViewer.Forms
             KeyPreview = true;
             
             _mruMenu = new MruStripMenu(mruList, OnMruClickedHandler, _mruRegKey + "\\MRU", 6);
+            _loadedWorldspaceProject = null;
 
-            SelectedEntityFileChanged += delegate(WindWakerEntityData data)
-            {
-                Console.WriteLine("Changing Ent file...");
-            };
-
-            //Register a handler for WorldspaceProjectLoaded that sets the Window's title.
+            // Register a handler for WorldspaceProjectLoaded that sets the Window's title.
             WorldspaceProjectLoaded += OnWorldSpaceProjectLoaded;
 
-            glControl.Paint += glControl_Paint;
             glControl.KeyDown += HandleEventKeyDown;
             glControl.KeyUp += HandleEventKeyUp;
             glControl.MouseDown += HandleEventMouseDown;
             glControl.MouseMove += HandleEventMouseMove;
             glControl.MouseUp += HandleEventMouseUp;
             glControl.Resize += Display.Internal_EventResize;
+
+            glControl.Load += (sender, args) =>
+            {
+                // Hook Application Idle to force rendering while no events are happening.
+                Application.Idle += HandleApplicationIdle;
+
+                // Initialize our core once the glControl has been created as initalization
+                // requires a glContext.
+                _editorCore = new EditorCore();
+            };
+
+            // Hook the glControl's Paint function (which is called every frame thanks to above)
+            glControl.Paint += (sender, args) => RenderFrame();
         }
+
+        private void MainEditor_Load(object sender, EventArgs e)
+        {
+            // Check to see if they've set up user prefs before.
+            if (string.IsNullOrEmpty(Properties.Settings.Default.rootDiskDir))
+            {
+                MessageBox.Show(
+                    "Application paths have not been configured. Not all tools will function. Please configure via Tools->Options.",
+                    "Please Set Editor Paths", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        #region Event Handlers
 
         private void HandleEventKeyDown(object sender, KeyEventArgs e)
         {
@@ -90,55 +106,12 @@ namespace WindViewer.Forms
             _editorCore.InputSetMouseBtnState(e.Button, false);
         }
 
-
-        private void MainEditor_Load(object sender, EventArgs e)
-        {
-            _loadedWorldspaceProject = null;
-
-            /*_camera = new Camera();
-            _camera.ClearColor = Color.DarkSlateGray;
-            _cameras = new List<Camera>();
-            _cameras.Add(_camera);
-
-            _editorTools = new List<IEditorTool>(); 
-            //Add our renderers to the list 
-            _renderer = new J3DRenderer();
-            _renderer.Initialize();
-
-            _debugRenderer = new DebugRenderer();
-            _debugRenderer.Initialize(); 
-            _editorTools.Add(_debugRenderer);*/
-
-            _glControlInitalized = true;
-
-            // Check to see if they've set up user prefs before.
-            if (string.IsNullOrEmpty(Properties.Settings.Default.rootDiskDir))
-            {
-                MessageBox.Show(
-                    "Application paths have not been configured. Not all tools will function. Please configure via Tools->Options.",
-                    "Please Set Editor Paths", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-        }
-
-
-        #region GLControl
-        void Application_Idle(object sender, EventArgs e)
+        private void HandleApplicationIdle(object sender, EventArgs e)
         {
             while (glControl.IsIdle)
             {
                 RenderFrame();
             }
-        }
-
-        void glControl_Load(object sender, EventArgs e)
-        {
-            Application.Idle += Application_Idle;
-            _editorCore = new EditorCore();
-        }
-
-        void glControl_Paint(object sender, PaintEventArgs e)
-        {
-            RenderFrame();
         }
 
         #endregion
@@ -208,6 +181,8 @@ namespace WindViewer.Forms
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Application.Exit();
+
+            // ToDo: Ask the user if they want to save.
         }
 
         private void OnMruClickedHandler(int number, string filename)
@@ -240,6 +215,12 @@ namespace WindViewer.Forms
             Process.Start(@"https://github.com/LordNed/WindEditor/issues");
         }
 
+        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            AboutWindow popup = new AboutWindow();
+            popup.Show();
+        }
+
         /// <summary>
         /// Opens a Utility for converting Big-Endian floats from Hexadecimal to Float and back.
         /// </summary>
@@ -249,101 +230,19 @@ namespace WindViewer.Forms
             popup.Show(this);
         }
 
-        private void preferencesToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            /*PreferencesWindow popup = new PreferencesWindow();
-            popup.Show(this);*/
-        }
-
-        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            AboutWindow popup = new AboutWindow();
-            popup.Show();
-        }
         #endregion
 
         void RenderFrame()
         {
-            /*if (!_glControlInitalized)
+            if (_editorCore == null)
                 return;
-
-            DeltaTime = Program.DeltaTimeStopwatch.Elapsed.Milliseconds / 1000f;
-            Time += DeltaTime;
-            Program.DeltaTimeStopwatch.Restart();
-
-            foreach (IEditorTool tool in _editorTools)
-            {
-                tool.Update();
-            }
-
-            DebugRenderer.DrawWireCube(Vector3.Zero, Color.DarkRed, Quaternion.Identity, new Vector3(10, 10, 10));
-
-            GL.Enable(EnableCap.ScissorTest);
-            foreach (var camera in _cameras)
-            {
-
-                GL.Viewport((int)(camera.Rect.X * Display.Width), (int)(camera.Rect.Y * Display.Height), camera.PixelWidth, camera.PixelHeight);
-                GL.Scissor((int)(camera.Rect.X * Display.Width), (int)(camera.Rect.Y * Display.Height), camera.PixelWidth, camera.PixelHeight);
-
-
-                //Actual render stuff
-                GL.ClearColor(camera.ClearColor);
-                GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-
-                //ToDo: Put these in a list...
-                _renderer.Render(camera);
-                _debugRenderer.Render(camera);
-
-
-            }
-            GL.Disable(EnableCap.ScissorTest);
-
-            foreach (IEditorTool tool in _editorTools)
-            {
-                tool.PostRenderUpdate();
-            }
-
-
-            //ToDo: This should be moved inside the camera, camera should be an IEditorTool
-            if (Input.GetKey(Keys.W))
-                _camera.Move(0f, 0f, 1);
-            if (Input.GetKey(Keys.S))
-                _camera.Move(0f, 0f, -1);
-            if (Input.GetKey(Keys.A))
-                _camera.Move(1, 0f, 0f);
-            if (Input.GetKey(Keys.D))
-                _camera.Move(-1, 0f, 0f);
-
-            if (Input.GetMouseButton(1))
-            {
-                _camera.Rotate(Input.MouseDelta.X, Input.MouseDelta.Y);
-            }
-
-            if (Input.GetKeyDown(Keys.Q))
-            {
-                Ray mouseRay = _camera.ViewportPointToRay(Input.MousePosition);
-                float distance;
-                Vector3 point;
-
-                bool bIntersects = Physics.RayVsPlane(mouseRay, new Plane(Vector3.Zero, Vector3.UnitY),
-                    out distance, out point);
-
-                DebugRenderer.DrawLine(mouseRay.Origin, mouseRay.Origin + mouseRay.Direction * 250f);
-                Console.WriteLine("Intersects: {0}, Distance: {1} At: {2}", bIntersects, distance, point);
-
-            }*/
-
 
             _editorCore.ProcessFrame();
             glControl.SwapBuffers();
         }
-
-
-
+        
         private void UpdateEntityTreeview()
         {
-            Stopwatch timer = Stopwatch.StartNew();
             toolStripStatusLabel1.Text = "Updating Entity Treeview...";
 
             EntityTreeview.SuspendLayout();
@@ -417,7 +316,6 @@ namespace WindViewer.Forms
 
             EntityTreeview.EndUpdate();
             EntityTreeview.ResumeLayout();
-            Console.WriteLine("Updating ETV took: " + timer.Elapsed);
             toolStripStatusLabel1.Text = "Completed.";
         }
 
@@ -535,6 +433,43 @@ namespace WindViewer.Forms
             //ToDo: Ask if the user wants to save.
         }
 
+        private void newFromArchiveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string[] filePaths = EditorHelpers.ShowOpenFileDialog("Wind Waker Archives (*.arc; *.rarc)|*.arc; *.rarc|All Files (*.*)|*.*", true);
+
+            //A canceled OFD returns an empty array.
+            if (filePaths.Length == 0)
+                return;
+
+            //A canceled CWDRFA returns an empty string
+            string workDir = CreateWorkingDirFromArchive(filePaths);
+            if (workDir == string.Empty)
+                return;
+
+            OpenFileFromWorkingDir(workDir);
+        }
+        private void exportArchivesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ExportArchivesForWorldspaceProject();
+        }
+        private void unloadWorldspaceProject_Click(object sender, EventArgs e)
+        {
+            UnloadLoadedWorldspaceProject();
+
+            unloadWorldspaceProjectToolStripMenuItem.Enabled = false;
+        }
+
+        private void automatedTestSuiteToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            AutomatedTestingSuite ats = new AutomatedTestingSuite(this);
+            ats.Show();
+        }
+        private void optionsToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            var settings = new SettingsDialog();
+            settings.Show();
+        }
+
         private void EntityTreeview_AfterSelect(object sender, TreeViewEventArgs e)
         {
             WindWakerEntityData.BaseChunk chunk = e.Node.Tag as WindWakerEntityData.BaseChunk;
@@ -547,11 +482,9 @@ namespace WindViewer.Forms
 
                 //Find the Editor Type attribute.
                 EntEditorType editorType = null;
-                WindWakerEntityData.PlyrChunk plyr = chunk as WindWakerEntityData.PlyrChunk; ;
 
                 if (chunk.GetType().IsDefined(typeof(EntEditorType), true))
                 {
-                    Console.WriteLine("Yes!");
                     editorType = (EntEditorType)chunk.GetType().GetCustomAttributes(typeof(EntEditorType), false)[0];
                 }
 
@@ -606,22 +539,7 @@ namespace WindViewer.Forms
             }
         }
 
-        private void newFromArchiveToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            string[] filePaths = EditorHelpers.ShowOpenFileDialog("Wind Waker Archives (*.arc; *.rarc)|*.arc; *.rarc|All Files (*.*)|*.*", true);
-
-            //A canceled OFD returns an empty array.
-            if (filePaths.Length == 0)
-                return;
-
-            //A canceled CWDRFA returns an empty string
-            string workDir = CreateWorkingDirFromArchive(filePaths);
-            if (workDir == string.Empty)
-                return;
-
-            OpenFileFromWorkingDir(workDir);
-        }
-
+        
         /// <summary>
         /// This creates a new "Working Dir" for a project (ie: "My Documents\Wind Viewer\MiniHyo.wrkDir"). It is the equivelent
         /// of setting up a project directory for new files. 
@@ -693,11 +611,7 @@ namespace WindViewer.Forms
             return workingDir;
         }
 
-        private void exportArchivesToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            ExportArchivesForWorldspaceProject();
-        }
-
+        
 
         public void UnloadLoadedWorldspaceProject()
         {
@@ -777,29 +691,13 @@ namespace WindViewer.Forms
             Console.WriteLine("Project Export completed.");
         }
 
-        private void unloadWorldspaceProject_Click(object sender, EventArgs e)
-        {
-            UnloadLoadedWorldspaceProject();
-
-            unloadWorldspaceProjectToolStripMenuItem.Enabled = false;
-        }
-
-        private void automatedTestSuiteToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            AutomatedTestingSuite ats = new AutomatedTestingSuite(this);
-            ats.Show();
-        }
-
+        
         private void OnWorldSpaceProjectLoaded(WorldspaceProject worldspaceProject)
         {
             // Modify the title of the WinForm UI to reflect the currently loaded Worldspace Project.
             Text = string.Format("Wind Editor ({0} - {1})", worldspaceProject.Name, worldspaceProject.ProjectFilePath);
         }
 
-        private void optionsToolStripMenuItem1_Click(object sender, EventArgs e)
-        {
-            var settings = new SettingsDialog();
-            settings.Show();
-        }
+
     }
 }
