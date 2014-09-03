@@ -5,7 +5,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
-using OpenTK.Math;
+using WindViewer.Editor.Components.DefaultComponents;
 using WindViewer.Editor.Renderer;
 using WindViewer.Editor.Tools;
 
@@ -16,15 +16,18 @@ namespace WindViewer.Editor
     /// appropriate events back into this which should allow us to make the UI and editor less
     /// coupled in the future.
     /// </summary>
-    public class EditorCore
+    public class EditorCore : Singleton<EditorCore>
     {
+        
         private List<BaseRenderer> _renderList;
         private List<IEditorTool> _editorToolList;
         private List<Camera> _cameraList;
-
-
+        
         /// <summary> Used to calculate the delta time of each processed frame. </summary>
         private Stopwatch _dtStopWatch;
+
+        private List<BaseComponent> _componentList;
+        private List<EditorObject> _editorObjectList; 
 
         public EditorCore()
         {
@@ -32,6 +35,8 @@ namespace WindViewer.Editor
             _editorToolList = new List<IEditorTool>();
             _cameraList = new List<Camera>();
             _dtStopWatch = new Stopwatch();
+            _componentList = new List<BaseComponent>();
+            _editorObjectList = new List<EditorObject>();
 
             var dbgRender = new DebugRenderer();
 
@@ -42,12 +47,20 @@ namespace WindViewer.Editor
             // Add the default tools
             _editorToolList.Add(dbgRender);
 
-            // Add a default camera
-            _cameraList.Add(new Camera());
-
             // Initialize the default renderers
             foreach(var renderer in _renderList)
                 renderer.Initialize();
+
+            // Add a default camera
+            Console.WriteLine("Starting camera.");
+            EditorObject cameraObj = new EditorObject();
+            var camera = cameraObj.AddComponent<Camera>();
+            camera.Rect = new Rect(1, 1, 0, 0);
+            camera.ClearColor = Color.DodgerBlue;
+            RegisterCamera(camera);
+
+            RegisterComponent(cameraObj.AddComponent<FPSCameraMovement>());
+            Console.WriteLine("end Camera");
         }
 
         /// <summary>
@@ -58,23 +71,28 @@ namespace WindViewer.Editor
         public void ProcessFrame()
         {
             // Calculate a new DeltaTime for this frame (time it took the last frame to render).
-            Time.Internal_SetDeltaTime(_dtStopWatch.ElapsedMilliseconds/1000f);
-            Time.Internal_SetTimeSinceStart(Time.TimeSinceStart + Time.DeltaTime);
+            Time.Internal_UpdateTime(_dtStopWatch.ElapsedMilliseconds/1000f);
             _dtStopWatch.Restart();
 
             // Calculate the input for this frame (calculate if a button was clicked/released/held, etc.)
             Input.Internal_UpdateInputState();
 
             // Update all registered tools
-            foreach(IEditorTool tool in _editorToolList)
+            foreach (IEditorTool tool in _editorToolList)
                 tool.Update();
+
+            // Update all components
+            foreach(BaseComponent component in _componentList)
+                component.Update();
 
             // Now draw each camera
             GL.Enable(EnableCap.ScissorTest);
             foreach (var camera in _cameraList)
             {
-                GL.Viewport((int)(camera.Rect.X * Display.Width), (int)(camera.Rect.Y * Display.Height), camera.PixelWidth, camera.PixelHeight);
-                GL.Scissor((int)(camera.Rect.X * Display.Width), (int)(camera.Rect.Y * Display.Height), camera.PixelWidth, camera.PixelHeight);
+                GL.Viewport((int) (camera.Rect.X*Display.Width), (int) (camera.Rect.Y*Display.Height), camera.PixelWidth,
+                            camera.PixelHeight);
+                GL.Scissor((int) (camera.Rect.X*Display.Width), (int) (camera.Rect.Y*Display.Height), camera.PixelWidth,
+                           camera.PixelHeight);
 
 
                 //Actual render stuff
@@ -85,44 +103,33 @@ namespace WindViewer.Editor
                 // Render each renderer with this camera.
                 foreach (var renderer in _renderList)
                     renderer.Render(camera);
-
-
-                // ToDo: Anything but this.
-                if (Input.GetKey(Keys.W))
-                    camera.Move(0f, 0f, 1);
-                if (Input.GetKey(Keys.S))
-                    camera.Move(0f, 0f, -1);
-                if (Input.GetKey(Keys.A))
-                    camera.Move(1, 0f, 0f);
-                if (Input.GetKey(Keys.D))
-                    camera.Move(-1, 0f, 0f);
-
-                if (Input.GetMouseButton(1))
-                {
-                    camera.Rotate(Input.MouseDelta.X, Input.MouseDelta.Y);
-                }
-
-                if (Input.GetKeyDown(Keys.Q))
-                {
-                    Ray mouseRay = camera.ViewportPointToRay(Input.MousePosition);
-                    float distance;
-                    Vector3 point;
-
-                    bool bIntersects = Physics.RayVsPlane(mouseRay, new Plane(Vector3.Zero, Vector3.UnitY),
-                        out distance, out point);
-
-                    DebugRenderer.DrawLine(mouseRay.Origin, mouseRay.Origin + mouseRay.Direction * 250f);
-                    Console.WriteLine("Intersects: {0}, Distance: {1} At: {2}", bIntersects, distance, point);
-
-                }
             }
             GL.Disable(EnableCap.ScissorTest);
 
             // Perform late update on all registered tools.
-            foreach(IEditorTool tool in _editorToolList)
+            foreach (IEditorTool tool in _editorToolList)
                 tool.PostRenderUpdate();
 
             DebugRenderer.DrawWireCube(Vector3.Zero, Color.DarkRed, Quaternion.Identity, new Vector3(10, 10, 10));
+        }
+
+        public void RegisterComponent(BaseComponent component)
+        {
+            if (component == null)
+                throw new ArgumentNullException("component", "Cannot register a null component!");
+
+            if (_componentList.Contains(component))
+                throw new Exception(string.Format("Component list already contains component {0}!", component));
+
+            _componentList.Add(component);
+
+            if (!_editorObjectList.Contains(component.editorObject))
+                _editorObjectList.Add(component.editorObject);
+        }
+
+        public void RegisterCamera(Camera camera)
+        {
+            _cameraList.Add(camera);
         }
 
         /// <summary>

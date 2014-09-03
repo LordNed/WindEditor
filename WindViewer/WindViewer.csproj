@@ -56,6 +56,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\Editor\Components\BaseComponent.cs" />
     <Compile Include="src\Editor\Bluh\BinaryTextureImage.cs" />
     <Compile Include="src\Editor\Bluh\CubeMeshSolid.cs" />
     <Compile Include="src\Editor\Bluh\CubeMeshWire.cs" />
@@ -66,15 +67,18 @@
     <Compile Include="src\Editor\Bluh\Physics.cs" />
     <Compile Include="src\Editor\Bluh\Plane.cs" />
     <Compile Include="src\Editor\Bluh\Ray.cs" />
+    <Compile Include="src\Editor\Components\DefaultComponents\FPSCameraMovement.cs" />
     <Compile Include="src\Editor\EditorCore.cs" />
+    <Compile Include="src\Editor\Components\EditorObject.cs" />
     <Compile Include="src\Editor\FileSystem.cs" />
     <Compile Include="src\Editor\Renderer\CubeMesh.cs" />
     <Compile Include="src\Editor\Renderer\DebugRenderer.cs" />
     <Compile Include="src\Editor\Renderer\IRenderable.cs" />
     <Compile Include="src\Editor\Renderer\J3DRenderer.cs" />
+    <Compile Include="src\Editor\Singleton.cs" />
     <Compile Include="src\Editor\Time.cs" />
     <Compile Include="src\Editor\Tools\IEditorTool.cs" />
-    <Compile Include="src\Editor\Renderer\Camera.cs" />
+    <Compile Include="src\Editor\Components\Camera.cs" />
     <Compile Include="src\Editor\CommonClasses.cs" />
     <Compile Include="src\Editor\EditorAttributes.cs" />
     <Compile Include="src\Editor\EditorHelpers.cs" />
@@ -82,7 +86,7 @@
     <Compile Include="src\Editor\Renderer\BaseRenderer.cs" />
     <Compile Include="src\Editor\MathExtensions.cs" />
     <Compile Include="src\Editor\Tools\MovementGizmo.cs" />
-    <Compile Include="src\Editor\Transform.cs" />
+    <Compile Include="src\Editor\Components\Transform.cs" />
     <Compile Include="src\Editor\WorldspaceProject.cs" />
     <Compile Include="src\FileFormats\GenericArchiveData.cs" />
     <Compile Include="src\FileFormats\StaticCollisionModel.cs" />

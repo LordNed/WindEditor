@@ -1,14 +1,10 @@
-﻿using System;
-using System.Drawing;
-using System.Reflection;
+﻿using System.Drawing;
 using System.Windows.Forms;
 using OpenTK;
-using OpenTK.Input;
-using WindViewer.Forms;
 
 namespace WindViewer.Editor.Renderer
 {
-    public class Camera
+    public class Camera : BaseComponent
     {
         /// <summary> The near clipping plane distance. </summary>
         public float NearClipPlane = 250f;
@@ -45,24 +41,16 @@ namespace WindViewer.Editor.Renderer
 
         public static Camera Current;
 
-
-
-        //ToDo: Camera movement should really go onto a component for the Camera.
-        public Transform Transform { get; private set; }
-        public float MoveSpeed = 1000f;
-        public float MouseSensitivity = 0.1f;
-
         private Rect _rect;
         private Matrix4 _projMatrix;
         private Matrix4 _viewMatrix;
 
-        public Camera()
+        /*public Camera()
         {
-            Transform = new Transform();
             Rect = new Rect(1, 1, 0, 0);
             ClearColor = Color.DodgerBlue;
             Current = this;
-        }
+        }*/
 
         public Ray ViewportPointToRay(Vector3 mousePos)
         {
@@ -106,39 +94,10 @@ namespace WindViewer.Editor.Renderer
 
         public Matrix4 GetViewProjMatrix()
         {
-            _viewMatrix = Matrix4.LookAt(Transform.Position, Transform.Position + Transform.Forward, Vector3.UnitY);
+            _viewMatrix = Matrix4.LookAt(transform.Position, transform.Position + transform.Forward, Vector3.UnitY);
             _projMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(FieldOfView), AspectRatio, NearClipPlane, FarClipPlane);
 
             return _viewMatrix * _projMatrix;
-        }
-
-        public void Move(float x, float y, float z)
-        {
-            Vector3 offset = Vector3.Zero;
-            offset += Transform.Right * x;
-            offset += Transform.Forward * z;
-            offset.Y += y;
-
-            offset.NormalizeFast();
-
-            float moveSpeed = MoveSpeed;
-            if (Input.GetKey(Keys.ShiftKey))
-                moveSpeed *= 2;
-            Transform.Position += Vector3.Multiply(offset, moveSpeed * Time.DeltaTime);
-        }
-
-        public void Rotate(float x, float y)
-        {
-
-            Transform.Rotate(Vector3.UnitY, -x * MouseSensitivity);
-            Transform.Rotate(Transform.Right, y * MouseSensitivity);
-            Vector3 up = Vector3.Cross(Transform.Forward, Transform.Right);
-            if (Vector3.Dot(up, Vector3.UnitY) <= 0.001)
-            {
-                //rotate back if we went too far...
-                Transform.Rotate(Transform.Right, -y * MouseSensitivity);
-            }
-
         }
     }
 }

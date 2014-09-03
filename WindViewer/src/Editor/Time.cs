@@ -8,14 +8,10 @@
         public static float TimeSinceStart { get; private set; }
 
 
-        public static void Internal_SetDeltaTime(float deltaTime)
+        public static void Internal_UpdateTime(float deltaTime)
         {
             DeltaTime = deltaTime;
-        }
-
-        public static void Internal_SetTimeSinceStart(float time)
-        {
-            TimeSinceStart = time;
+            TimeSinceStart += deltaTime;
         }
     }
 }

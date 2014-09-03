@@ -127,7 +127,7 @@ namespace WindViewer.Editor.Tools
                 Vector3 rayIntersect;
                 float distance;
 
-                _gizmoIsTracking = Physics.RayVsPlane(mouseRay, transform.Position, Camera.Current.Transform.Forward, out distance, out rayIntersect);
+                _gizmoIsTracking = Physics.RayVsPlane(mouseRay, transform.Position, Camera.Current.transform.Forward, out distance, out rayIntersect);
                 _gizmoPosAtStart = transform.Position;
                 _gizmoRayOffset = (_gizmoPosAtStart - rayIntersect).Y;
             }
@@ -135,7 +135,7 @@ namespace WindViewer.Editor.Tools
             //Get their current mouse position
             Vector3 curRayPos;
 
-            Physics.RayVsPlane(mouseRay, transform.Position, Camera.Current.Transform.Forward, out curRayPos);
+            Physics.RayVsPlane(mouseRay, transform.Position, Camera.Current.transform.Forward, out curRayPos);
 
             //Get the difference on the x axis
             float deltaY = curRayPos.Y - _gizmoPosAtStart.Y;

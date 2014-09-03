@@ -59,6 +59,7 @@ namespace WindViewer.Forms
                 // Hook Application Idle to force rendering while no events are happening.
                 Application.Idle += HandleApplicationIdle;
 
+                Console.WriteLine("glContro loaded!");
                 // Initialize our core once the glControl has been created as initalization
                 // requires a glContext.
                 _editorCore = new EditorCore();
@@ -83,26 +84,41 @@ namespace WindViewer.Forms
 
         private void HandleEventKeyDown(object sender, KeyEventArgs e)
         {
+            if (_editorCore == null)
+                return;
+
             _editorCore.InputSetKeyState(e.KeyCode, true);
         }
 
         private void HandleEventKeyUp(object sender, KeyEventArgs e)
         {
+            if (_editorCore == null)
+                return;
+
             _editorCore.InputSetKeyState(e.KeyCode, false);
         }
 
         private void HandleEventMouseDown(object sender, MouseEventArgs e)
         {
+            if (_editorCore == null)
+                return;
+
             _editorCore.InputSetMouseBtnState(e.Button, true);
         }
 
         private void HandleEventMouseMove(object sender, MouseEventArgs e)
         {
+            if (_editorCore == null)
+                return;
+
             _editorCore.InputSetMousePos(new Vector2(e.X, e.Y));
         }
 
         private void HandleEventMouseUp(object sender, MouseEventArgs e)
         {
+            if (_editorCore == null)
+                return;
+
             _editorCore.InputSetMouseBtnState(e.Button, false);
         }
 

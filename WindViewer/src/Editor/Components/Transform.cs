@@ -2,7 +2,7 @@
 
 namespace WindViewer.Editor
 {
-    public class Transform
+    public class Transform : BaseComponent
     {
         #region EXPERIMENT_LATER
         /*private Matrix4 _transformMatrix;
