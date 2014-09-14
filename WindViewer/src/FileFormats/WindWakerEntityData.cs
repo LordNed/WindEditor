@@ -630,9 +630,10 @@ namespace WindViewer.FileFormats
         [EntEditorType(typeof(PlayerEditor))]
         public class PlyrChunk : BaseChunkSpatial
         {
+            public byte ID; //ID of the spawn
             [DisplayName]
             public string Name; //"Link"
-            public byte EventIndex; //Spcifies an event from the DZS file to play upon spawn. FF = no event.
+            public byte EventIndex; //Specifies an event from the DZS file to play upon spawn. FF = no event.
             [UnitTestValue((byte)0xFF)] public byte Unknown1; //Padding?
             public byte SpawnType; //How Link enters the room.
             public byte RoomNumber; //Room number the spawn is in.
@@ -660,7 +661,11 @@ namespace WindViewer.FileFormats
                 Transform.Position = position;
 
                 srcOffset += 24;
-                Rotation = new HalfRotation(data, ref srcOffset);
+                Rotation = new HalfRotation(data, ref srcOffset); //There's no Z rotation
+
+                srcOffset -= 1;
+
+                ID = FSHelpers.Read8(data, srcOffset++);
    
                 srcOffset += 2; //Two bytes Padding
             }
@@ -677,7 +682,8 @@ namespace WindViewer.FileFormats
                 FSHelpers.WriteFloat(stream, Transform.Position.Z);
                 FSHelpers.Write16(stream, (ushort)Rotation.X);
                 FSHelpers.Write16(stream, (ushort)Rotation.Y);
-                FSHelpers.Write16(stream, (ushort)Rotation.Z);
+                FSHelpers.Write8(stream, 0xFF);
+                FSHelpers.Write8(stream, ID);
 
                 //Padding.
                 FSHelpers.WriteArray(stream, FSHelpers.ToBytes(0xFFFF, 2));
