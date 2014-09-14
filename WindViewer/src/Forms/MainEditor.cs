@@ -310,7 +310,8 @@ namespace WindViewer.Forms
                             (DisplayName)Attribute.GetCustomAttribute(field, typeof(DisplayName));
                         if (dispNameAttribute != null)
                         {
-                            displayName = (string)field.GetValue(chunk);
+                            var value = field.GetValue(chunk);
+                            displayName = (value ?? "").ToString();
                         }
                     }
 

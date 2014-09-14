@@ -32,6 +32,7 @@ namespace WindViewer.Forms.EntityEditors
 
         private void UpdateEditorUiFromFile()
         {
+            fieldID.Value = _curChunk.ID;
             fieldName.Text = _curChunk.Name;
             fieldEventIndex.Value = _curChunk.EventIndex;
             fieldUnkn1.Value = _curChunk.Unknown1;
@@ -43,7 +44,6 @@ namespace WindViewer.Forms.EntityEditors
 
             fieldRotX.Value = _curChunk.Rotation.X;
             fieldRotY.Value = _curChunk.Rotation.Y;
-            fieldRotZ.Value = _curChunk.Rotation.Z;
         }
 
         private void fieldName_TextChanged(object sender, EventArgs e)
@@ -87,9 +87,11 @@ namespace WindViewer.Forms.EntityEditors
                 _curChunk.Rotation.X = (short)fieldRotX.Value;
             if(sender == fieldRotY)
                 _curChunk.Rotation.Y = (short)fieldRotY.Value;
-            if(sender == fieldRotZ)
-                _curChunk.Rotation.Z = (short)fieldRotZ.Value;
         }
 
+        private void fieldID_ValueChanged(object sender, EventArgs e)
+        {
+            _curChunk.ID = (byte)fieldID.Value;
+        }
     }
 }
