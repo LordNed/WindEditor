@@ -31,36 +31,30 @@ namespace WindViewer.Forms.EntityEditors
 
         private void UpdateEditorUiFromFile()
         {
-            fieldDestName.Text = _curChunk.DestinationName;
-            fieldSpawnIndex.Value = _curChunk.SpawnNumber;
-            fieldDestRoomIndex.Value = _curChunk.DestinationRoomNumber;
-            fieldUnknown1.Value = _curChunk.ExitType;
-            fieldPadding.Value = _curChunk.UnknownPadding;
+            fieldStageName.Text = _curChunk.StageName;
+            fieldSpawnID.Value = _curChunk.SpawnID;
+            fieldRoomID.Value = _curChunk.RoomID;
+            fieldFadeoutID.Value = _curChunk.FadeoutID;
         }
 
         private void fieldDestName_TextChanged(object sender, EventArgs e)
         {
-            _curChunk.DestinationName = fieldDestName.Text;
+            _curChunk.StageName = fieldStageName.Text;
         }
 
         private void fieldSpawnIndex_ValueChanged(object sender, EventArgs e)
         {
-            _curChunk.SpawnNumber = (byte)fieldSpawnIndex.Value;
+            _curChunk.SpawnID = (byte)fieldSpawnID.Value;
         }
 
         private void fieldDestRoomIndex_ValueChanged(object sender, EventArgs e)
         {
-            _curChunk.DestinationRoomNumber = (byte) fieldDestRoomIndex.Value;
+            _curChunk.RoomID = (byte) fieldRoomID.Value;
         }
 
         private void fieldUnknown1_ValueChanged(object sender, EventArgs e)
         {
-            _curChunk.ExitType = (byte) fieldUnknown1.Value;
-        }
-
-        private void fieldPadding_ValueChanged(object sender, EventArgs e)
-        {
-            _curChunk.UnknownPadding = (byte) fieldPadding.Value;
+            _curChunk.FadeoutID = (byte) fieldFadeoutID.Value;
         }
     }
 

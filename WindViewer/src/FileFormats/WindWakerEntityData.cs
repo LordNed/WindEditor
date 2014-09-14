@@ -590,25 +590,23 @@ namespace WindViewer.FileFormats
         public class SclsChunk : BaseChunk
         {
             [DisplayName]
-            public string DestinationName;
-            public byte SpawnNumber;
-            public byte DestinationRoomNumber;
-            public byte ExitType;
-            [UnitTestValue((byte)0xFF)] public byte UnknownPadding;
+            public string StageName; //Name of the stage to spawn in
+            public byte SpawnID; //ID of the spawn point to spawn at
+            public byte RoomID; //ID of the room to spawn in
+            public byte FadeoutID; //ID of the fadeout
 
             public SclsChunk()
                 : base("SCLS", "Exits")
             {
-                DestinationName = "INVALID";
+                StageName = "INVALID";
             }
 
             public override void LoadData(byte[] data, ref int srcOffset)
             {
-                DestinationName = FSHelpers.ReadString(data, srcOffset, 8);
-                SpawnNumber = FSHelpers.Read8(data, srcOffset + 8);
-                DestinationRoomNumber = FSHelpers.Read8(data, srcOffset + 9);
-                ExitType = FSHelpers.Read8(data, srcOffset + 10);
-                UnknownPadding = FSHelpers.Read8(data, srcOffset + 11);
+                StageName = FSHelpers.ReadString(data, srcOffset, 8);
+                SpawnID = FSHelpers.Read8(data, srcOffset + 8);
+                RoomID = FSHelpers.Read8(data, srcOffset + 9);
+                FadeoutID = FSHelpers.Read8(data, srcOffset + 10);
 
                 srcOffset += 12;
             }
@@ -616,11 +614,11 @@ namespace WindViewer.FileFormats
 
             public override void WriteData(BinaryWriter stream)
             {
-                FSHelpers.WriteString(stream, DestinationName, 8);
-                FSHelpers.Write8(stream, SpawnNumber);
-                FSHelpers.Write8(stream, DestinationRoomNumber);
-                FSHelpers.Write8(stream, ExitType);
-                FSHelpers.Write8(stream, UnknownPadding);
+                FSHelpers.WriteString(stream, StageName, 8);
+                FSHelpers.Write8(stream, SpawnID);
+                FSHelpers.Write8(stream, RoomID);
+                FSHelpers.Write8(stream, FadeoutID);
+                FSHelpers.Write8(stream, 0xFF);
             }
         }
 
