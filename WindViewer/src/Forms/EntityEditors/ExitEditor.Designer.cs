@@ -101,6 +101,7 @@
             // fieldSpawnID
             // 
             this.fieldSpawnID.Anchor = System.Windows.Forms.AnchorStyles.Right;
+            this.fieldSpawnID.Hexadecimal = true;
             this.fieldSpawnID.Location = new System.Drawing.Point(88, 29);
             this.fieldSpawnID.Maximum = new decimal(new int[] {
             255,
